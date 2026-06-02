@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:04 — validateEmpNo/saveEmployee 사원번호 0 이하 차단 추가
+﻿// 수정: 2026-06-03 08:20 — 사원번호 자동 배정 (_assignEmpNo), 번호 입력란 readonly, 유효성 검사 제거
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -196,20 +196,20 @@ function renderEmpFormFields(emp, readOnly = false) {
   const v = (k,def='') => emp ? (emp[k]!==undefined&&emp[k]!==''?emp[k]:def) : def;
   const jp=LANG==='JP';
   const dis = readOnly ? ' disabled' : '';
+  const assignedNo = isNew ? _assignEmpNo() : (v('no') ? String(v('no')).padStart(4,'0') : '');
 
   const html = `
   <div class="form-grid2">
     <div class="form-group">
       <div class="form-label-block">
         <div class="form-label-row">
-          <label class="form-label"><span class="form-req">*</span>${jp?'社員番号（4桁）':'사원번호（4자리）'}</label>
-          <span class="form-error" id="f-no-err"></span>
+          <label class="form-label"><span class="form-req">*</span>${jp?'社員番号':'사원번호'}</label>
+          <span style="font-size:11px;color:var(--text3);">${jp?'（自動採番）':'（자동 배정）'}</span>
         </div>
-        <div class="form-label-hint">${jp?'半角数字4桁のみ':'반각 숫자 4자리만'}</div>
       </div>
-      <input class="form-input" id="f-no" maxlength="4" value="${v('no')?String(v('no')).padStart(4,'0'):''}"
-        oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"
-        onkeydown="focusNext(event,'f-name')"${dis}>
+      <input class="form-input" id="f-no" value="${assignedNo}"
+        readonly style="background:#f3f4f6;color:var(--text3);cursor:default;"
+        onkeydown="focusNext(event,'f-name')">
     </div>
     <div></div>
     <div class="form-group">
@@ -724,14 +724,16 @@ function validateShahoStart(input, errId) {
 }
 
 // ══ EMP NO 0패딩 ══
-function padEmpNo(input) {
-  if(input.value) input.value = input.value.padStart(4,'0');
-  validateEmpNo(input);
-}
-
-// 전각 숫자(０１２３) → 반각
-function toHalfDigits(str) {
-  return String(str).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+// ══ AUTO EMP NO ══
+function _assignEmpNo() {
+  const used = new Set([
+    ...employees.map(e => String(e.no).padStart(4, '0')),
+    ...deletedEmpIds,
+    ...gasDeletedEmpIds,
+  ]);
+  let n = 1;
+  while (used.has(String(n).padStart(4, '0'))) n++;
+  return String(n).padStart(4, '0');
 }
 
 // ══ AGE DISPLAY ══
@@ -751,43 +753,6 @@ function updateAgeDisplay() {
   const ageEl   = document.getElementById('f-age-display');
   if (!birthEl || !ageEl) return;
   ageEl.textContent = calcAgeStr(birthEl.value, LANG === 'JP');
-}
-
-// ══ EMP NO VALIDATION ══
-function validateEmpNo(input) {
-  input.value = toHalfDigits(input.value).replace(/\D/g, '');
-  if(input.value.length > 4) input.value = input.value.slice(0,4);
-  const errEl = document.getElementById('f-no-err');
-  if(!errEl) return;
-  const jp = LANG==='JP';
-  if(!input.value) {
-    errEl.textContent = jp ? '必須入力' : '필수 입력';
-    input.classList.add('error');
-    return;
-  }
-  if(parseInt(input.value, 10) < 1) {
-    errEl.textContent = jp ? '従業員番号は1以上である必要があります。' : '사원 번호는 1 이상이어야 합니다.';
-    input.classList.add('error');
-    return;
-  }
-  const no = input.value.padStart(4,'0');
-  // 활성 사원 중복 체크 (Primary Key 중복 방지), 수정 시 자기 자신은 제외
-  const dup = employees.some((e,i) => {
-    if(editingEmpIdx !== -1 && i === editingEmpIdx) return false;
-    return String(e.no || '').padStart(4, '0') === no;
-  });
-  if(dup) {
-    errEl.textContent = jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다';
-    input.classList.add('error');
-    return;
-  }
-  // 삭제된 사원의 ID(Primary Key) 재사용 불가 — localStorage + GAS 시트 둘 다 체크
-  if(editingEmpIdx === -1 && (deletedEmpIds.includes(no) || gasDeletedEmpIds.includes(no))) {
-    errEl.textContent = jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요';
-    input.classList.add('error');
-    return;
-  }
-  errEl.textContent=''; input.classList.remove('error');
 }
 
 // ══ FAMILY ══
@@ -853,11 +818,6 @@ function saveEmployee() {
   const kana = toHalfSpace((kanaEl?.value||'').trim());
 
   let ok = true;
-  if(!noEl.value.trim().replace(/\D/g,'')) {
-    setFieldError('f-no-err', jp?'必須入力':'필수 입력', 'f-no'); ok = false;
-  } else if(parseInt(no, 10) < 1) {
-    setFieldError('f-no-err', jp?'従業員番号は1以上である必要があります。':'사원 번호는 1 이상이어야 합니다.', 'f-no'); ok = false;
-  } else validateEmpNo(noEl);
   if(!name) { setFieldError('f-name-err', jp?'必須入力':'필수 입력', 'f-name'); ok = false; }
   else clearFieldError('f-name-err', 'f-name');
   if(!kana) { setFieldError('f-kana-err', jp?'必須入力':'필수 입력', 'f-kana'); ok = false; }
@@ -872,18 +832,6 @@ function saveEmployee() {
   }
   if(!ok) {
     showToast(jp?'必須項目を確認してください':'필수 항목을 확인해 주세요','w');
-    return;
-  }
-
-  // Primary Key 중복 체크 — 신규/수정 모두, 수정 시 자기 자신 제외
-  const dup = employees.some((e,i) => {
-    if(editingEmpIdx !== -1 && i === editingEmpIdx) return false;
-    return String(e.no || '').padStart(4, '0') === no;
-  });
-  if(dup) { showToast(jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다','e'); return; }
-  // 삭제된 사원의 Primary Key 재사용 불가 — localStorage + GAS 시트 둘 다 체크
-  if(editingEmpIdx === -1 && (deletedEmpIds.includes(no) || gasDeletedEmpIds.includes(no))) {
-    showToast(jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요','e');
     return;
   }
 
