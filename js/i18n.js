@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-02 12:54 — 주민세 툴팁 tip-jumin 한/일 전환 추가
+﻿// 수정: 2026-06-02 13:25 — 개호보험료·자녀육아지원금·고용보험료 툴팁 한/일 전환 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -75,9 +75,21 @@ function applyLang() {
 
   setTxt('t-k-kenko', '健康保険料', '건강보험료');
   setTxt('t-k-kaigo', '介護保険料', '개호보험료');
+  setHtml('tip-kaigo',
+    '40歳以上が対象。従業員設定で\'auto\'に設定すると生年月日基準で自動適用',
+    '40세 이상 해당. 사원 설정에서 \'auto\'로 설정 시 생년월일 기준 자동 적용'
+  );
   setTxt('t-k-kodomo', '子ども・子育て支援金', '자녀・육아지원금');
+  setHtml('tip-kodomo',
+    '2026年4月から適用。全国一律0.23%（労働者負担分）',
+    '2026년 4월부터 적용. 전국 일률 0.23% (근로자 부담분)'
+  );
   setTxt('t-k-nenkin', '厚生年金保険料', '후생연금보험료');
   setTxt('t-k-koyo', '雇用保険料', '고용보험료');
+  setHtml('tip-koyo',
+    '役員は通常対象外（支店長含む）。従業員設定で個別設定可能',
+    '임원은 보통 비해당 (지점장 포함). 사원 설정에서 개별 설정 가능'
+  );
   setTxt('t-k-shotoku', '所得税', '소득세');
   setTxt('t-k-jumin', '住民税', '주민세');
   setHtml('tip-jumin',

@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-02 13:15 — styles.css: tip-icon 커스텀 스타일 전부 제거, ❓ 이모지 텍스트만 표시
+  수정: 2026-06-02 13:25 — 개호보험료·자녀육아지원금·고용보험료 툴팁 추가, showTip/hideTip/toggleTip 공통함수화
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -219,12 +219,12 @@
       </div>
       <div>
         <div class="row"><span class="row-label" id="t-k-kenko">健康保険料</span><span class="row-val hi" id="k-kenko">0</span></div>
-        <div class="row"><span class="row-label" id="t-k-kaigo">介護保険料</span><span class="row-val" id="k-kaigo">0</span></div>
-        <div class="row"><span class="row-label" id="t-k-kodomo">子ども・子育て支援金</span><span class="row-val hi" id="k-kodomo">0</span></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-kaigo">介護保険料</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-kaigo')" onfocus="showTip(this,'tip-kaigo')" onmouseleave="hideTip('tip-kaigo')" onblur="hideTip('tip-kaigo')" onclick="toggleTip(this,'tip-kaigo',event)">❓</span></span><span class="row-val" id="k-kaigo">0</span></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-kodomo">子ども・子育て支援金</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-kodomo')" onfocus="showTip(this,'tip-kodomo')" onmouseleave="hideTip('tip-kodomo')" onblur="hideTip('tip-kodomo')" onclick="toggleTip(this,'tip-kodomo',event)">❓</span></span><span class="row-val hi" id="k-kodomo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-nenkin">厚生年金保険料</span><span class="row-val hi" id="k-nenkin">0</span></div>
-        <div class="row"><span class="row-label" id="t-k-koyo">雇用保険料</span><span class="row-val hi" id="k-koyo">0</span></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-koyo">雇用保険料</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-koyo')" onfocus="showTip(this,'tip-koyo')" onmouseleave="hideTip('tip-koyo')" onblur="hideTip('tip-koyo')" onclick="toggleTip(this,'tip-koyo',event)">❓</span></span><span class="row-val hi" id="k-koyo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-shotoku">所得税</span><span class="row-val" id="k-shotoku">0</span></div>
-        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showJuminTip(this)" onfocus="showJuminTip(this)" onmouseleave="hideJuminTip()" onblur="hideJuminTip()" onclick="toggleJuminTip(this,event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-jumin')" onfocus="showTip(this,'tip-jumin')" onmouseleave="hideTip('tip-jumin')" onblur="hideTip('tip-jumin')" onclick="toggleTip(this,'tip-jumin',event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
         <div class="row"><span class="row-label" id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
         <div style="font-size:10px;color:var(--text3);padding:3px 13px;" id="t-nencho-hint">※ 還付はマイナス(-)入力 / 환급은 마이너스(-) 입력</div>
         <div class="row row-total"><span class="row-label" id="t-k-total">計</span><span class="row-val" id="kojoTotal">0</span></div>
@@ -733,12 +733,15 @@ function _updateFsBtns() {
 document.addEventListener('DOMContentLoaded', initFontSize);
 </script>
 
-<!-- 주민세 툴팁 포털 (position:fixed — card overflow:hidden 회피) -->
-<div class="tip-portal" id="tip-jumin" role="tooltip" aria-hidden="true"></div>
+<!-- 툴팁 포털 (position:fixed — card overflow:hidden 회피) -->
+<div class="tip-portal" id="tip-kaigo"  role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-kodomo" role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-koyo"   role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-jumin"  role="tooltip" aria-hidden="true"></div>
 <script>
 (function() {
-  function _reposition(icon) {
-    var tip = document.getElementById('tip-jumin');
+  function _reposition(icon, id) {
+    var tip = document.getElementById(id);
     var r = icon.getBoundingClientRect();
     var tw = tip.offsetWidth || 265;
     var th = tip.offsetHeight;
@@ -749,21 +752,22 @@ document.addEventListener('DOMContentLoaded', initFontSize);
     var arrowX = Math.min(Math.max(cx - left, 16), tw - 16);
     tip.style.cssText = 'left:' + left + 'px;top:' + top + 'px;--arrow-x:' + arrowX + 'px;';
   }
-  window.showJuminTip = function(icon) {
-    _reposition(icon);
-    document.getElementById('tip-jumin').classList.add('visible');
+  window.showTip = function(icon, id) {
+    document.querySelectorAll('.tip-portal.visible').forEach(function(e) { e.classList.remove('visible'); });
+    _reposition(icon, id);
+    document.getElementById(id).classList.add('visible');
   };
-  window.hideJuminTip = function() {
-    document.getElementById('tip-jumin').classList.remove('visible');
+  window.hideTip = function(id) {
+    document.getElementById(id).classList.remove('visible');
   };
-  window.toggleJuminTip = function(icon, e) {
+  window.toggleTip = function(icon, id, e) {
     e.stopPropagation();
-    var tip = document.getElementById('tip-jumin');
+    var tip = document.getElementById(id);
     if (tip.classList.contains('visible')) { tip.classList.remove('visible'); }
-    else { _reposition(icon); tip.classList.add('visible'); }
+    else { window.showTip(icon, id); }
   };
   document.addEventListener('click', function() {
-    document.getElementById('tip-jumin').classList.remove('visible');
+    document.querySelectorAll('.tip-portal.visible').forEach(function(e) { e.classList.remove('visible'); });
   });
 }());
 </script>
