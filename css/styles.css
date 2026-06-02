@@ -1,4 +1,4 @@
-/* 수정: 2026-06-02 12:54 — 주민세 툴팁(tip-icon / tip-portal) 스타일 추가 */
+/* 수정: 2026-06-02 13:05 — tip-icon 크기 14px→17px, 폰트 9px→11px으로 확대 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -125,7 +125,7 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .row-total{background:var(--surface2)!important;border-top:1px solid var(--border)!important;font-weight:600;}
 
 /* TOOLTIP ICON */
-.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:5px;border-radius:50%;background:var(--accent);color:#fff;font-size:9px;font-style:normal;cursor:pointer;user-select:none;line-height:1;flex-shrink:0;vertical-align:middle;transition:opacity .15s;}
+.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:5px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-style:normal;cursor:pointer;user-select:none;line-height:1;flex-shrink:0;vertical-align:middle;transition:opacity .15s;}
 .tip-icon:hover{opacity:.75;} .tip-icon:focus{outline:2px solid var(--accent);outline-offset:2px;opacity:.75;}
 
 /* TOOLTIP PORTAL (position:fixed — カード overflow:hidden を回避) */
