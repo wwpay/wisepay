@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:36 — 사원 폼 제목에서 "편집"/"の編集" 텍스트 제거
+﻿// 수정: 2026-06-03 08:46 — applyLang에 renderPaidBtn() 추가 (언어 전환 시 버튼 문구 미갱신 버그)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -133,6 +133,7 @@ function applyLang() {
   setTxt('t-backup-folder-label', '💾 バックアップ保存フォルダ', '💾 백업 저장 폴더');
   renderBackupFolderStatus();
   try { _updatePayrollStatus(_payrollDataStatus); } catch(e) {}
+  try { renderPaidBtn(); } catch(e) {}
 
   setTxt('t-reset-zone',  '⚠ 危険エリア',        '⚠ 위험 구역');
   setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
