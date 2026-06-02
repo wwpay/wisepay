@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:36 — 사원 폼 제목에서 "편집" 텍스트 제거
+﻿// 수정: 2026-06-03 08:39 — 사원 번호 띄어쓰기, 폼 hint 텍스트 인라인 이동
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -203,8 +203,8 @@ function renderEmpFormFields(emp, readOnly = false) {
     <div class="form-group">
       <div class="form-label-block">
         <div class="form-label-row">
-          <label class="form-label"><span class="form-req">*</span>${jp?'社員番号':'사원번호'}</label>
-          <span style="font-size:11px;color:var(--text3);">${jp?'（自動採番）':'（자동 배정）'}</span>
+          <label class="form-label"><span class="form-req">*</span>${jp?'社員番号':'사원 번호'}</label>
+          <span class="form-label-hint">${jp?'（自動採番）':'（자동 배정）'}</span>
         </div>
       </div>
       <input class="form-input" id="f-no" value="${assignedNo}"
@@ -226,9 +226,9 @@ function renderEmpFormFields(emp, readOnly = false) {
       <div class="form-label-block">
         <div class="form-label-row">
           <label class="form-label"><span class="form-req">*</span>${jp?'カナ':'카나'}</label>
+          <span class="form-label-hint">${jp?'カタカナ・英字可':'가타카나·영문 가능'}</span>
           <span class="form-error" id="f-kana-err"></span>
         </div>
-        <div class="form-label-hint">${jp?'カタカナ・英字可':'가타카나·영문 가능'}</div>
       </div>
       <input class="form-input" id="f-kana" value="${v('kana')}"
         oninput="clearFieldError('f-kana-err','f-kana');markDirty()" onkeydown="focusNext(event,'f-join')"${dis}>
@@ -311,9 +311,9 @@ function renderEmpFormFields(emp, readOnly = false) {
       <div class="form-label-block">
         <div class="form-label-row">
           <label class="form-label">${jp?'社保加入年月':'사회보험 가입 연월'}</label>
+          <span class="form-label-hint">${jp?'例: 2025-04 / 202504（空欄=全月）':'예: 2025-04 또는 202504'}</span>
           <span class="form-error" id="f-shaho-err"></span>
         </div>
-        <div class="form-label-hint">${jp?'例: 2025-04 / 202504（空欄=全月）':'예: 2025-04 또는 202504（비어있으면 전 기간 적용）'}</div>
       </div>
       <input class="form-input" id="f-shaho-start" value="${v('shaho_start')}"
         placeholder="YYYY-MM" maxlength="7" autocomplete="off"
@@ -336,8 +336,8 @@ function renderEmpFormFields(emp, readOnly = false) {
       <div class="form-label-block">
         <div class="form-label-row">
           <label class="form-label">${jp?'扶養親族等の数（所得税用）':'부양친족 수（소득세용）'}</label>
+          <span class="form-label-hint">${jp?'扶養家族（16歳以上）から自動計算':'부양가족（16세 이상）에서 자동 계산'}</span>
         </div>
-        <div class="form-label-hint">${jp?'扶養家族（16歳以上）から自動計算':'부양가족（16세 이상）에서 자동 계산'}</div>
       </div>
       <select class="form-select" id="f-fuyou" onchange="markDirty()"${dis}>
         ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${(emp ? countFamilies(emp) : 0)===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
@@ -874,7 +874,7 @@ function saveEmployee() {
           }
         }
       }
-      showToast(jp?`社員番号を ${oldNo} → ${no} に変更し、給与データを移行しました`:`사원번호 ${oldNo} → ${no} 변경 및 급여 데이터 이전 완료`,'s');
+      showToast(jp?`社員番号を ${oldNo} → ${no} に変更し、給与データを移行しました`:`사원 번호 ${oldNo} → ${no} 변경 및 급여 데이터 이전 완료`,'s');
     }
   }
 

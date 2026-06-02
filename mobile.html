@@ -938,7 +938,7 @@ function mRenderAnnual() {
   out.innerHTML = `
     <div class="m-card" style="margin-bottom:10px;">
       <div style="font-size:14px;font-weight:700;">${emp.name}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px;">${jp?'社員番号':'사원번호'}: ${String(emp.no).padStart(4,'0')}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">${jp?'社員番号':'사원 번호'}: ${String(emp.no).padStart(4,'0')}</div>
     </div>
     ${rows}${totalHtml}`;
 }
@@ -981,7 +981,7 @@ function mShowEmpDetail(idx) {
 
   const rows = [
     [jp?'氏名':'이름',         emp.name],
-    [jp?'社員番号':'사원번호',   String(emp.no).padStart(4,'0')],
+    [jp?'社員番号':'사원 번호',   String(emp.no).padStart(4,'0')],
     ...(emp.kana ? [[jp?'カナ':'카나', emp.kana]] : []),
     [jp?'入社日':'입사일',      emp.join  || '—'],
     [jp?'退社日':'퇴사일',      emp.leave || (jp?'在職中':'재직 중')],
