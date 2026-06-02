@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-31 13:25 — doGet 경로 전체 getSheet→getSheetByName 통일 + getAllData getActiveSpreadsheet 1회화
+// 수정: 2026-06-03 07:40 — backupWeekly 백업 대상 시트 4개 추가 (users, deleted_emp_ids, 지급완료이력, 급여스냅샷)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -726,7 +726,8 @@ function backupWeekly() {
   const name = 'WisePay_backup_' + ts;
   const main = SpreadsheetApp.getActiveSpreadsheet();
   const backup = SpreadsheetApp.create(name);
-  [SHEET_EMP, SHEET_PAY, SHEET_RATE, SHEET_LOG].forEach(function(sn) {
+  [SHEET_EMP, SHEET_PAY, SHEET_RATE, SHEET_LOG,
+   SHEET_USERS, SHEET_DELETED, SHEET_PAID, SHEET_SNAP].forEach(function(sn) {
     const src = main.getSheetByName(sn);
     if (!src) return;
     const nr = src.getLastRow(), nc = src.getLastColumn();
