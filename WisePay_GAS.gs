@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-03 07:40 — backupWeekly 백업 대상 시트 4개 추가 (users, deleted_emp_ids, 지급완료이력, 급여스냅샷)
+// 수정: 2026-06-03 07:45 — backupWeekly 백업 파일을 지정 폴더(125mzhl1EVBbHklwN9RiBN4vNnZbSBBsI)로 이동
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -746,6 +746,12 @@ function backupWeekly() {
   }
   hist.insertRowAfter(1);
   hist.getRange(2, 1, 1, 3).setValues([[ts, name, backup.getId()]]);
+  try {
+    var folder = DriveApp.getFolderById('125mzhl1EVBbHklwN9RiBN4vNnZbSBBsI');
+    DriveApp.getFileById(backup.getId()).moveTo(folder);
+  } catch(e) {
+    Logger.log('폴더 이동 실패(루트에 저장): ' + e.message);
+  }
   deleteOldBackups();
   Logger.log('자동 백업 완료: ' + name + ' (ID: ' + backup.getId() + ')');
   return { ok: true, name: name };
