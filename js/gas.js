@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 22:52 — 일회용 도구 섹션(resyncAllPayrolls) 완전 제거
+// 수정: 2026-06-03 08:01 — gasDeletedEmpIds 로드 시 padStart(4,'0') 추가 (형식 불일치 버그 수정)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -254,7 +254,7 @@ async function autoLoadFromGas() {
       syncFuyouFromFamilies();
     }
     if (d.deletedEmpIds && d.deletedEmpIds.length > 0) {
-      gasDeletedEmpIds = d.deletedEmpIds.map(id => String(id).trim()).filter(Boolean);
+      gasDeletedEmpIds = d.deletedEmpIds.map(id => String(id).trim().padStart(4, '0')).filter(Boolean);
     }
     // 급여 데이터 전체 동기화: GAS 시트가 소스 오브 트루스
     // d.payrolls가 배열이 아니면 GAS 미지원 버전이므로 정리 로직 건너뜀 (로컬 보호)
