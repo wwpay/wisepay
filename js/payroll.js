@@ -1,4 +1,4 @@
-// 수정: 2026-06-02 12:54 — fmtInput 빈칸 early return 시 markPayrollDirty 누락 버그 수정
+// 수정: 2026-06-03 08:08 — renderPaidBtn 버튼 문구 일본어 미전환 버그 수정
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -590,22 +590,23 @@ function renderPaidBtn() {
   const ym = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
   const isPaid = paidYMs.has(ym);
   const span = document.getElementById('t-mark-paid-btn');
+  const jp = LANG === 'JP';
   const isSaved = _payrollDataStatus === 'saved'; // 저장 완료 상태에서만 지급완료 가능
   if (isPaid) {
     // 이미 지급완료 — 재처리 방지
-    if (span) span.textContent = '✓ 지급 완료';
+    if (span) span.textContent = jp ? '✓ 支払い完了' : '✓ 지급 완료';
     btn.disabled = true;
     btn.style.opacity = '0.55';
     btn.style.cursor = 'default';
   } else if (isSaved) {
     // 저장 완료 — 지급완료 가능
-    if (span) span.textContent = '🔒 지급 확정';
+    if (span) span.textContent = jp ? '🔒 支払い確定' : '🔒 지급 확정';
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
   } else {
     // 임시값·미저장·미선택 — 비활성
-    if (span) span.textContent = '🔒 지급 확정';
+    if (span) span.textContent = jp ? '🔒 支払い確定' : '🔒 지급 확정';
     btn.disabled = true;
     btn.style.opacity = '0.4';
     btn.style.cursor = 'not-allowed';
