@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:20 — 사원번호 자동 배정 (_assignEmpNo), 번호 입력란 readonly, 유효성 검사 제거
+﻿// 수정: 2026-06-03 08:36 — 사원 폼 제목에서 "편집" 텍스트 제거
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -162,7 +162,7 @@ function openEmpForm(idx) {
       btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${idx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
       renderEmpFormFields(emp, true);
     } else {
-      title.textContent = jp ? `${emp.name} の編集` : `${emp.name} 편집`;
+      title.textContent = emp.name;
       renderEmpFormFields(emp, false);
       renderActiveEmpBtns(idx);
     }
@@ -904,7 +904,7 @@ function saveEmployee() {
     if(btns) btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${editingEmpIdx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
     renderEmpFormFields(savedEmp, true);
   } else {
-    if(title) title.textContent = jp ? `${name} の編集` : `${name} 편집`;
+    if(title) title.textContent = name;
     renderActiveEmpBtns(editingEmpIdx);
   }
   showToast(gasUrl

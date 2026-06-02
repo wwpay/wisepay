@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-02 23:19 — 임금대장 → 임금 대장 띄어쓰기 전체 수정
+﻿// 수정: 2026-06-03 08:36 — 사원 폼 제목에서 "편집"/"の編集" 텍스트 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -23,7 +23,7 @@ function toggleLang() {
     const title = document.getElementById('empFormTitle');
     const btns  = document.getElementById('empFormBtns');
     if (title) title.textContent = editingEmpIdx >= 0
-      ? (jp ? `${emp.name} の編集` : `${emp.name} 편집`)
+      ? emp.name
       : (jp ? '新規従業員登録' : '신규 사원 등록');
     if (btns) btns.innerHTML = editingEmpIdx >= 0
       ? `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${jp?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`
