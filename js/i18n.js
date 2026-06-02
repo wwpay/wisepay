@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:46 — applyLang에 renderPaidBtn() 추가 (언어 전환 시 버튼 문구 미갱신 버그)
+﻿// 수정: 2026-06-03 08:51 — 언어 전환 시 사원 폼 버튼 렌더링 케이스별 분기 수정 (재직/퇴사/신규)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -25,9 +25,20 @@ function toggleLang() {
     if (title) title.textContent = editingEmpIdx >= 0
       ? emp.name
       : (jp ? '新規従業員登録' : '신규 사원 등록');
-    if (btns) btns.innerHTML = editingEmpIdx >= 0
-      ? `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${jp?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`
-      : `<button class="btn btn-success btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+    if (btns) {
+      if (editingEmpIdx >= 0 && !isResigned(emp)) {
+        // 재직 사원 편집: renderActiveEmpBtns에 위임 (hasPay 체크 + 구조 포함)
+        renderActiveEmpBtns(editingEmpIdx);
+      } else if (editingEmpIdx >= 0 && isResigned(emp)) {
+        // 퇴사자 열람: 재직 복귀 + 취소
+        btns.style.display='flex'; btns.style.flexDirection=''; btns.style.alignItems=''; btns.style.gap='6px';
+        btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${editingEmpIdx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+      } else {
+        // 신규 등록: 저장 + 취소
+        btns.style.display='flex'; btns.style.flexDirection=''; btns.style.alignItems=''; btns.style.gap='6px';
+        btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+      }
+    }
     empFormDirty = false;
     renderEmpFormFields(emp);
   }
