@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-01 23:21 — resetLocalData 이중 confirm으로 변경
+﻿// 수정: 2026-06-02 23:19 — 지급 확정 버튼 급여 명세 페이지에서만 표시, 임금대장→임금 대장
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -149,14 +149,14 @@ function savePdf() {
         const no = String(emp.no).padStart(4, '0');
         filename = jp
           ? `${no}_${emp.name}_賃金台帳_${year}年度`
-          : `${no}_${emp.name}_임금대장_${year}년도`;
+          : `${no}_${emp.name}_임금 대장_${year}년도`;
       }
     } else if (nos.length > 1) {
       const isAll = nos.length === employees.length;
       const prefix = isAll ? (jp ? '全従業員' : '전사원') : '';
       filename = jp
         ? `${prefix ? prefix + '_' : ''}賃金台帳_${year}年度`
-        : `${prefix ? prefix + '_' : ''}임금대장_${year}년도`;
+        : `${prefix ? prefix + '_' : ''}임금 대장_${year}년도`;
     }
   } else if (activePage === 'page-employees' && editingEmpIdx >= 0) {
     const emp = employees[editingEmpIdx];
@@ -230,11 +230,13 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   const isPayroll = id === 'payroll';
   document.getElementById('btn-save').style.display = isPayroll ? '' : 'none';
+  const _paidBtn = document.getElementById('btn-mark-paid');
+  if (_paidBtn) _paidBtn.style.display = isPayroll ? '' : 'none';
   if(id==='payroll') { loadPayrollForm(); renderPaidBtn(); }
   if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-02 13:25 — 개호보험료·자녀육아지원금·고용보험료 툴팁 한/일 전환 추가
+﻿// 수정: 2026-06-02 23:19 — 임금대장 → 임금 대장 띄어쓰기 전체 수정
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -45,8 +45,8 @@ function applyLang() {
   setTxt('t-nav-main', 'メイン', '메인');
   setTxt('t-nav-payroll', '給与明細', '급여 명세');
   setTxt('t-nav-history', '支給履歴', '지급 이력');
-  setTxt('t-nav-annual', '賃金台帳', '임금대장');
-  setTxt('t-annual-title', '賃金台帳', '임금대장');
+  setTxt('t-nav-annual', '賃金台帳', '임금 대장');
+  setTxt('t-annual-title', '賃金台帳', '임금 대장');
   setTxt('t-nav-setting', '設定', '설정');
   setTxt('t-nav-emp', '従業員管理', '사원 관리');
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
@@ -169,7 +169,7 @@ function applyLang() {
   setTxt('t-payroll-ph-main', '従業員を選択してください', '사원을 선택해 주세요');
   setTxt('t-payroll-ph-sub', '上のドロップダウンから従業員を選択すると給与明細が表示されます。', '위 드롭다운에서 사원을 선택하면 급여 명세가 표시됩니다.');
   setTxt('t-annual-ph-main', '従業員を選択してください', '사원을 선택해 주세요');
-  setTxt('t-annual-ph-sub', '上の「従業員選択」ボタンから選択すると賃金台帳が表示されます。', '위 「사원 선택」 버튼으로 선택하면 임금대장이 표시됩니다.');
+  setTxt('t-annual-ph-sub', '上の「従業員選択」ボタンから選択すると賃金台帳が表示されます。', '위 「사원 선택」 버튼으로 선택하면 임금 대장이 표시됩니다.');
   setTxt('t-rates-title', '適用保険料率（2026年度・東京都）', '적용 보험료율（2026년도・도쿄도）');
   setHtml('t-rt-kenko', '健康保険料率<br>（東京都）', '건강보험료율<br>（도쿄도）');
   setHtml('t-rt-kaigo', '介護保険料率<br>（全国一律）', '개호보험료율<br>（전국 일률）');
@@ -196,7 +196,7 @@ function applyLang() {
   const _ap = document.querySelector('.page.active');
   if (_ap) {
     const _id = _ap.id.replace('page-', '');
-    const _titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
+    const _titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
     const _t = _titles[_id];
     const _el = document.getElementById('topbar-title');
     if (_t && _el) _el.textContent = _t[LANG];

@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 16:40 — 임금대장: 전년12~당해11(12열), 일본어 합계 "年計"→"合計"
+// 수정: 2026-06-02 23:19 — 임금대장 → 임금 대장 띄어쓰기 수정
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -336,7 +336,7 @@ function renderAnnual() {
     if (!emp) { ph.style.display='none'; document.getElementById('annualContent').innerHTML=noDataMsg; return; }
     ph.style.display = 'block';
     document.getElementById('annualPrintTitle').textContent =
-      `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
+      `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
     document.getElementById('annualPrintSub').textContent =
       (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     document.getElementById('annualContent').innerHTML = buildEmpTableHtml(emp, year, jp) || noDataMsg;
@@ -352,7 +352,7 @@ function renderAnnual() {
     if (!emp) return;
     const tableHtml = buildEmpTableHtml(emp, year, jp);
     if (!tableHtml) return;
-    const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
+    const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
     const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
       `<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;margin-bottom:10px;">` +
