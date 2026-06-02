@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-02 13:25 — 개호보험료·자녀육아지원금·고용보험료 툴팁 추가, showTip/hideTip/toggleTip 공통함수화
+  수정: 2026-06-02 13:35 — styles.css: tip-portal word-break:keep-all / word-wrap:break-word, min/max-width 적용
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', initFontSize);
   function _reposition(icon, id) {
     var tip = document.getElementById(id);
     var r = icon.getBoundingClientRect();
-    var tw = tip.offsetWidth || 265;
+    var tw = tip.offsetWidth || 240;
     var th = tip.offsetHeight;
     var cx = r.left + r.width / 2;
     var left = Math.max(8, Math.min(cx - tw / 2, window.innerWidth - tw - 8));

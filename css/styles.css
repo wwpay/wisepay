@@ -1,4 +1,4 @@
-/* 수정: 2026-06-02 13:15 — tip-icon 커스텀 스타일 전부 제거, 이모지 텍스트만 표시 */
+/* 수정: 2026-06-02 13:35 — tip-portal word-break:keep-all / word-wrap:break-word, 고정폭→min/max-width */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -128,7 +128,7 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .tip-icon{margin-left:4px;cursor:pointer;user-select:none;vertical-align:middle;flex-shrink:0;}
 
 /* TOOLTIP PORTAL (position:fixed — カード overflow:hidden を回避) */
-.tip-portal{position:fixed;z-index:9999;width:265px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.14);padding:10px 13px;font-size:11.5px;line-height:1.65;color:var(--text);pointer-events:none;opacity:0;transition:opacity .15s;text-align:left;font-weight:400;}
+.tip-portal{position:fixed;z-index:9999;min-width:180px;max-width:280px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.14);padding:10px 13px;font-size:11.5px;line-height:1.65;color:var(--text);pointer-events:none;opacity:0;transition:opacity .15s;text-align:left;font-weight:400;word-break:keep-all;word-wrap:break-word;}
 .tip-portal.visible{opacity:1;}
 .tip-portal::before{content:'';position:absolute;top:100%;left:var(--arrow-x,50%);transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--border);}
 .tip-portal::after{content:'';position:absolute;top:calc(100% - 1px);left:var(--arrow-x,50%);transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff;}
