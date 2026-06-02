@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-02 13:05 — styles.css: tip-icon 크기 17px/11px으로 확대
+  수정: 2026-06-02 13:10 — 주민세 툴팁 아이콘 ℹ → ❓ 이모지로 교체
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -224,7 +224,7 @@
         <div class="row"><span class="row-label" id="t-k-nenkin">厚生年金保険料</span><span class="row-val hi" id="k-nenkin">0</span></div>
         <div class="row"><span class="row-label" id="t-k-koyo">雇用保険料</span><span class="row-val hi" id="k-koyo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-shotoku">所得税</span><span class="row-val" id="k-shotoku">0</span></div>
-        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showJuminTip(this)" onfocus="showJuminTip(this)" onmouseleave="hideJuminTip()" onblur="hideJuminTip()" onclick="toggleJuminTip(this,event)">ℹ</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showJuminTip(this)" onfocus="showJuminTip(this)" onmouseleave="hideJuminTip()" onblur="hideJuminTip()" onclick="toggleJuminTip(this,event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
         <div class="row"><span class="row-label" id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
         <div style="font-size:10px;color:var(--text3);padding:3px 13px;" id="t-nencho-hint">※ 還付はマイナス(-)入力 / 환급은 마이너스(-) 입력</div>
         <div class="row row-total"><span class="row-label" id="t-k-total">計</span><span class="row-val" id="kojoTotal">0</span></div>
