@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-02 05:45 — deleteEmp 후 renderPaidBtn 추가 (삭제 후 버튼 상태 미갱신)
+﻿// 수정: 2026-06-03 08:04 — validateEmpNo/saveEmployee 사원번호 0 이하 차단 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -765,6 +765,11 @@ function validateEmpNo(input) {
     input.classList.add('error');
     return;
   }
+  if(parseInt(input.value, 10) < 1) {
+    errEl.textContent = jp ? '従業員番号は1以上である必要があります。' : '사원 번호는 1 이상이어야 합니다.';
+    input.classList.add('error');
+    return;
+  }
   const no = input.value.padStart(4,'0');
   // 활성 사원 중복 체크 (Primary Key 중복 방지), 수정 시 자기 자신은 제외
   const dup = employees.some((e,i) => {
@@ -848,8 +853,10 @@ function saveEmployee() {
   const kana = toHalfSpace((kanaEl?.value||'').trim());
 
   let ok = true;
-  if(no.replace(/^0+/,'')==='') {
+  if(!noEl.value.trim().replace(/\D/g,'')) {
     setFieldError('f-no-err', jp?'必須入力':'필수 입력', 'f-no'); ok = false;
+  } else if(parseInt(no, 10) < 1) {
+    setFieldError('f-no-err', jp?'従業員番号は1以上である必要があります。':'사원 번호는 1 이상이어야 합니다.', 'f-no'); ok = false;
   } else validateEmpNo(noEl);
   if(!name) { setFieldError('f-name-err', jp?'必須入力':'필수 입력', 'f-name'); ok = false; }
   else clearFieldError('f-name-err', 'f-name');
