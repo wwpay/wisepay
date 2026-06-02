@@ -1,9 +1,9 @@
-/* 수정: 2026-06-02 13:35 — tip-portal word-break:keep-all / word-wrap:break-word, 고정폭→min/max-width */
+/* 수정: 2026-06-02 23:25 — --text3 색상 #9aa3b2 → #6b7280 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
   --border:#e2e6ef; --border2:#edf0f7;
-  --text:#1a1d2e; --text2:#4b5568; --text3:#9aa3b2;
+  --text:#1a1d2e; --text2:#4b5568; --text3:#6b7280;
   --accent:#3b5bdb; --accent2:#eef2ff; --accent3:#c7d2fe;
   --green:#0d9e6f; --green2:#ecfdf5;
   --red:#e53e3e; --red2:#fff5f5;
