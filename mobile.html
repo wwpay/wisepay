@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-03 23:18 — 사원·연도·월 선택을 하단 고정 바로 이동, 카나 항상 표시
+  수정: 2026-06-03 23:24 — 사원 선택 팝업·임금대장·사원관리 카나를 이름 밑에서 옆으로 이동
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -693,9 +693,9 @@ function mOpenEmpPicker(page) {
     if (!e || e.no == null) return '';
     const no  = String(e.no).padStart(4,'0');
     const sel = i === curIdx;
-    const kana = e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">（${e.kana}）</div>` : '';
+    const kana = e.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:4px;">（${e.kana}）</span>` : '';
     return `<div onclick="mPickEmp(${i})" style="padding:13px 16px;border-bottom:1px solid var(--border2);cursor:pointer;${sel?'background:var(--accent2);':''}">`
-         + `<div style="font-size:13px;font-weight:${sel?'600':'400'};color:${sel?'var(--accent)':'var(--text)'};">${no} ${e.name}</div>${kana}</div>`;
+         + `<div style="font-size:13px;font-weight:${sel?'600':'400'};color:${sel?'var(--accent)':'var(--text)'};">${no} ${e.name}${kana}</div></div>`;
   }).join('');
   ov.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -972,7 +972,7 @@ function mRenderAnnual() {
 
   out.innerHTML = `
     <div class="m-card" style="margin-bottom:10px;">
-      <div style="font-size:14px;font-weight:700;">${emp.name}${jp&&emp.kana?'（'+emp.kana+'）':''}</div>
+      <div style="font-size:14px;font-weight:700;">${emp.name}${emp.kana?`<span style="font-size:11px;color:var(--text3);margin-left:5px;font-weight:400;">（${emp.kana}）</span>`:''}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px;">${jp?'社員番号':'사원 번호'}: ${String(emp.no).padStart(4,'0')}</div>
     </div>
     ${rows}${totalHtml}`;
@@ -992,8 +992,7 @@ function mRenderEmpList() {
     return `<div class="m-emp-item" onclick="mShowEmpDetail(${i})">
       <div class="m-emp-avatar">${init}</div>
       <div class="m-emp-info">
-        <div class="m-emp-name">${e.name}</div>
-        ${jp && e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${e.kana}</div>` : ''}
+        <div class="m-emp-name">${e.name}${e.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;">（${e.kana}）</span>` : ''}</div>
         <div class="m-emp-sub">${String(e.no).padStart(4,'0')} · ${sub}${e.leave?' · '+(jp?'退社: ':'퇴사: ')+e.leave.substring(0,7):''}</div>
       </div>
       <span class="m-emp-arrow">›</span>
@@ -1033,8 +1032,7 @@ function mShowEmpDetail(idx) {
     <div class="m-card">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
         <div class="m-emp-avatar" style="width:48px;height:48px;font-size:20px;">${(emp.name||'?').charAt(0)}</div>
-        <div><div style="font-size:16px;font-weight:700;">${emp.name}</div>
-          ${jp&&emp.kana?`<div style="font-size:12px;color:var(--text3);margin-top:1px;">${emp.kana}</div>`:''}
+        <div><div style="font-size:16px;font-weight:700;">${emp.name}${emp.kana?`<span style="font-size:12px;color:var(--text3);margin-left:5px;font-weight:400;">（${emp.kana}）</span>`:''}</div>
           <div style="font-size:11px;color:var(--text3);">No. ${String(emp.no).padStart(4,'0')}</div></div>
       </div>
       ${rows}
