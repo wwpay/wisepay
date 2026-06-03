@@ -1,10 +1,12 @@
 // WisePay GAS Script
-// 수정: 2026-06-03 07:45 — backupWeekly 백업 파일을 지정 폴더(125mzhl1EVBbHklwN9RiBN4vNnZbSBBsI)로 이동
+// 수정: 2026-06-03 12:58 — ADMIN_EMAIL 상수 + 송금 독촉 이메일 / 지급확정 확인 이메일 함수 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
 // ⚠️ PDF 파싱 기능을 쓰려면:
 //   GAS 편집기 왼쪽 메뉴 「서비스(+)」→ Drive API v2 추가 필요
+
+const ADMIN_EMAIL   = 'lucky4694@gmail.com';
 
 const SHEET_EMP     = '사원정보';
 const SHEET_PAY     = '급여데이터';
@@ -118,6 +120,8 @@ function doPost(e) {
       });
       if (!alreadyPaid) {
         paidSheet.appendRow([mpYear, mpMonth, mpPaidAt, mpPaidBy]);
+        var jstNow = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+        sendConfirmationEmail(mpYear, mpMonth, jstNow, mpPaidBy || 'wiseadmin');
       }
 
       // 2. 급여스냅샷 시트에 누적 기록
@@ -261,10 +265,34 @@ function doPost(e) {
       }
       return jsonResponse({ ok: false });
     }
+    if (data.type === 'sendReminderEmail') {
+      sendPayrollReminderEmail(parseInt(data.year), parseInt(data.month));
+      return jsonResponse({ ok: true });
+    }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {
     return jsonResponse({ ok: false, error: err.message });
   }
+}
+
+function sendPayrollReminderEmail(year, month) {
+  var deadline = year + '年' + month + '月10日';
+  var subject  = '[給与Pro] ' + year + '年' + month + '月分 給与振込リマインダー';
+  var body     = year + '年' + month + '月分の給与振込期限が近づいています。\n\n' +
+                 '■ 振込期限：' + deadline + '（JST）\n' +
+                 '■ 未確定の場合は給与Pro上で確定処理をお忘れなく。\n\n' +
+                 '--\n給与Pro by Wisewires';
+  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+function sendConfirmationEmail(year, month, confirmedAt, confirmedBy) {
+  var subject = '[給与Pro] ' + year + '年' + month + '月分 給与確定通知';
+  var body    = '給与支払が確定されました。\n\n' +
+                '■ 対象月：' + year + '年' + month + '月分\n' +
+                '■ 確定日時：' + confirmedAt + '（JST）\n' +
+                '■ 確定者：' + confirmedBy + '\n\n' +
+                '--\n給与Pro by Wisewires';
+  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
 function jsonResponse(data) {

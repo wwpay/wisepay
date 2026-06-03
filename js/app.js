@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-02 23:19 — 지급 확정 버튼 급여 명세 페이지에서만 표시, 임금대장→임금 대장
+﻿// 수정: 2026-06-03 12:58 — wiseadmin 로그인 시 알림 초기화 + 송금 독촉 알림 호출 추가
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -117,6 +117,10 @@ function initApp() {
     setTimeout(() => gotoPage(_rp, _nav), 150);
   }
   if (typeof applyViewerRestrictions === 'function') applyViewerRestrictions();
+  if (currentUser && currentUser.id === 'wiseadmin') {
+    if (typeof initNotifications === 'function') initNotifications();
+    if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
+  }
 }
 
 // 페이지 닫기/새로고침 시 미저장 경고

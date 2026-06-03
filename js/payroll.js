@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 08:08 — renderPaidBtn 버튼 문구 일본어 미전환 버그 수정
+// 수정: 2026-06-03 12:58 — 지급확정 시 브라우저 푸시 알림 추가 (알림 A)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -683,4 +683,7 @@ async function markMonthAsPaid() {
   renderPaidBtn();
   showToast(jp ? `${currentYear}年${currentMonth}月分 支払済み処理完了 ✓` : `${currentYear}년 ${currentMonth}월분 지급완료 처리됨 ✓`, 's');
   gasAppendLog('지급완료', `${currentYear}/${String(currentMonth).padStart(2,'0')} (${snapPayrolls.length}명)`, '성공', '');
+  if (typeof sendPushNotification === 'function') {
+    sendPushNotification('✅ 給与支払確定完了', `${currentYear}年${currentMonth}月分の給与が確定されました。`, 'payroll-confirm');
+  }
 }
