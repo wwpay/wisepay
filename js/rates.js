@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 16:01 — 일본어 모드 건강보험 표기 혼용(건강保険) 수정
+﻿// 수정: 2026-06-03 09:00 — 보험료율 표 overflow-x:auto + colgroup 100% 보정 + 헤더 nowrap
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -129,21 +129,23 @@ function renderRatesPage() {
     ? ['健康保険','介護保険','子育て支援金','厚生年金','雇用保険']
     : ['건강보험','개호보험','자녀지원금','후생연금','고용보험'];
 
-  let html = `<table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
+  let html = `<div style="overflow-x:auto;">
+  <table style="width:100%;min-width:480px;border-collapse:collapse;font-size:12px;table-layout:fixed;">
     <colgroup>
-      <col style="width:24%;">
-      ${keys.map(()=>'<col style="width:13%;">').join('')}
-      <col style="width:9%;">
+      <col style="width:22%;">
+      ${keys.map(()=>'<col style="width:14%;">').join('')}
+      <col style="width:8%;">
     </colgroup>
     <thead>
       <tr style="background:var(--surface2);">
-        <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);">${jp?'適用期間':'적용 기간'}</th>
-        ${keys.map((k,i)=>`<th style="padding:8px 4px;text-align:center;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;word-break:keep-all;line-height:1.3;">${labels[i]}<br><span style="font-size:9px;font-weight:400;color:var(--text3);">(${jp?'労働者':'근로자'})</span></th>`).join('')}
+        <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);white-space:nowrap;">${jp?'適用期間':'적용 기간'}</th>
+        ${keys.map((k,i)=>`<th style="padding:8px 4px;text-align:center;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;white-space:nowrap;">${labels[i]} <span style="font-size:9px;font-weight:400;color:var(--text3);">(${jp?'労働者':'근로자'})</span></th>`).join('')}
         <th style="padding:8px 4px;border-bottom:2px solid var(--border);"></th>
       </tr>
     </thead>
     <tbody id="rateHistoryTbody"></tbody>
   </table>
+  </div>
   <div style="margin-top:10px;font-size:11px;color:var(--text3);padding:6px 2px;">
     ${jp?'※ 健康保険・介護保険は「最新料率を取得」ボタンで協会けんぽ公式サイトから取得できます。厚生年金・雇用保険は手動で追加してください。':'※ 건강보험·개호보험은 「최신 요율 가져오기」로 가져올 수 있습니다. 후생연금·고용보험은 직접 추가해 주세요.'}
   </div>`;
