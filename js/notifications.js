@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 13:39 — 상단 fixed 배너 → topbar 중앙 말풍선으로 교체, 버튼명 통일, 저장 조건 체크
+// 수정: 2026-06-03 13:47 — 알림 D 이중 표시 버그 수정 + 말풍선 버튼명 "확인"으로 변경
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -177,8 +177,9 @@ function checkAndShowPayrollAlerts(paidMonths) {
     const prevLabel  = jp ? `${prevY}年${prevM}月` : `${prevY}년 ${prevM}월`;
     const deadline   = jp ? `${year}年${mon}月10日` : `${year}년 ${mon}월 10일`;
 
-    const reminded   = localStorage.getItem('payrollRemindedMonth') === prevMonth;
-    const paidArr    = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
+    const reminded = localStorage.getItem('payrollRemindedMonth') === prevMonth;
+    const paidArr  = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
+    const isPaid   = paidArr.includes(prevMonth);
 
     if (!reminded) {
       showPayrollReminderBanner(prevLabel, deadline, prevMonth, jp);
@@ -187,7 +188,9 @@ function checkAndShowPayrollAlerts(paidMonths) {
         _sendReminderEmailViaGas(prevY, prevM);
         localStorage.setItem('lastReminderEmail', todayStr);
       }
-    } else if (!paidArr.includes(prevMonth)) {
+    }
+
+    if (reminded && !isPaid) {
       showUnconfirmedPaymentModal(prevLabel, jp);
     }
   } catch(e) {}
@@ -217,7 +220,7 @@ function showPayrollReminderBanner(prevLabel, deadline, prevMonth, jp) {
   const msg    = jp
     ? `💸 ${prevLabel}分 振込期限: ${deadline}まで`
     : `💸 ${prevLabel}분 송금 기한: ${deadline}까지`;
-  const btnTxt  = jp ? '支払完了を確認' : '지급 완료 확인';
+  const btnTxt  = jp ? '確認' : '확인';
   const tipAttr = jp
     ? '対象月のデータを先に保存してください'
     : '해당 월 데이터를 먼저 저장해주세요';
@@ -243,8 +246,6 @@ function showPayrollReminderBanner(prevLabel, deadline, prevMonth, jp) {
         `${prevLabel}분 급여 송금 완료 확인됨`,
         `${prevLabel}分の給与振込完了を確認しました`
       );
-      const paidArr = (typeof paidYMs !== 'undefined') ? [...paidYMs] : [];
-      if (!paidArr.includes(prevMonth)) showUnconfirmedPaymentModal(prevLabel, jp);
     }, { once: true });
   });
 }
