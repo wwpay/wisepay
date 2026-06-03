@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 09:05 — 보험료율 표 데이터 셀 text-align:center 통일 (헤더·데이터 세로 정렬)
+﻿// 수정: 2026-06-03 09:10 — 컬럼 헤더 "(근로자)" 제거, 근로자 부담분 안내 문구 추가
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -139,7 +139,7 @@ function renderRatesPage() {
     <thead>
       <tr style="background:var(--surface2);">
         <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);white-space:nowrap;">${jp?'適用期間':'적용 기간'}</th>
-        ${keys.map((k,i)=>`<th style="padding:8px 4px;text-align:center;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;white-space:nowrap;">${labels[i]} <span style="font-size:9px;font-weight:400;color:var(--text3);">(${jp?'労働者':'근로자'})</span></th>`).join('')}
+        ${keys.map((k,i)=>`<th style="padding:8px 4px;text-align:center;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;white-space:nowrap;">${labels[i]}</th>`).join('')}
         <th style="padding:8px 4px;border-bottom:2px solid var(--border);"></th>
       </tr>
     </thead>
@@ -147,7 +147,8 @@ function renderRatesPage() {
   </table>
   </div>
   <div style="margin-top:10px;font-size:11px;color:var(--text3);padding:6px 2px;">
-    ${jp?'※ 健康保険・介護保険は「最新料率を取得」ボタンで協会けんぽ公式サイトから取得できます。厚生年金・雇用保険は手動で追加してください。':'※ 건강보험·개호보험은 「최신 요율 가져오기」로 가져올 수 있습니다. 후생연금·고용보험은 직접 추가해 주세요.'}
+    <div>${jp?'※ 表示されている料率はすべて労働者負担分です。':'※ 표시된 요율은 모두 근로자 부담분입니다.'}</div>
+    <div style="margin-top:3px;">${jp?'※ 健康保険・介護保険は「最新料率を取得」ボタンで協会けんぽ公式サイトから取得できます。厚生年金・雇用保険は手動で追加してください。':'※ 건강보험·개호보험은 「최신 요율 가져오기」로 가져올 수 있습니다. 후생연금·고용보험은 직접 추가해 주세요.'}</div>
   </div>`;
   area.innerHTML = html;
   renderRateHistoryRows();
