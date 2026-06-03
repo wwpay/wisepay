@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 14:06 — 알림 로직 재정비: day>=10 미확정 달 말풍선, payrollRemindedMonth 제거, D팝업 삭제
+// 수정: 2026-06-03 14:52 — 말풍선 메시지 "지급 확정" → "송금 완료" 문구 변경
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -208,8 +208,8 @@ function showPayrollReminderBanner(year, month, jp) {
   if (!center) return;
 
   const msg    = jp
-    ? `${year}年${month}月分の支払確定が完了していません。`
-    : `${year}년 ${month}월분 지급 확정이 완료되지 않았습니다.`;
+    ? `${year}年${month}月分の送金完了処理が行われていません。`
+    : `${year}년 ${month}월분 송금 완료 처리가 되지 않았습니다.`;
   const btnTxt = jp ? '確認' : '확인';
 
   const balloon = document.createElement('div');

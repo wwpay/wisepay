@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 12:58 — 지급확정 시 브라우저 푸시 알림 추가 (알림 A)
+// 수정: 2026-06-03 14:52 — 버튼/상태 문구 "지급확정/완료" → "송금완료" 전면 변경
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -40,8 +40,8 @@ function _applyPaidLock(locked) {
 function unlockPaidMonth() {
   const jp = LANG === 'JP';
   const msg = jp
-    ? `${currentYear}年${currentMonth}月分は支払済み給与です。\n既に支払われた記録を修正すると、実際の支払額と異なる場合があります。\n修正しますか？`
-    : `${currentYear}년 ${currentMonth}월분은 이미 지급완료된 급여입니다.\n이미 지급된 기록을 수정하면 실제 지급액과 달라질 수 있습니다.\n수정하시겠습니까?`;
+    ? `${currentYear}年${currentMonth}月分は送金完了済みの給与です。\n既に支払われた記録を修正すると、実際の支払額と異なる場合があります。\n修正しますか？`
+    : `${currentYear}년 ${currentMonth}월분은 이미 송금완료된 급여입니다.\n이미 지급된 기록을 수정하면 실제 지급액과 달라질 수 있습니다.\n수정하시겠습니까?`;
   if (!confirm(msg)) return;
   _applyPaidLock(false);
 }
@@ -71,7 +71,7 @@ function _updatePayrollStatus(status) {
     empty:  { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)',
       text: jp ? '— 入力なし' : '— 입력값 없음' },
     paid:   { bg:'#eff6ff', color:'#1e40af', border:'#bfdbfe',
-      text: (jp ? '🔒 支払済み' : '🔒 지급완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
+      text: (jp ? '🔒 送金完了' : '🔒 송금완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
   }[status] || { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)', text:'' };
   el.style.cssText = `display:flex;align-items:center;padding:5px 16px;font-size:11px;font-weight:600;background:${cfg.bg};color:${cfg.color};border-top:1px solid ${cfg.border};border-bottom:1px solid ${cfg.border};`;
   el.textContent = cfg.text;
@@ -594,19 +594,19 @@ function renderPaidBtn() {
   const isSaved = _payrollDataStatus === 'saved'; // 저장 완료 상태에서만 지급완료 가능
   if (isPaid) {
     // 이미 지급완료 — 재처리 방지
-    if (span) span.textContent = jp ? '✓ 支払い完了' : '✓ 지급 완료';
+    if (span) span.textContent = jp ? '✓ 送金完了' : '✓ 송금 완료';
     btn.disabled = true;
     btn.style.opacity = '0.55';
     btn.style.cursor = 'default';
   } else if (isSaved) {
     // 저장 완료 — 지급완료 가능
-    if (span) span.textContent = jp ? '🔒 支払い確定' : '🔒 지급 확정';
+    if (span) span.textContent = jp ? '🔒 送金完了' : '🔒 송금 완료';
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
   } else {
     // 임시값·미저장·미선택 — 비활성
-    if (span) span.textContent = jp ? '🔒 支払い確定' : '🔒 지급 확정';
+    if (span) span.textContent = jp ? '🔒 送金完了' : '🔒 송금 완료';
     btn.disabled = true;
     btn.style.opacity = '0.4';
     btn.style.cursor = 'not-allowed';
@@ -625,13 +625,13 @@ async function markMonthAsPaid() {
   }
   const ym = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
   if (paidYMs.has(ym)) {
-    showToast(LANG === 'JP' ? '既に支払済みです' : '이미 지급완료된 달입니다', 'w');
+    showToast(LANG === 'JP' ? '既に送金完了済みです' : '이미 송금완료된 달입니다', 'w');
     return;
   }
   const jp = LANG === 'JP';
   const msg = jp
-    ? `${currentYear}年${currentMonth}月分の給与を支払済み処理します。全従業員が対象で、この時点のデータがスナップショットとして保存されます。続けますか？`
-    : `${currentYear}년 ${currentMonth}월분 급여를 지급완료 처리합니다. 전 직원이 대상이며, 이 시점의 데이터가 스냅샷으로 보존됩니다. 계속하시겠습니까？`;
+    ? `${currentYear}年${currentMonth}月分の給与を送金完了処理します。全従業員が対象で、この時点のデータがスナップショットとして保存されます。続けますか？`
+    : `${currentYear}년 ${currentMonth}월분 급여를 송금완료 처리합니다. 전 직원이 대상이며, 이 시점의 데이터가 스냅샷으로 보존됩니다. 계속하시겠습니까？`;
   if (!confirm(msg)) return;
 
   // 이 달 전 사원의 급여 데이터 수집 + 계산값 포함
@@ -681,9 +681,9 @@ async function markMonthAsPaid() {
   paidDetails[ym] = paidAt;
   localStorage.setItem(LS.paidDetails, JSON.stringify(paidDetails));
   renderPaidBtn();
-  showToast(jp ? `${currentYear}年${currentMonth}月分 支払済み処理完了 ✓` : `${currentYear}년 ${currentMonth}월분 지급완료 처리됨 ✓`, 's');
+  showToast(jp ? `${currentYear}年${currentMonth}月分 送金完了 ✓` : `${currentYear}년 ${currentMonth}월분 송금완료 처리됨 ✓`, 's');
   gasAppendLog('지급완료', `${currentYear}/${String(currentMonth).padStart(2,'0')} (${snapPayrolls.length}명)`, '성공', '');
   if (typeof sendPushNotification === 'function') {
-    sendPushNotification('✅ 給与支払確定完了', `${currentYear}年${currentMonth}月分の給与が確定されました。`, 'payroll-confirm');
+    sendPushNotification('✅ 給与送金完了', `${currentYear}年${currentMonth}月分の送金が完了しました。`, 'payroll-confirm');
   }
 }
