@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 19:14 — 지급이력 월별 행 카나 제거 (대표 타이틀 행에만 카나 표시)
+// 수정: 2026-06-13 19:40 — 지급이력 사원 선택 드롭다운 기본 옵션 추가 (사원 선택 → 전체 → 개인)
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -371,7 +371,8 @@ function renderAnnual() {
 function buildHistEmpSel() {
   const sel=document.getElementById('histEmpSel');
   if(!sel) return;
-  sel.innerHTML=`<option value="all">${LANG==='JP'?'全員':'전체'}</option>`;
+  const _jp = LANG==='JP';
+  sel.innerHTML=`<option value="none">${_jp?'── 従業員選択 ──':'── 사원 선택 ──'}</option><option value="all">${_jp?'全員':'전체'}</option>`;
   employees.forEach((e,i)=>{ if(!e||e.no==null) return; const o=document.createElement('option'); o.value=i; const _jp=LANG==='JP'; o.textContent=_jp&&e.kana?`${String(e.no).padStart(4,'0')} ${e.name}（${e.kana}）`:`${String(e.no).padStart(4,'0')} ${e.name}`; sel.appendChild(o); });
 }
 
@@ -383,7 +384,7 @@ function renderHistory() {
   tbody.innerHTML='';
   const rows=[];
   employees.forEach((emp,ei)=>{
-    if(empSel!=='all'&&parseInt(empSel)!==ei) return;
+    if(empSel!=='all'&&empSel!=='none'&&parseInt(empSel)!==ei) return;
     for(let m=1;m<=12;m++){
       const s=localStorage.getItem(`kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${m}`);
       if(!s) continue;
