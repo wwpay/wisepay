@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 19:10 — 지급이력 헤더 표시 순서 수정: 사원명→사원번호 → 사원번호→사원명
+// 수정: 2026-06-13 19:14 — 지급이력 월별 행 카나 제거 (대표 타이틀 행에만 카나 표시)
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -407,10 +407,9 @@ function renderHistory() {
     const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
     const {totalPay,kenko,kaigo,nenkin,shotoku,totalKojo,net}=calcPayrollBreakdown(emp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
     const mu=LANG==='JP'?'月':'월';
-    const _rowNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
     const tr=document.createElement('tr');
     tr.onclick=()=>{ currentEmpIdx=employees.indexOf(emp); currentMonth=m; gotoPage('payroll',document.querySelector('.nav-item')); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.querySelector('.nav-item').classList.add('active'); renderMonthTabs(); loadPayrollForm(); };
-    tr.innerHTML=`<td>${m}${mu}</td><td>${_rowNameKana}</td><td>¥${totalPay.toLocaleString()}</td><td>¥${totalKojo.toLocaleString()}</td><td style="font-weight:600;">¥${net.toLocaleString()}</td><td>¥${nenkin.toLocaleString()}</td><td>¥${kenko.toLocaleString()}</td><td>¥${shotoku.toLocaleString()}</td>`;
+    tr.innerHTML=`<td>${m}${mu}</td><td>${emp.name}</td><td>¥${totalPay.toLocaleString()}</td><td>¥${totalKojo.toLocaleString()}</td><td style="font-weight:600;">¥${net.toLocaleString()}</td><td>¥${nenkin.toLocaleString()}</td><td>¥${kenko.toLocaleString()}</td><td>¥${shotoku.toLocaleString()}</td>`;
     tbody.appendChild(tr);
   });
 }
