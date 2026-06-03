@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 18:51 — mInitApp/mSyncFromGas에 paidYMs 로드 추가 (송금완료 상태 미반영 버그)
+  수정: 2026-06-13 19:18 — mRenderAnnual paidYMs 체크 추가 (미송금 달 임금대장 표시 버그)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -913,9 +913,11 @@ function mRenderAnnual() {
   let tNet=0, tPay=0, tKojo=0, rows='';
 
   for (let m=1; m<=12; m++) {
-    const c  = mCalc(emp, mAY, m);
-    const mu = jp ? `${m}月` : `${m}월`;
-    if (!c) {
+    const c   = mCalc(emp, mAY, m);
+    const mu  = jp ? `${m}月` : `${m}월`;
+    const ym  = `${mAY}-${String(m).padStart(2,'0')}`;
+    const paid = typeof paidYMs !== 'undefined' && paidYMs.has(ym);
+    if (!c || !paid) {
       rows += `<div class="m-annual-item">
         <span class="m-annual-month">${mu}</span>
         <div class="m-annual-vals"><span class="m-annual-badge" style="color:var(--text3)">${jp?'データなし':'데이터 없음'}</span></div>
