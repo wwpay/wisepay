@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 19:54 — 사원 선택을 커스텀 바텀시트 피커로 교체 (iOS 2줄+카나 대응)
+  수정: 2026-06-13 20:09 — script 내 </script> 주석 제거 (JS 파싱 오류 → 화면 텍스트 노출 버그)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1059,7 +1059,6 @@ function mShowEmpList() {
 
 /* ── DOMContentLoaded ── */
 window.addEventListener('DOMContentLoaded', () => {
-/* NOTE: m-emp-picker-ov HTML은 </script> 뒤 body에 있음 */
   LANG = localStorage.getItem(LS.lang) || 'JP';
   mApplyLang();
   if (!checkAuth()) return;
