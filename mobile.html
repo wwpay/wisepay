@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 20:09 — script 내 </script> 주석 제거 (JS 파싱 오류 → 화면 텍스트 노출 버그)
+  수정: 2026-06-03 23:18 — 사원·연도·월 선택을 하단 고정 바로 이동, 카나 항상 표시
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -42,7 +42,7 @@
 .m-topbar-btn.logout:active { background: #fff1f2; }
 
 /* Content */
-.m-content { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 72px; -webkit-overflow-scrolling: touch; }
+.m-content { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 200px; -webkit-overflow-scrolling: touch; }
 .m-page { display: none; }
 .m-page.active { display: block; }
 
@@ -79,6 +79,16 @@
 }
 .m-sel:focus { outline: none; border-color: var(--accent); }
 .m-emp-btn { text-align:left; background-color:var(--surface); outline:none; line-height:1.3; }
+
+/* Bottom selector bar (above tabbar) */
+.m-sel-bar {
+  position: fixed;
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  left: 0; right: 0; z-index: 90;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
+}
+.m-sel-bar.hidden { display: none; }
 
 /* Year nav */
 .m-year-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -268,36 +278,11 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
 
     <!-- ── 급여 명세 ── -->
     <div class="m-page active" id="m-page-payroll">
-      <div class="m-sel-row">
-        <button id="m-emp-sel-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('payroll')">
-          <span id="m-emp-sel-label">── 사원 선택 ──</span>
-        </button>
-      </div>
-      <div class="m-sel-row">
-        <div class="m-year-nav">
-          <button class="m-year-btn" onclick="mChangeYear(-1)">‹</button>
-          <span class="m-year-txt" id="m-year-txt"></span>
-          <button class="m-year-btn" onclick="mChangeYear(1)">›</button>
-        </div>
-        <select id="m-month-sel" class="m-sel" onchange="mOnMonthChange()">
-          <option value="-1">── 월 선택 ──</option>
-        </select>
-      </div>
       <div id="m-payroll-out"></div>
     </div>
 
     <!-- ── 임금대장 ── -->
     <div class="m-page" id="m-page-annual">
-      <div class="m-sel-row">
-        <button id="m-annual-emp-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('annual')">
-          <span id="m-annual-emp-label">── 사원 선택 ──</span>
-        </button>
-        <div class="m-year-nav">
-          <button class="m-year-btn" onclick="mAnnualYear(-1)">‹</button>
-          <span class="m-year-txt" id="m-annual-year-txt"></span>
-          <button class="m-year-btn" onclick="mAnnualYear(1)">›</button>
-        </div>
-      </div>
       <div id="m-annual-out"></div>
     </div>
 
@@ -668,6 +653,10 @@ function mGotoTab(id, el) {
   document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('m-page-' + id).classList.add('active');
   if (el) el.classList.add('active');
+  const sbP = document.getElementById('m-sel-bar-payroll');
+  const sbA = document.getElementById('m-sel-bar-annual');
+  if (sbP) sbP.classList.toggle('hidden', id !== 'payroll');
+  if (sbA) sbA.classList.toggle('hidden', id !== 'annual');
   if (id === 'employees') { mShowEmpList(); mRenderEmpList(); }
   if (id === 'annual')    mRenderAnnual();
 }
@@ -678,8 +667,8 @@ function _mEmpLabel(idx, jp) {
     return jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
   const e  = employees[idx];
   const no = String(e.no).padStart(4,'0');
-  return jp && e.kana
-    ? `${no} ${e.name}<br><span style="font-size:11px;color:var(--text3);">（${e.kana}）</span>`
+  return e.kana
+    ? `${no} ${e.name} <span style="font-size:10px;color:var(--text3);">（${e.kana}）</span>`
     : `${no} ${e.name}`;
 }
 
@@ -704,7 +693,7 @@ function mOpenEmpPicker(page) {
     if (!e || e.no == null) return '';
     const no  = String(e.no).padStart(4,'0');
     const sel = i === curIdx;
-    const kana = jp && e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">（${e.kana}）</div>` : '';
+    const kana = e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">（${e.kana}）</div>` : '';
     return `<div onclick="mPickEmp(${i})" style="padding:13px 16px;border-bottom:1px solid var(--border2);cursor:pointer;${sel?'background:var(--accent2);':''}">`
          + `<div style="font-size:13px;font-weight:${sel?'600':'400'};color:${sel?'var(--accent)':'var(--text)'};">${no} ${e.name}</div>${kana}</div>`;
   }).join('');
@@ -1066,6 +1055,36 @@ window.addEventListener('DOMContentLoaded', () => {
   mInitApp();
 });
 </script>
+
+<!-- 급여명세 셀렉터 바 (tabbar 위 고정) -->
+<div id="m-sel-bar-payroll" class="m-sel-bar">
+  <button id="m-emp-sel-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('payroll')">
+    <span id="m-emp-sel-label">── 사원 선택 ──</span>
+  </button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div class="m-year-nav">
+      <button class="m-year-btn" onclick="mChangeYear(-1)">‹</button>
+      <span class="m-year-txt" id="m-year-txt"></span>
+      <button class="m-year-btn" onclick="mChangeYear(1)">›</button>
+    </div>
+    <select id="m-month-sel" class="m-sel" onchange="mOnMonthChange()" style="flex:1;">
+      <option value="-1">── 월 선택 ──</option>
+    </select>
+  </div>
+</div>
+<!-- 임금대장 셀렉터 바 (tabbar 위 고정) -->
+<div id="m-sel-bar-annual" class="m-sel-bar hidden">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button id="m-annual-emp-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('annual')" style="flex:1;">
+      <span id="m-annual-emp-label">── 사원 선택 ──</span>
+    </button>
+    <div class="m-year-nav" style="flex-shrink:0;">
+      <button class="m-year-btn" onclick="mAnnualYear(-1)">‹</button>
+      <span class="m-year-txt" id="m-annual-year-txt"></span>
+      <button class="m-year-btn" onclick="mAnnualYear(1)">›</button>
+    </div>
+  </div>
+</div>
 
 <!-- 모바일 사원 선택 바텀시트 -->
 <div id="m-emp-picker-ov" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.45);align-items:flex-end;" onclick="mCloseEmpPicker()">
