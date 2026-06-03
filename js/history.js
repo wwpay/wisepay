@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 19:07 — 카나 표시 통일: buildAnnualEmpSel 카나 추가
+// 수정: 2026-06-13 19:10 — 지급이력 헤더 표시 순서 수정: 사원명→사원번호 → 사원번호→사원명
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -398,7 +398,8 @@ function renderHistory() {
       const headerTr = document.createElement('tr');
       headerTr.className = 'hist-emp-header';
       const _histNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
-      headerTr.innerHTML = `<td colspan="8"><span class="hist-emp-label">${_histNameKana}</span><span class="hist-emp-label-no">${String(emp.no).padStart(4,'0')}</span></td>`;
+      const _histNo = String(emp.no).padStart(4,'0');
+      headerTr.innerHTML = `<td colspan="8"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
       tbody.appendChild(headerTr);
       prevEmpNo = emp.no;
     }
