@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 19:25 — 모바일 드롭다운 옵션 2줄(이름/カナ) + 폰트 소형화
+  수정: 2026-06-13 19:54 — 사원 선택을 커스텀 바텀시트 피커로 교체 (iOS 2줄+카나 대응)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -78,6 +78,7 @@
   -webkit-appearance: none; appearance: none; cursor: pointer;
 }
 .m-sel:focus { outline: none; border-color: var(--accent); }
+.m-emp-btn { text-align:left; background-color:var(--surface); outline:none; line-height:1.3; }
 
 /* Year nav */
 .m-year-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -268,9 +269,9 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     <!-- ── 급여 명세 ── -->
     <div class="m-page active" id="m-page-payroll">
       <div class="m-sel-row">
-        <select id="m-emp-sel" class="m-sel" onchange="mOnEmpChange()">
-          <option value="-1">── 사원 선택 ──</option>
-        </select>
+        <button id="m-emp-sel-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('payroll')">
+          <span id="m-emp-sel-label">── 사원 선택 ──</span>
+        </button>
       </div>
       <div class="m-sel-row">
         <div class="m-year-nav">
@@ -288,9 +289,9 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     <!-- ── 임금대장 ── -->
     <div class="m-page" id="m-page-annual">
       <div class="m-sel-row">
-        <select id="m-annual-emp" class="m-sel" onchange="mRenderAnnual()">
-          <option value="-1">── 사원 선택 ──</option>
-        </select>
+        <button id="m-annual-emp-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('annual')">
+          <span id="m-annual-emp-label">── 사원 선택 ──</span>
+        </button>
         <div class="m-year-nav">
           <button class="m-year-btn" onclick="mAnnualYear(-1)">‹</button>
           <span class="m-year-txt" id="m-annual-year-txt"></span>
@@ -584,8 +585,10 @@ const M_AY_K    = 'wisepay_m_annual_year';
 
 let mY   = new Date().getFullYear();
 let mM   = new Date().getMonth() + 1;
-let mEmp = -1;
-let mAY  = new Date().getFullYear();
+let mEmp       = -1;
+let mAnnualEmp = -1;
+let mAY        = new Date().getFullYear();
+let _mPickerPage = 'payroll';
 let mTab = 'payroll';
 
 /* ── 초기화 ── */
@@ -670,34 +673,65 @@ function mGotoTab(id, el) {
 }
 
 /* ── 사원 셀렉터 (급여 명세 / 임금대장 공통) ── */
+function _mEmpLabel(idx, jp) {
+  if (idx < 0 || idx >= employees.length)
+    return jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
+  const e  = employees[idx];
+  const no = String(e.no).padStart(4,'0');
+  return jp && e.kana
+    ? `${no} ${e.name}<br><span style="font-size:11px;color:var(--text3);">（${e.kana}）</span>`
+    : `${no} ${e.name}`;
+}
+
 function mRenderEmpSels() {
   const jp = LANG === 'JP';
-  const blank = jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
-  ['m-emp-sel', 'm-annual-emp'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = `<option value="-1">${blank}</option>`;
-    employees.forEach((e, i) => {
-      const o = document.createElement('option');
-      o.value = i;
-      o.textContent = jp && e.kana
-        ? `${String(e.no).padStart(4,'0')} ${e.name}\n（${e.kana}）`
-        : `${String(e.no).padStart(4,'0')} ${e.name}`;
-      sel.appendChild(o);
-    });
-    sel.value = prev !== '-1' ? prev : '-1';
-  });
-  // 현재 선택 복원
-  const empSel = document.getElementById('m-emp-sel');
-  if (empSel && mEmp >= 0 && mEmp < employees.length) empSel.value = mEmp;
+  const pl = document.getElementById('m-emp-sel-label');
+  const al = document.getElementById('m-annual-emp-label');
+  if (pl) pl.innerHTML = _mEmpLabel(mEmp,       jp);
+  if (al) al.innerHTML = _mEmpLabel(mAnnualEmp, jp);
   document.getElementById('m-annual-year-txt').textContent = mAY + (jp ? '年' : '년');
 }
 
-function mOnEmpChange() {
-  const v = parseInt(document.getElementById('m-emp-sel').value);
-  mEmp = isNaN(v) ? -1 : v;
-  mRenderPayroll();
+function mOpenEmpPicker(page) {
+  _mPickerPage = page;
+  const jp  = LANG === 'JP';
+  const ov  = document.getElementById('m-emp-picker-ov');
+  const lst = document.getElementById('m-emp-picker-list');
+  if (!ov || !lst) return;
+  const curIdx = page === 'payroll' ? mEmp : mAnnualEmp;
+  document.getElementById('m-emp-picker-ttl').textContent = jp ? '従業員を選択' : '사원 선택';
+  lst.innerHTML = employees.map((e, i) => {
+    if (!e || e.no == null) return '';
+    const no  = String(e.no).padStart(4,'0');
+    const sel = i === curIdx;
+    const kana = jp && e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">（${e.kana}）</div>` : '';
+    return `<div onclick="mPickEmp(${i})" style="padding:13px 16px;border-bottom:1px solid var(--border2);cursor:pointer;${sel?'background:var(--accent2);':''}">`
+         + `<div style="font-size:13px;font-weight:${sel?'600':'400'};color:${sel?'var(--accent)':'var(--text)'};">${no} ${e.name}</div>${kana}</div>`;
+  }).join('');
+  ov.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function mCloseEmpPicker() {
+  const ov = document.getElementById('m-emp-picker-ov');
+  if (ov) ov.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function mPickEmp(idx) {
+  const jp = LANG === 'JP';
+  if (_mPickerPage === 'payroll') {
+    mEmp = idx;
+    const el = document.getElementById('m-emp-sel-label');
+    if (el) el.innerHTML = _mEmpLabel(mEmp, jp);
+    mRenderPayroll();
+  } else {
+    mAnnualEmp = idx;
+    const el = document.getElementById('m-annual-emp-label');
+    if (el) el.innerHTML = _mEmpLabel(mAnnualEmp, jp);
+    mRenderAnnual();
+  }
+  mCloseEmpPicker();
 }
 
 /* ── 월/년 선택 ── */
@@ -901,8 +935,7 @@ function mAnnualYear(d) {
 
 function mRenderAnnual() {
   const jp  = LANG === 'JP';
-  const sel = document.getElementById('m-annual-emp');
-  const idx = sel ? parseInt(sel.value) : -1;
+  const idx = mAnnualEmp;
   document.getElementById('m-annual-year-txt').textContent = mAY + (jp?'年':'년');
 
   const out = document.getElementById('m-annual-out');
@@ -1026,6 +1059,7 @@ function mShowEmpList() {
 
 /* ── DOMContentLoaded ── */
 window.addEventListener('DOMContentLoaded', () => {
+/* NOTE: m-emp-picker-ov HTML은 </script> 뒤 body에 있음 */
   LANG = localStorage.getItem(LS.lang) || 'JP';
   mApplyLang();
   if (!checkAuth()) return;
@@ -1033,5 +1067,16 @@ window.addEventListener('DOMContentLoaded', () => {
   mInitApp();
 });
 </script>
+
+<!-- 모바일 사원 선택 바텀시트 -->
+<div id="m-emp-picker-ov" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.45);align-items:flex-end;" onclick="mCloseEmpPicker()">
+  <div style="background:var(--surface);border-radius:14px 14px 0 0;width:100%;max-height:72vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+    <div style="padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span style="font-weight:600;font-size:14px;" id="m-emp-picker-ttl">사원 선택</span>
+      <button onclick="mCloseEmpPicker()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0 4px;line-height:1;">✕</button>
+    </div>
+    <div id="m-emp-picker-list" style="overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+  </div>
+</div>
 </body>
 </html>
