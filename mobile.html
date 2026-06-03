@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 22:41 — viewer 열람 전용 배지 UI 제거
+  수정: 2026-06-13 18:43 — 모바일 송금완료 상태 배지 반영 (paidYMs 체크 추가)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -824,11 +824,14 @@ function mRenderPayroll() {
     return;
   }
 
+  const ym = `${mY}-${String(mM).padStart(2,'0')}`;
+  const isPaidMonth = typeof paidYMs !== 'undefined' && paidYMs.has(ym);
   const statusMap = {
+    paid:   ['m-status-gas',    jp?'🔒 送金完了':'🔒 송금완료'],
     saved:  ['m-status-saved',  jp?'✅ 保存済み':'✅ 저장됨'],
     approx: ['m-status-approx', jp?'📋 仮データ（未保存）':'📋 임시 데이터 (미저장)'],
   };
-  const [sCls, sTxt] = statusMap[calc.status] || ['m-status-empty', ''];
+  const [sCls, sTxt] = statusMap[isPaidMonth ? 'paid' : calc.status] || ['m-status-empty', ''];
   const statusBadge = mViewerPayrolls !== null ? '' : `<span class="m-status ${sCls}">${sTxt}</span>`;
 
   /* 지급 항목 */
