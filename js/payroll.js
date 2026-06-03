@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 14:52 — 버튼/상태 문구 "지급확정/완료" → "송금완료" 전면 변경
+// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -154,7 +154,9 @@ function renderEmpSelect() {
   employees.forEach((e,i) => {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = `${String(e.no).padStart(4,'0')} ${e.name}`;
+    opt.textContent = jp
+      ? `${String(e.no).padStart(4,'0')} ${e.name}${e.kana ? '（'+e.kana+'）' : ''}`
+      : `${String(e.no).padStart(4,'0')} ${e.name}`;
     sel.appendChild(opt);
   });
   const validIdx = currentEmpIdx >= 0 && currentEmpIdx < employees.length;
@@ -311,7 +313,7 @@ function updateEmpHeader() {
   const emp = employees[currentEmpIdx];
   if(!emp) return;
   document.getElementById('avatarTxt').textContent = emp.name.charAt(0);
-  document.getElementById('empNameTxt').textContent = emp.name;
+  document.getElementById('empNameTxt').textContent = LANG === 'JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
   document.getElementById('empIdTxt').textContent = String(emp.no).padStart(4,'0');
   const yu = LANG==='JP'?'年':'년', mu = LANG==='JP'?'月分':'월분';
   document.getElementById('empMonthTxt').textContent = `${currentYear}${yu}${currentMonth}${mu}`;

@@ -1,4 +1,4 @@
-// 수정: 2026-06-02 23:19 — 임금대장 → 임금 대장 띄어쓰기 수정
+// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -335,8 +335,9 @@ function renderAnnual() {
     const emp = employees.find(e => parseInt(e.no) === selectedNos[0]);
     if (!emp) { ph.style.display='none'; document.getElementById('annualContent').innerHTML=noDataMsg; return; }
     ph.style.display = 'block';
+    const _nameKana1 = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
     document.getElementById('annualPrintTitle').textContent =
-      `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
+      `${_nameKana1}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
     document.getElementById('annualPrintSub').textContent =
       (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     document.getElementById('annualContent').innerHTML = buildEmpTableHtml(emp, year, jp) || noDataMsg;
@@ -352,7 +353,8 @@ function renderAnnual() {
     if (!emp) return;
     const tableHtml = buildEmpTableHtml(emp, year, jp);
     if (!tableHtml) return;
-    const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
+    const _nameKana2 = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
+    const title = `${_nameKana2}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
     const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
       `<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;margin-bottom:10px;">` +
@@ -369,7 +371,7 @@ function buildHistEmpSel() {
   const sel=document.getElementById('histEmpSel');
   if(!sel) return;
   sel.innerHTML=`<option value="all">${LANG==='JP'?'全員':'전체'}</option>`;
-  employees.forEach((e,i)=>{ if(!e||e.no==null) return; const o=document.createElement('option'); o.value=i; o.textContent=`${String(e.no).padStart(4,'0')} ${e.name}`; sel.appendChild(o); });
+  employees.forEach((e,i)=>{ if(!e||e.no==null) return; const o=document.createElement('option'); o.value=i; const _jp=LANG==='JP'; o.textContent=_jp&&e.kana?`${String(e.no).padStart(4,'0')} ${e.name}（${e.kana}）`:`${String(e.no).padStart(4,'0')} ${e.name}`; sel.appendChild(o); });
 }
 
 function renderHistory() {
@@ -394,7 +396,8 @@ function renderHistory() {
     if(emp.no !== prevEmpNo) {
       const headerTr = document.createElement('tr');
       headerTr.className = 'hist-emp-header';
-      headerTr.innerHTML = `<td colspan="8"><span class="hist-emp-label">${emp.name}</span><span class="hist-emp-label-no">${String(emp.no).padStart(4,'0')}</span></td>`;
+      const _histNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
+      headerTr.innerHTML = `<td colspan="8"><span class="hist-emp-label">${_histNameKana}</span><span class="hist-emp-label-no">${String(emp.no).padStart(4,'0')}</span></td>`;
       tbody.appendChild(headerTr);
       prevEmpNo = emp.no;
     }
@@ -402,9 +405,10 @@ function renderHistory() {
     const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
     const {totalPay,kenko,kaigo,nenkin,shotoku,totalKojo,net}=calcPayrollBreakdown(emp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
     const mu=LANG==='JP'?'月':'월';
+    const _rowNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
     const tr=document.createElement('tr');
     tr.onclick=()=>{ currentEmpIdx=employees.indexOf(emp); currentMonth=m; gotoPage('payroll',document.querySelector('.nav-item')); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.querySelector('.nav-item').classList.add('active'); renderMonthTabs(); loadPayrollForm(); };
-    tr.innerHTML=`<td>${m}${mu}</td><td>${emp.name}</td><td>¥${totalPay.toLocaleString()}</td><td>¥${totalKojo.toLocaleString()}</td><td style="font-weight:600;">¥${net.toLocaleString()}</td><td>¥${nenkin.toLocaleString()}</td><td>¥${kenko.toLocaleString()}</td><td>¥${shotoku.toLocaleString()}</td>`;
+    tr.innerHTML=`<td>${m}${mu}</td><td>${_rowNameKana}</td><td>¥${totalPay.toLocaleString()}</td><td>¥${totalKojo.toLocaleString()}</td><td style="font-weight:600;">¥${net.toLocaleString()}</td><td>¥${nenkin.toLocaleString()}</td><td>¥${kenko.toLocaleString()}</td><td>¥${shotoku.toLocaleString()}</td>`;
     tbody.appendChild(tr);
   });
 }

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 08:39 — 사원 번호 띄어쓰기, 폼 hint 텍스트 인라인 이동
+﻿// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -100,7 +100,8 @@ function renderEmpList() {
     item.className = 'emp-list-item' + (i === editingEmpIdx ? ' active' : '') + (resigned ? ' resigned' : '');
     const famCnt = countFamilies(emp);
     const badge = resigned ? `<span class="resign-badge">${jp ? '退' : '퇴'}</span>` : '';
-    item.innerHTML = `<div class="emp-list-av${resigned ? ' av-resigned' : ''}">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${badge}${emp.name}</div><div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${jp?'扶養':'부양'} ${famCnt}${jp?'名':'명'}</div></div>`;
+    const kanaLine = jp && emp.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${emp.kana}</div>` : '';
+    item.innerHTML = `<div class="emp-list-av${resigned ? ' av-resigned' : ''}">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${badge}${emp.name}</div>${kanaLine}<div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${jp?'扶養':'부양'} ${famCnt}${jp?'名':'명'}</div></div>`;
     item.onclick = () => openEmpForm(i);
     body.appendChild(item);
   });
@@ -158,11 +159,11 @@ function openEmpForm(idx) {
     tempFamilies=JSON.parse(JSON.stringify(emp.families||[]));
     const resigned = isResigned(emp);
     if (resigned) {
-      title.textContent = jp ? `${emp.name} の閲覧（退職者）` : `${emp.name} 보기（퇴사자）`;
+      title.textContent = jp ? `${emp.name}${emp.kana?'（'+emp.kana+'）':''} の閲覧（退職者）` : `${emp.name} 보기（퇴사자）`;
       btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${idx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
       renderEmpFormFields(emp, true);
     } else {
-      title.textContent = emp.name;
+      title.textContent = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
       renderEmpFormFields(emp, false);
       renderActiveEmpBtns(idx);
     }

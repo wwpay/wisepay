@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 18:43 — 모바일 송금완료 상태 배지 반영 (paidYMs 체크 추가)
+  수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -675,7 +675,7 @@ function mRenderEmpSels() {
     sel.innerHTML = `<option value="-1">${blank}</option>`;
     employees.forEach((e, i) => {
       const o = document.createElement('option');
-      o.value = i; o.textContent = `${String(e.no).padStart(4,'0')} ${e.name}`;
+      o.value = i; o.textContent = jp && e.kana ? `${String(e.no).padStart(4,'0')} ${e.name}（${e.kana}）` : `${String(e.no).padStart(4,'0')} ${e.name}`;
       sel.appendChild(o);
     });
     sel.value = prev !== '-1' ? prev : '-1';
@@ -869,7 +869,7 @@ function mRenderPayroll() {
     <div class="m-net-card">
       <div class="m-net-label">${jp?'差引総支給額（手取り）':'차인지급액'}</div>
       <div class="m-net-amount">¥${f(calc.net)}</div>
-      <div class="m-net-sub">${emp.name} · ${mY}${jp?'年':'년'} ${mM}${jp?'月':'월'}분</div>
+      <div class="m-net-sub">${emp.name}${jp&&emp.kana?'（'+emp.kana+'）':''} · ${mY}${jp?'年':'년'} ${mM}${jp?'月':'월'}분</div>
     </div>
     <div class="m-card">
       <div class="m-card-header">${jp?'支給':'지급'}</div>
@@ -940,7 +940,7 @@ function mRenderAnnual() {
 
   out.innerHTML = `
     <div class="m-card" style="margin-bottom:10px;">
-      <div style="font-size:14px;font-weight:700;">${emp.name}</div>
+      <div style="font-size:14px;font-weight:700;">${emp.name}${jp&&emp.kana?'（'+emp.kana+'）':''}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px;">${jp?'社員番号':'사원 번호'}: ${String(emp.no).padStart(4,'0')}</div>
     </div>
     ${rows}${totalHtml}`;
@@ -961,6 +961,7 @@ function mRenderEmpList() {
       <div class="m-emp-avatar">${init}</div>
       <div class="m-emp-info">
         <div class="m-emp-name">${e.name}</div>
+        ${jp && e.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${e.kana}</div>` : ''}
         <div class="m-emp-sub">${String(e.no).padStart(4,'0')} · ${sub}${e.leave?' · '+(jp?'退社: ':'퇴사: ')+e.leave.substring(0,7):''}</div>
       </div>
       <span class="m-emp-arrow">›</span>
@@ -1001,6 +1002,7 @@ function mShowEmpDetail(idx) {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
         <div class="m-emp-avatar" style="width:48px;height:48px;font-size:20px;">${(emp.name||'?').charAt(0)}</div>
         <div><div style="font-size:16px;font-weight:700;">${emp.name}</div>
+          ${jp&&emp.kana?`<div style="font-size:12px;color:var(--text3);margin-top:1px;">${emp.kana}</div>`:''}
           <div style="font-size:11px;color:var(--text3);">No. ${String(emp.no).padStart(4,'0')}</div></div>
       </div>
       ${rows}
