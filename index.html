@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-03 12:58 — 알림 전체 구현: 푸시(A)/송금독촉배너(B)/독촉이메일(C)/지급완료미처리팝업(D) + GAS 이메일 함수 추가
+  수정: 2026-06-03 13:39 — topbar 중앙 말풍선 배너 UI 교체 (payroll-balloon), 확인 버튼명 통일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,6 +117,7 @@
   <div class="topbar-l">
     <span class="page-title" id="topbar-title">給与明細</span>
   </div>
+  <div class="topbar-c" id="topbar-center"></div>
   <div class="topbar-r">
     <div class="notif-btn-wrap">
       <button class="btn" id="btn-notif" onclick="gotoPage('notifications',null)" title="알림">

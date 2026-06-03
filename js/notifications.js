@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 09:27 — Service Worker 푸시 알림 + 송금 독촉 배너/이메일/팝업 (wiseadmin 전용)
+// 수정: 2026-06-03 13:39 — 상단 fixed 배너 → topbar 중앙 말풍선으로 교체, 버튼명 통일, 저장 조건 체크
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -193,44 +193,59 @@ function checkAndShowPayrollAlerts(paidMonths) {
   } catch(e) {}
 }
 
-function showPayrollReminderBanner(prevLabel, deadline, prevMonth, jp) {
-  if (document.getElementById('payroll-reminder-banner')) return;
-  const banner = document.createElement('div');
-  banner.id = 'payroll-reminder-banner';
-  banner.style.cssText =
-    'position:fixed;top:0;left:0;right:0;z-index:9999;' +
-    'background:#FEF9C3;color:#854D0E;' +
-    'padding:12px 20px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:inherit;';
-
-  const msg = jp
-    ? `💸 ${prevLabel}分 給与振込期限: <strong>${deadline}</strong>まで — 振込完了後、下のボタンを押してください`
-    : `💸 ${prevLabel}분 급여 송금 기한: <strong>${deadline}</strong>까지 — 송금 완료 후 아래 버튼을 눌러주세요`;
-  const btnTxt = jp ? '✅ 振込完了を確認' : '✅ 송금 완료 확인';
-
-  banner.innerHTML =
-    `<div style="font-size:13px;font-weight:600;margin-bottom:9px;line-height:1.5;">${msg}</div>` +
-    `<button id="payroll-remind-ok" style="display:inline-flex;align-items:center;gap:5px;` +
-    `padding:7px 18px;background:#16a34a;color:#fff;border:none;border-radius:7px;` +
-    `font-size:12px;font-weight:700;cursor:pointer;">${btnTxt}</button>`;
-
-  document.body.prepend(banner);
-  requestAnimationFrame(() => {
-    const h = banner.getBoundingClientRect().height;
-    banner._h = h;
-    document.body.style.paddingTop = (parseInt(document.body.style.paddingTop || '0') + h) + 'px';
+function _isMonthSavedForAnyEmp(prevMonth) {
+  const [y, m] = prevMonth.split('-').map(Number);
+  const emps = (typeof employees !== 'undefined') ? employees : [];
+  const pf   = (typeof PFIELDS   !== 'undefined') ? PFIELDS   : [];
+  return emps.some(emp => {
+    const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${y}_${m}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+    try {
+      const d = JSON.parse(raw);
+      return pf.some(f => f in d && Number(String(d[f] || '0').replace(/,/g, '')) !== 0);
+    } catch(e) { return false; }
   });
+}
 
-  document.getElementById('payroll-remind-ok').addEventListener('click', () => {
-    localStorage.setItem('payrollRemindedMonth', prevMonth);
-    const h = banner._h || 0;
-    const cur = parseInt(document.body.style.paddingTop || '0');
-    document.body.style.paddingTop = Math.max(0, cur - h) + 'px';
-    banner.remove();
-    addNotification(
-      'wire-done-' + prevMonth, 'info',
-      `${prevLabel}분 급여 송금 완료 확인됨`,
-      `${prevLabel}分の給与振込完了を確認しました`
-    );
+function showPayrollReminderBanner(prevLabel, deadline, prevMonth, jp) {
+  if (document.getElementById('payroll-balloon')) return;
+  const center = document.getElementById('topbar-center');
+  if (!center) return;
+
+  const isSaved = _isMonthSavedForAnyEmp(prevMonth);
+  const msg    = jp
+    ? `💸 ${prevLabel}分 振込期限: ${deadline}まで`
+    : `💸 ${prevLabel}분 송금 기한: ${deadline}까지`;
+  const btnTxt  = jp ? '支払完了を確認' : '지급 완료 확인';
+  const tipAttr = jp
+    ? '対象月のデータを先に保存してください'
+    : '해당 월 데이터를 먼저 저장해주세요';
+
+  const balloon = document.createElement('div');
+  balloon.id        = 'payroll-balloon';
+  balloon.className = 'payroll-balloon';
+  balloon.innerHTML =
+    `<span class="payroll-balloon-text">${msg}</span>` +
+    `<button class="payroll-balloon-confirm"` +
+    (isSaved ? '' : ` disabled title="${tipAttr}"`) +
+    `>${btnTxt}</button>`;
+
+  center.appendChild(balloon);
+
+  balloon.querySelector('.payroll-balloon-confirm').addEventListener('click', () => {
+    balloon.style.animation = 'balloonFadeOut 0.3s ease forwards';
+    balloon.addEventListener('animationend', () => {
+      balloon.remove();
+      localStorage.setItem('payrollRemindedMonth', prevMonth);
+      addNotification(
+        'wire-done-' + prevMonth, 'info',
+        `${prevLabel}분 급여 송금 완료 확인됨`,
+        `${prevLabel}分の給与振込完了を確認しました`
+      );
+      const paidArr = (typeof paidYMs !== 'undefined') ? [...paidYMs] : [];
+      if (!paidArr.includes(prevMonth)) showUnconfirmedPaymentModal(prevLabel, jp);
+    }, { once: true });
   });
 }
 

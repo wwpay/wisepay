@@ -1,4 +1,4 @@
-/* 수정: 2026-06-02 23:25 — --text3 색상 #9aa3b2 → #6b7280 */
+/* 수정: 2026-06-03 13:39 — topbar 중앙 말풍선 배너 UI 추가 (payroll-balloon) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -44,9 +44,16 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18px;height:50px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:10;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18px;height:50px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:10;overflow:hidden;}
 .topbar-l{display:flex;align-items:center;gap:8px;}
+.topbar-c{flex:1;display:flex;justify-content:center;align-items:center;min-width:0;}
 .topbar-r{display:flex;align-items:center;gap:7px;}
+@keyframes riseAndBounce{0%{transform:translateY(52px);opacity:0;}40%{transform:translateY(-8px);opacity:1;}58%{transform:translateY(5px);}72%{transform:translateY(-3px);}83%{transform:translateY(2px);}91%{transform:translateY(-1px);}100%{transform:translateY(0);opacity:1;}}
+@keyframes balloonFadeOut{to{opacity:0;transform:translateY(8px);}}
+.payroll-balloon{display:flex;align-items:center;gap:8px;height:36px;padding:0 14px;background:#fef9c3;color:#854d0e;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-size:calc(12px + var(--fs-delta));font-weight:600;white-space:nowrap;animation:riseAndBounce 1.6s cubic-bezier(.22,1,.36,1) .3s both;}
+.payroll-balloon-text{flex-shrink:1;overflow:hidden;text-overflow:ellipsis;}
+.payroll-balloon-confirm{flex-shrink:0;padding:4px 12px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:calc(11px + var(--fs-delta));font-weight:700;cursor:pointer;white-space:nowrap;}
+.payroll-balloon-confirm:disabled{background:#94a3b8;cursor:not-allowed;}
 .page-title{font-size:calc(14px + var(--fs-delta));font-weight:600;}
 .content{padding:16px 18px;flex:1;overflow-y:auto;}
 .page{display:none;} .page.active{display:block;}
