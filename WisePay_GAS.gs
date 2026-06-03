@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-13 15:46 — MailApp → GmailApp 전체 교체 (권한 오류 대응)
+// 수정: 2026-06-11 16:30 — sendPayConfirmReminderEmail 본문 🔒 이모지 → [送金完了] 텍스트로 교체
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -302,7 +302,7 @@ function sendDataInputReminderEmail(year, month) {
 function sendPayConfirmReminderEmail(year, month) {
   var subject = '[給与Pro] ' + year + '年' + month + '月分 送金完了確認のお願い';
   var body    = year + '年' + month + '月分の給与振込はお済みですか？\n' +
-                '振込確認後、給与Pro上の🔒送金完了ボタンを押してください。\n\n' +
+                '振込確認後、給与Pro上の[送金完了]ボタンを押してください。\n\n' +
                 '--\n給与Pro by Wisewires';
   GmailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
