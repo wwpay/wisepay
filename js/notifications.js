@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 15:32 — 알림 2/3번 말풍선 색상 구분 (type 파라미터), 타이밍 주석 정리
+// 수정: 2026-06-11 16:35 — 임시 테스트 코드 제거 (_testAlert, _testAlert1, 디버그 console.log)
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -168,18 +168,15 @@ function checkAndShowPayrollAlerts(paidMonths) {
     const mon  = jst.getMonth() + 1;
     const day  = jst.getDate();
     const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    console.log('[알림] day='+day+' todayStr='+todayStr);
 
     const prevY  = mon === 1 ? year - 1 : year;
     const prevM  = mon === 1 ? 12 : mon - 1;
     const prevYM = `${prevY}-${String(prevM).padStart(2,'0')}`;
 
     const paidArr = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
-    console.log('[알림] paidArr='+JSON.stringify(paidArr));
     const jp      = LANG === 'JP';
 
     // 알림 1: 전월 급여 데이터 미저장 → 이메일 (하루 1회)
-    console.log('[알림] prevYM='+prevYM+' saved='+_isMonthSaved(prevYM));
     if (!_isMonthSaved(prevYM)) {
       if (localStorage.getItem('lastDataInputReminderEmail') !== todayStr) {
         _sendDataInputReminderViaGas(prevY, prevM);
@@ -189,11 +186,9 @@ function checkAndShowPayrollAlerts(paidMonths) {
 
     // 알림 2 / 3: 저장됐는데 송금 완료 안 된 달 존재
     const unpaidYM = _getLatestUnpaidSavedMonth(paidArr);
-    console.log('[알림] unpaidYM='+unpaidYM);
     if (!unpaidYM) return;
     const [uy, um] = unpaidYM.split('-').map(Number);
 
-    console.log('[알림] day<10?'+(day<10)+' → 알림'+(day<10?'2':'3')+'번 분기');
     if (day < 10) {
       // 알림 2: 송금 독촉 말풍선 + 이메일 (day < 10)
       showPayrollReminderBanner(
@@ -207,20 +202,17 @@ function checkAndShowPayrollAlerts(paidMonths) {
       }
     } else {
       // 알림 3: 송금 완료 버튼 독촉 말풍선 + 이메일 (day >= 10)
-      console.log('[알림] topbar-center='+document.getElementById('topbar-center'));
-      console.log('[알림] 기존balloon='+document.getElementById('payroll-balloon'));
       showPayrollReminderBanner(
         `✅ ${uy}년 ${um}월분 급여 송금이 완료되셨나요? 🔒 송금 완료 버튼을 눌러주세요.`,
         `✅ ${uy}年${um}月分の給与振込はお済みですか？ 🔒 送金完了ボタンを押してください。`,
         jp, 3
       );
-      console.log('[알림] showPayrollReminderBanner 호출 완료');
       if (localStorage.getItem('lastPayConfirmReminderEmail') !== todayStr) {
         _sendPayConfirmReminderViaGas(uy, um);
         localStorage.setItem('lastPayConfirmReminderEmail', todayStr);
       }
     }
-  } catch(e) { console.error('[알림] catch 에러:', e); }
+  } catch(e) {}
 }
 
 function _isMonthSaved(ym) {
@@ -304,36 +296,6 @@ async function _sendPayConfirmReminderViaGas(year, month) {
     });
   } catch(e) {}
 }
-
-// ── DEV ONLY: 제거 예정 ──────────────────────────────────────
-window._testAlert = function(day) {
-  const el = document.getElementById('payroll-balloon');
-  if (el) el.remove();
-  const _orig = window._jstNow;
-  window._jstNow = function() { const d = _orig(); d.setDate(day); return d; };
-  checkAndShowPayrollAlerts([...paidYMs]);
-  window._jstNow = _orig;
-};
-
-window._testAlert1 = function() {
-  try {
-    localStorage.removeItem('lastDataInputReminderEmail');
-    const now   = new Date();
-    const jstStr = now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' });
-    const jst   = new Date(jstStr);
-    const year  = jst.getFullYear();
-    const mon   = jst.getMonth() + 1;
-    const prevY = Number(mon === 1 ? year - 1 : year);
-    const prevM = Number(mon === 1 ? 12 : mon - 1);
-    const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(jst.getDate()).padStart(2,'0')}`;
-    if (!prevY || !prevM) { console.error('[_testAlert1] year/month 계산 실패:', prevY, prevM); return; }
-    console.log(`[_testAlert1] 전송 → year=${prevY}, month=${prevM}, today=${todayStr}`);
-    _sendDataInputReminderViaGas(prevY, prevM);
-    localStorage.setItem('lastDataInputReminderEmail', todayStr);
-    console.log('[_testAlert1] 완료');
-  } catch(e) { console.error('[_testAlert1] 오류:', e); }
-};
-// ─────────────────────────────────────────────────────────────
 
 function _renderTrashPage() {
   const jp = LANG === 'JP';
