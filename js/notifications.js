@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 14:52 — 말풍선 메시지 "지급 확정" → "송금 완료" 문구 변경
+// 수정: 2026-06-03 15:00 — 알림 1~3번 전체 구현 (미입력 이메일/송금독촉/송금완료버튼 독촉)
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -163,61 +163,96 @@ function _jstNow() {
 
 function checkAndShowPayrollAlerts(paidMonths) {
   try {
-    const jst = _jstNow();
-    if (jst.getDate() < 10) return;
+    const jst  = _jstNow();
+    const year = jst.getFullYear();
+    const mon  = jst.getMonth() + 1;
+    const day  = jst.getDate();
+    const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
-    const paidArr  = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
+    const prevY  = mon === 1 ? year - 1 : year;
+    const prevM  = mon === 1 ? 12 : mon - 1;
+    const prevYM = `${prevY}-${String(prevM).padStart(2,'0')}`;
+
+    const paidArr = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
+    const jp      = LANG === 'JP';
+
+    // 알림 1: 전월 급여 데이터 미저장 → 이메일 (하루 1회)
+    if (!_isMonthSaved(prevYM)) {
+      if (localStorage.getItem('lastDataInputReminderEmail') !== todayStr) {
+        _sendDataInputReminderViaGas(prevY, prevM);
+        localStorage.setItem('lastDataInputReminderEmail', todayStr);
+      }
+    }
+
+    // 알림 2 / 3: 저장됐는데 송금 완료 안 된 달 존재
     const unpaidYM = _getLatestUnpaidSavedMonth(paidArr);
     if (!unpaidYM) return;
+    const [uy, um] = unpaidYM.split('-').map(Number);
 
-    const jp = LANG === 'JP';
-    const [y, m] = unpaidYM.split('-').map(Number);
-    showPayrollReminderBanner(y, m, jp);
+    if (day < 10) {
+      // 알림 2: 송금 독촉 말풍선 + 이메일 (day < 10)
+      showPayrollReminderBanner(
+        `💸 ${uy}년 ${um}월분 급여 송금 기한은 10일까지입니다.`,
+        `💸 ${uy}年${um}月分の給与振込期限は10日です。`,
+        jp
+      );
+      if (localStorage.getItem('lastSendReminderEmail') !== todayStr) {
+        _sendReminderEmailViaGas(uy, um);
+        localStorage.setItem('lastSendReminderEmail', todayStr);
+      }
+    } else {
+      // 알림 3: 송금 완료 버튼 독촉 말풍선 + 이메일 (day >= 10)
+      showPayrollReminderBanner(
+        `✅ ${uy}년 ${um}월분 급여 송금이 완료되셨나요? 🔒 송금 완료 버튼을 눌러주세요.`,
+        `✅ ${uy}年${um}月分の給与振込はお済みですか？ 🔒 送金完了ボタンを押してください。`,
+        jp
+      );
+      if (localStorage.getItem('lastPayConfirmReminderEmail') !== todayStr) {
+        _sendPayConfirmReminderViaGas(uy, um);
+        localStorage.setItem('lastPayConfirmReminderEmail', todayStr);
+      }
+    }
   } catch(e) {}
 }
 
-function _getLatestUnpaidSavedMonth(paidArr) {
+function _isMonthSaved(ym) {
+  const [y, m] = ym.split('-').map(Number);
   const emps = (typeof employees !== 'undefined') ? employees : [];
   const pf   = (typeof PFIELDS   !== 'undefined') ? PFIELDS   : [];
-  if (!emps.length || !pf.length) return null;
+  return emps.some(emp => {
+    const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${y}_${m}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+    try {
+      const d = JSON.parse(raw);
+      return pf.some(f => f in d && Number(String(d[f]||'0').replace(/,/g,'')) !== 0);
+    } catch(e) { return false; }
+  });
+}
+
+function _getLatestUnpaidSavedMonth(paidArr) {
   const jst = _jstNow();
   let y = jst.getFullYear(), m = jst.getMonth() + 1;
   for (let i = 0; i < 24; i++) {
     const ym = `${y}-${String(m).padStart(2,'0')}`;
-    if (!paidArr.includes(ym)) {
-      const hasSaved = emps.some(emp => {
-        const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${y}_${m}`;
-        const raw = localStorage.getItem(key);
-        if (!raw) return false;
-        try {
-          const d = JSON.parse(raw);
-          return pf.some(f => f in d && Number(String(d[f]||'0').replace(/,/g,'')) !== 0);
-        } catch(e) { return false; }
-      });
-      if (hasSaved) return ym;
-    }
+    if (!paidArr.includes(ym) && _isMonthSaved(ym)) return ym;
     m--;
     if (m < 1) { m = 12; y--; }
   }
   return null;
 }
 
-function showPayrollReminderBanner(year, month, jp) {
+function showPayrollReminderBanner(msgKR, msgJP, jp) {
   if (document.getElementById('payroll-balloon')) return;
   const center = document.getElementById('topbar-center');
   if (!center) return;
-
-  const msg    = jp
-    ? `${year}年${month}月分の送金完了処理が行われていません。`
-    : `${year}년 ${month}월분 송금 완료 처리가 되지 않았습니다.`;
-  const btnTxt = jp ? '確認' : '확인';
 
   const balloon = document.createElement('div');
   balloon.id        = 'payroll-balloon';
   balloon.className = 'payroll-balloon';
   balloon.innerHTML =
-    `<span class="payroll-balloon-text">${msg}</span>` +
-    `<button class="payroll-balloon-confirm">${btnTxt}</button>`;
+    `<span class="payroll-balloon-text">${jp ? msgJP : msgKR}</span>` +
+    `<button class="payroll-balloon-confirm">${jp ? '確認' : '확인'}</button>`;
 
   center.appendChild(balloon);
 
@@ -230,10 +265,29 @@ function showPayrollReminderBanner(year, month, jp) {
 async function _sendReminderEmailViaGas(year, month) {
   if (typeof gasUrl === 'undefined' || !gasUrl) return;
   try {
-    const auth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
     await fetch(gasUrl, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'sendReminderEmail', year, month, ...auth })
+      body: JSON.stringify({ type: 'sendReminderEmail', year, month })
+    });
+  } catch(e) {}
+}
+
+async function _sendDataInputReminderViaGas(year, month) {
+  if (typeof gasUrl === 'undefined' || !gasUrl) return;
+  try {
+    await fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'sendDataInputReminder', year, month })
+    });
+  } catch(e) {}
+}
+
+async function _sendPayConfirmReminderViaGas(year, month) {
+  if (typeof gasUrl === 'undefined' || !gasUrl) return;
+  try {
+    await fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'sendPayConfirmReminder', year, month })
     });
   } catch(e) {}
 }

@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-03 12:58 — ADMIN_EMAIL 상수 + 송금 독촉 이메일 / 지급확정 확인 이메일 함수 추가
+// 수정: 2026-06-03 15:00 — 알림 1~3번 이메일 함수 추가 (미입력/송금독촉/송금완료버튼 독촉)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -269,6 +269,14 @@ function doPost(e) {
       sendPayrollReminderEmail(parseInt(data.year), parseInt(data.month));
       return jsonResponse({ ok: true });
     }
+    if (data.type === 'sendDataInputReminder') {
+      sendDataInputReminderEmail(parseInt(data.year), parseInt(data.month));
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'sendPayConfirmReminder') {
+      sendPayConfirmReminderEmail(parseInt(data.year), parseInt(data.month));
+      return jsonResponse({ ok: true });
+    }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {
     return jsonResponse({ ok: false, error: err.message });
@@ -276,12 +284,26 @@ function doPost(e) {
 }
 
 function sendPayrollReminderEmail(year, month) {
-  var deadline = year + '年' + month + '月10日';
-  var subject  = '[給与Pro] ' + year + '年' + month + '月分 給与振込リマインダー';
-  var body     = year + '年' + month + '月分の給与振込期限が近づいています。\n\n' +
-                 '■ 振込期限：' + deadline + '（JST）\n' +
-                 '■ 未確定の場合は給与Pro上で確定処理をお忘れなく。\n\n' +
-                 '--\n給与Pro by Wisewires';
+  var subject = '[給与Pro] ' + year + '年' + month + '月分 給与振込リマインダー';
+  var body    = year + '年' + month + '月分の給与振込期限は' + year + '年' + month + '月10日です。\n' +
+                'お早めに振込手続きをお願いします。\n\n' +
+                '--\n給与Pro by Wisewires';
+  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+function sendDataInputReminderEmail(year, month) {
+  var subject = '[給与Pro] ' + year + '年' + month + '月分 給与データ未入力のお知らせ';
+  var body    = month + '月分の給与データがまだ入力されていません。\n' +
+                '残業代等をご確認の上、給与Proに入力してください。\n\n' +
+                '--\n給与Pro by Wisewires';
+  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+function sendPayConfirmReminderEmail(year, month) {
+  var subject = '[給与Pro] ' + year + '年' + month + '月分 送金完了確認のお願い';
+  var body    = year + '年' + month + '月分の給与振込はお済みですか？\n' +
+                '振込確認後、給与Pro上の🔒送金完了ボタンを押してください。\n\n' +
+                '--\n給与Pro by Wisewires';
   MailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
