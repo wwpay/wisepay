@@ -1,5 +1,7 @@
-// 수정: 2026-06-13 19:40 — 지급이력 사원 선택 드롭다운 기본 옵션 추가 (사원 선택 → 전체 → 개인)
+// 수정: 2026-06-13 19:47 — 지급이력 초기 플레이스홀더 + 선택값 캐시 (직전 선택 복원)
 'use strict';
+let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
+
 function getAvailableAnnualYears() {
   const years = new Set();
   for (let i = 0; i < localStorage.length; i++) {
@@ -374,13 +376,27 @@ function buildHistEmpSel() {
   const _jp = LANG==='JP';
   sel.innerHTML=`<option value="none">${_jp?'── 従業員選択 ──':'── 사원 선택 ──'}</option><option value="all">${_jp?'全員':'전체'}</option>`;
   employees.forEach((e,i)=>{ if(!e||e.no==null) return; const o=document.createElement('option'); o.value=i; const _jp=LANG==='JP'; o.textContent=_jp&&e.kana?`${String(e.no).padStart(4,'0')} ${e.name}（${e.kana}）`:`${String(e.no).padStart(4,'0')} ${e.name}`; sel.appendChild(o); });
+  if (_histEmpSelCache !== 'none') sel.value = _histEmpSelCache;
 }
 
 function renderHistory() {
   const tbody=document.getElementById('historyBody');
   if(!tbody) return;
-  const year=parseInt(document.getElementById('histYearSel').value);
   const empSel=document.getElementById('histEmpSel').value;
+  _histEmpSelCache = empSel;
+
+  const ph   = document.getElementById('historyPlaceholder');
+  const card = document.getElementById('historyCard');
+
+  if (empSel === 'none') {
+    if (ph)   ph.style.display   = 'flex';
+    if (card) card.style.display = 'none';
+    return;
+  }
+  if (ph)   ph.style.display   = 'none';
+  if (card) card.style.display = '';
+
+  const year=parseInt(document.getElementById('histYearSel').value);
   tbody.innerHTML='';
   const rows=[];
   employees.forEach((emp,ei)=>{

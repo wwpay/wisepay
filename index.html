@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 19:40 — 지급이력 사원선택 기본옵션 추가 + 급여명세 사원아이콘 제거
+  수정: 2026-06-13 19:47 — 지급이력 초기 플레이스홀더 추가, 선택 기억
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -315,7 +315,13 @@
       </select>
     </div>
   </div>
-  <div class="card">
+  <!-- 미선택 플레이스홀더 -->
+  <div id="historyPlaceholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text3);text-align:center;">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:16px;opacity:0.35;"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+    <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--text2);" id="t-hist-ph-main">사원을 선택해 주세요</div>
+    <div style="font-size:12px;" id="t-hist-ph-sub">위 드롭다운에서 사원 또는 전체를 선택하면 지급 이력이 표시됩니다.</div>
+  </div>
+  <div class="card" id="historyCard" style="display:none;">
     <table class="history-table">
       <thead><tr>
         <th id="t-h-month">月</th><th id="t-h-name">氏名</th>
