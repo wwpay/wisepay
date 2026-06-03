@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
+// 수정: 2026-06-13 19:07 — 카나 표시 통일: buildAnnualEmpSel 카나 추가
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -53,8 +53,9 @@ function buildAnnualEmpSel() {
     cb.style.cssText = 'width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:var(--accent);';
     cb.addEventListener('change', updateAnnualSelSummary);
     const nameSpan = document.createElement('span');
-    nameSpan.style.flex = '1';
-    nameSpan.textContent = e.name;
+    nameSpan.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    const _jp = LANG === 'JP';
+    nameSpan.textContent = _jp && e.kana ? `${e.name}（${e.kana}）` : e.name;
     const noSpan = document.createElement('span');
     noSpan.style.cssText = 'color:var(--text3);font-size:12px;font-variant-numeric:tabular-nums;';
     noSpan.textContent = String(e.no).padStart(4, '0');

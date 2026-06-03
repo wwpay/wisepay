@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
+﻿// 수정: 2026-06-13 19:07 — 카나 표시 통일: renderEmpList 인라인으로 변경 + buildAnnualEmpSel 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -100,8 +100,8 @@ function renderEmpList() {
     item.className = 'emp-list-item' + (i === editingEmpIdx ? ' active' : '') + (resigned ? ' resigned' : '');
     const famCnt = countFamilies(emp);
     const badge = resigned ? `<span class="resign-badge">${jp ? '退' : '퇴'}</span>` : '';
-    const kanaLine = jp && emp.kana ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${emp.kana}</div>` : '';
-    item.innerHTML = `<div class="emp-list-av${resigned ? ' av-resigned' : ''}">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${badge}${emp.name}</div>${kanaLine}<div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${jp?'扶養':'부양'} ${famCnt}${jp?'名':'명'}</div></div>`;
+    const kanaStr = jp && emp.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:5px;">（${emp.kana}）</span>` : '';
+    item.innerHTML = `<div class="emp-list-av${resigned ? ' av-resigned' : ''}">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${badge}${emp.name}${kanaStr}</div><div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${jp?'扶養':'부양'} ${famCnt}${jp?'名':'명'}</div></div>`;
     item.onclick = () => openEmpForm(i);
     body.appendChild(item);
   });
