@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
+  수정: 2026-06-13 18:51 — mInitApp/mSyncFromGas에 paidYMs 로드 추가 (송금완료 상태 미반영 버그)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -462,6 +462,10 @@ async function mSyncFromGas() {
       }));
       localStorage.setItem(LS.rateHistory, JSON.stringify(rateHistory));
     }
+    if (Array.isArray(d.paidYMs)) {
+      paidYMs = new Set(d.paidYMs);
+      localStorage.setItem(LS.paidYMs, JSON.stringify([...paidYMs]));
+    }
     mRenderEmpSels();
     mRenderPayroll();
     mRenderAnnual();
@@ -597,7 +601,8 @@ function mInitApp() {
   }} catch(e) {}
   try { const s = localStorage.getItem(LS.rateHistory); if (s) rateHistory = JSON.parse(s); } catch(e) {}
   try { const s = localStorage.getItem(LS.deletedEmpIds); if (s) deletedEmpIds = JSON.parse(s); } catch(e) {}
-  try { const s = localStorage.getItem(LS.rates); if (s) { const r = JSON.parse(s); rates = {...rates,...r}; } } catch(e) {}
+  try { const s = localStorage.getItem(LS.rates);    if (s) { const r = JSON.parse(s); rates = {...rates,...r}; } } catch(e) {}
+  try { const s = localStorage.getItem(LS.paidYMs); if (s) paidYMs = new Set(JSON.parse(s)); } catch(e) {}
 
   mY  = parseInt(localStorage.getItem(M_YEAR_K))  || new Date().getFullYear();
   mM  = parseInt(localStorage.getItem(M_MON_K))   || new Date().getMonth() + 1;
