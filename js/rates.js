@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 09:00 — 보험료율 표 overflow-x:auto + colgroup 100% 보정 + 헤더 nowrap
+﻿// 수정: 2026-06-03 09:05 — 보험료율 표 데이터 셀 text-align:center 통일 (헤더·데이터 세로 정렬)
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -220,7 +220,7 @@ function renderRateHistoryRows() {
       ${keys.map(k => {
         const isChanged = changed.includes(k);
         const val = Number(r[k]).toFixed(2);
-        return `<td style="padding:7px 4px;border-bottom:1px solid var(--border2);text-align:right;">
+        return `<td style="padding:7px 4px;border-bottom:1px solid var(--border2);text-align:center;">
           <span style="font-size:13px;font-weight:${isToday||isChanged?'700':'400'};color:${isToday?'var(--accent)':isChanged?'var(--orange)':'var(--text)'};${isChanged&&!isToday?'border-bottom:2px solid var(--orange);padding-bottom:1px;':''}">${val}</span>
           <span style="font-size:10px;color:var(--text3);">%</span>
         </td>`;
