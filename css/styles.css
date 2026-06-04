@@ -1,4 +1,4 @@
-/* 수정: 2026-06-04 21:57 — 비활성 버튼/입력 전체에 cursor: not-allowed 통일 적용 */
+/* 수정: 2026-06-04 22:08 — 지급이력 테이블 nth-child 인덱스 갱신 (공제총액 7→10, 실수령액 16→19) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -232,9 +232,9 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .history-table td:first-child,.history-table td:nth-child(2){text-align:left;}
 .history-table tr:hover td{background:var(--accent2);cursor:pointer;}
 .history-table th:nth-child(3),.history-table td:nth-child(3),
-.history-table th:nth-child(7),.history-table td:nth-child(7),
-.history-table th:nth-child(16),.history-table td:nth-child(16){border-left:2px solid var(--border);}
-.history-table td:nth-child(3),.history-table td:nth-child(7),.history-table td:nth-child(16){font-weight:700;}
+.history-table th:nth-child(10),.history-table td:nth-child(10),
+.history-table th:nth-child(19),.history-table td:nth-child(19){border-left:2px solid var(--border);}
+.history-table td:nth-child(3),.history-table td:nth-child(10),.history-table td:nth-child(19){font-weight:700;}
 .hist-emp-header td{background:var(--surface2);border-top:2px solid var(--border);border-bottom:1px solid var(--border);padding:5px 11px;cursor:default !important;}
 .hist-emp-header:first-child td{border-top:none;}
 .hist-emp-header:hover td{background:var(--surface2) !important;}
