@@ -36,7 +36,8 @@
       "WebFetch(domain:www.cells.co.jp)",
       "WebFetch(domain:help-timecard.smaregi.jp)",
       "WebFetch(domain:support.yayoi-kk.co.jp)",
-      "WebFetch(domain:jinjer-kyuyo.zendesk.com)"
+      "WebFetch(domain:jinjer-kyuyo.zendesk.com)",
+      "Bash(node *)"
     ]
   }
 }
