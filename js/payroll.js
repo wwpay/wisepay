@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 18:47 — JP모드 사원명 옆 카나 표시 추가
+// 수정: 2026-06-04 10:15 — 입력 취소 버튼(discardPayroll) 추가, markPayrollDirty/dirty 리셋 연동
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -201,6 +201,8 @@ function loadPayrollForm() {
     payrollDirty = false;
     const saveBtn = document.getElementById('btn-save');
     if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+    const discardBtn = document.getElementById('btn-discard');
+    if(discardBtn) discardBtn.disabled = true;
     _updatePayrollStatus('none');
     return;
   }
@@ -304,6 +306,8 @@ function loadPayrollForm() {
   payrollDirty = false;
   const saveBtn = document.getElementById('btn-save');
   if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+  const discardBtn0 = document.getElementById('btn-discard');
+  if(discardBtn0) discardBtn0.disabled = true;
   _applyPaidLock(_isPaid); // background 리셋 이후 호출해야 녹색이 덮이지 않음
   recalc();
 }
@@ -338,6 +342,22 @@ function markPayrollDirty() {
   payrollDirty = true;
   const saveBtn = document.getElementById('btn-save');
   if(saveBtn) { saveBtn.style.background='#e53e3e'; saveBtn.style.borderColor='#e53e3e'; }
+  const discardBtn = document.getElementById('btn-discard');
+  if(discardBtn) discardBtn.disabled = false;
+}
+
+function discardPayroll() {
+  const jp = LANG==='JP';
+  const msg = jp
+    ? '入力内容を破棄し、最終保存状態に戻します。続けますか？'
+    : '입력 내용을 취소하고 마지막 저장 상태로 되돌립니다. 계속하시겠습니까?';
+  if(!confirm(msg)) return;
+  payrollDirty = false;
+  const saveBtn = document.getElementById('btn-save');
+  if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+  const discardBtn = document.getElementById('btn-discard');
+  if(discardBtn) discardBtn.disabled = true;
+  loadPayrollForm();
 }
 
 function pv(id) {
@@ -561,6 +581,8 @@ function saveCurrent() {
   payrollDirty = false;
   const saveBtn = document.getElementById('btn-save');
   if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+  const discardBtn = document.getElementById('btn-discard');
+  if(discardBtn) discardBtn.disabled = true;
 
   // 저장 직후 띠·지급완료 버튼 즉시 갱신 (GAS 응답 대기 불필요)
   _payrollDataStatus = 'saved';

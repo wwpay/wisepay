@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 10:15 — GAS URL 고정값으로 관리, gasUrlInput DOM 참조 제거
+﻿// 수정: 2026-06-04 10:15 — 급여명세 동일페이지 재클릭 dirty 경고 버그 수정, btn-discard show/hide
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -212,17 +212,18 @@ function gotoPage(id, el) {
     if(!confirm(jp?'保存されていない従業員情報があります。このまま移動しますか？':'저장되지 않은 사원 정보가 있습니다. 이동하시겠습니까?')) return;
     empFormDirty = false;
   }
-  // 급여명세에서 다른 페이지로 이동 시 미저장 경고
-  if(currentPage === 'page-payroll' && id !== 'payroll' && payrollDirty) {
+  // 급여명세에서 이동(동일 페이지 재클릭 포함) 시 미저장 경고
+  if(currentPage === 'page-payroll' && payrollDirty) {
     const jp = LANG==='JP';
     const msg = jp
-      ? '保存されていない給与データがあります。このまま移動しますか？'
-      : '저장되지 않은 급여 데이터가 있습니다. 이동하시겠습니까?';
+      ? '保存されていない入力内容があります。破棄して移動しますか？'
+      : '저장하지 않은 입력 내용이 있습니다. 취소하고 이동하시겠습니까?';
     if(!confirm(msg)) return;
-    // 경고 무시하고 이동 선택 — 미저장 내용 파기
     payrollDirty = false;
     const saveBtn = document.getElementById('btn-save');
     if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+    const discardBtn = document.getElementById('btn-discard');
+    if(discardBtn) discardBtn.disabled = true;
   }
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -240,6 +241,8 @@ function gotoPage(id, el) {
   document.getElementById('btn-save').style.display = isPayroll ? '' : 'none';
   const _paidBtn = document.getElementById('btn-mark-paid');
   if (_paidBtn) _paidBtn.style.display = isPayroll ? '' : 'none';
+  const _discardBtn = document.getElementById('btn-discard');
+  if (_discardBtn) _discardBtn.style.display = isPayroll ? '' : 'none';
   if(id==='payroll') { loadPayrollForm(); renderPaidBtn(); }
   if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();

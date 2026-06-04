@@ -66,6 +66,7 @@ function applyLang() {
 
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
   setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '協会けんぽ 최신 요율 가져오기');
+  setTxt('t-discard-btn', '入力取消', '입력 취소');
   setTxt('t-save-btn', '保存', '저장');
   setTxt('t-today-btn', '今月', '이번 달');
   setTxt('t-print-btn', '印刷', '인쇄');

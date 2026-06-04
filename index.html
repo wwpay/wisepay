@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 10:15 — 말풍선 .payroll-balloon box-shadow 제거
+  수정: 2026-06-04 10:15 — 급여명세 입력 취소 버튼 추가, 동일페이지 dirty 경고 버그 수정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,6 +125,9 @@
       </button>
       <span id="notif-badge" style="display:none;"></span>
     </div>
+    <button class="btn btn-discard" id="btn-discard" onclick="discardPayroll()" disabled>
+      <span id="t-discard-btn">입력 취소</span>
+    </button>
     <button class="btn btn-primary" id="btn-save" onclick="saveCurrent()">
       <span id="span-save-icon">💾</span>
       <span id="t-save-btn">保存</span>

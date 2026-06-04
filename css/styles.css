@@ -70,6 +70,9 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .btn-danger:hover{opacity:.9;}
 .btn-ai{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;font-weight:500;}
 .btn-ai:hover{background:linear-gradient(135deg,#4f52d4,#7c3cf6);color:#fff;}
+.btn-discard:not(:disabled){background:var(--orange);color:#fff;border-color:var(--orange);}
+.btn-discard:not(:disabled):hover{opacity:.88;}
+.btn-discard:disabled{background:var(--surface2);color:var(--text3);border-color:var(--border);cursor:not-allowed;}
 
 .btn-sm{padding:4px 9px;font-size:calc(11px + var(--fs-delta));}
 
