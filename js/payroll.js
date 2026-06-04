@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 10:15 — 입력 취소 버튼(discardPayroll) 추가, markPayrollDirty/dirty 리셋 연동
+// 수정: 2026-06-04 10:15 — updateEmpHeader에 지급 예정일(익월 10일) 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -319,8 +319,15 @@ function updateEmpHeader() {
   document.getElementById('avatarTxt').textContent = emp.name.charAt(0);
   document.getElementById('empNameTxt').textContent = LANG === 'JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
   document.getElementById('empIdTxt').textContent = String(emp.no).padStart(4,'0');
-  const yu = LANG==='JP'?'年':'년', mu = LANG==='JP'?'月分':'월분';
+  const jp = LANG==='JP';
+  const yu = jp?'年':'년', mu = jp?'月分':'월분';
   document.getElementById('empMonthTxt').textContent = `${currentYear}${yu}${currentMonth}${mu}`;
+  const payYear  = currentMonth === 12 ? currentYear + 1 : currentYear;
+  const payMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  const payTxt = jp
+    ? `(${payYear}年${payMonth}月10日 支給予定)`
+    : `(${payYear}년 ${payMonth}월 10일 지급 예정)`;
+  document.getElementById('empPayDayTxt').textContent = payTxt;
 }
 
 // ══ CALC ══
