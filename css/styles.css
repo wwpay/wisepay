@@ -1,4 +1,4 @@
-/* 수정: 2026-06-04 22:08 — 지급이력 테이블 nth-child 인덱스 갱신 (공제총액 7→10, 실수령액 16→19) */
+/* 수정: 2026-06-04 22:20 — 지급이력 이름 열 제거: nth-child 갱신 (2→2,9,18), 섹션 타이틀 스타일 강조 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -227,19 +227,19 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 /* HISTORY */
 .history-table{width:100%;border-collapse:collapse;font-size:calc(12.5px + var(--fs-delta));white-space:nowrap;}
 .history-table th{padding:8px 11px;background:var(--surface2);border-bottom:1px solid var(--border);text-align:right;font-size:calc(11px + var(--fs-delta));font-weight:600;color:var(--text3);position:sticky;top:0;z-index:2;}
-.history-table th:first-child,.history-table th:nth-child(2){text-align:left;}
+.history-table th:first-child{text-align:left;}
 .history-table td{padding:8px 11px;border-bottom:1px solid var(--border2);text-align:right;}
-.history-table td:first-child,.history-table td:nth-child(2){text-align:left;}
+.history-table td:first-child{text-align:left;}
 .history-table tr:hover td{background:var(--accent2);cursor:pointer;}
-.history-table th:nth-child(3),.history-table td:nth-child(3),
-.history-table th:nth-child(10),.history-table td:nth-child(10),
-.history-table th:nth-child(19),.history-table td:nth-child(19){border-left:2px solid var(--border);}
-.history-table td:nth-child(3),.history-table td:nth-child(10),.history-table td:nth-child(19){font-weight:700;}
-.hist-emp-header td{background:var(--surface2);border-top:2px solid var(--border);border-bottom:1px solid var(--border);padding:5px 11px;cursor:default !important;}
+.history-table th:nth-child(2),.history-table td:nth-child(2),
+.history-table th:nth-child(9),.history-table td:nth-child(9),
+.history-table th:nth-child(18),.history-table td:nth-child(18){border-left:2px solid var(--border);}
+.history-table td:nth-child(2),.history-table td:nth-child(9),.history-table td:nth-child(18){font-weight:700;}
+.hist-emp-header td{background:var(--accent2);border-top:2px solid var(--accent3);border-bottom:1px solid var(--accent3);padding:8px 11px;cursor:default !important;}
 .hist-emp-header:first-child td{border-top:none;}
-.hist-emp-header:hover td{background:var(--surface2) !important;}
-.hist-emp-label{font-weight:600;font-size:calc(12px + var(--fs-delta));color:var(--text2);}
-.hist-emp-label-no{color:var(--text3);font-size:calc(11px + var(--fs-delta));margin-left:6px;}
+.hist-emp-header:hover td{background:var(--accent2) !important;}
+.hist-emp-label{font-weight:700;font-size:calc(13px + var(--fs-delta));color:var(--accent);}
+.hist-emp-label-no{color:var(--text3);font-size:calc(11px + var(--fs-delta));margin-left:0;margin-right:8px;}
 
 /* RATES PAGE */
 .rates-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 13px;}

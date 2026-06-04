@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 22:08 — 지급이력 테이블 헤더 i18n 갱신: 기타지급·기타공제 제거, 세부 항목 추가
+﻿// 수정: 2026-06-04 22:20 — 지급이력 이름 헤더(t-h-name) 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -168,7 +168,6 @@ function applyLang() {
 
   setTxt('t-history-title', '支給履歴', '지급 이력');
   setTxt('t-h-month',     '月',         '월');
-  setTxt('t-h-name',      '氏名',       '이름');
   setTxt('t-h-pay',       '支給合計',   '지급총액');
   setTxt('t-h-base',      '基本給',     '기본급');
   setTxt('t-h-kinmu',     '勤務手当',       '근무수당');

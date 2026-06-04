@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 22:08 — 지급이력 테이블 19열 재구성: 기타지급→근무·직무·현장수당·비과세교통비, 기타공제→연말정산
+// 수정: 2026-06-04 22:20 — 지급이력 이름 열 제거, 사원명 섹션 타이틀로 표시 (18열)
 'use strict';
 let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 
@@ -407,7 +407,7 @@ function renderHistory() {
       try { rows.push({m,emp,d:JSON.parse(s)}); } catch(e){}
     }
   });
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="19" style="text-align:center;padding:25px;color:var(--text3);">${LANG==='JP'?'データがありません':'데이터 없음'}</td></tr>`; return; }
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="18" style="text-align:center;padding:25px;color:var(--text3);">${LANG==='JP'?'データがありません':'데이터 없음'}</td></tr>`; return; }
 
   const v = n => n === 0 ? '' : n.toLocaleString();
 
@@ -418,7 +418,7 @@ function renderHistory() {
       headerTr.className = 'hist-emp-header';
       const _histNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
       const _histNo = String(emp.no).padStart(4,'0');
-      headerTr.innerHTML = `<td colspan="19"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
+      headerTr.innerHTML = `<td colspan="18"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
       tbody.appendChild(headerTr);
       prevEmpNo = emp.no;
     }
@@ -431,7 +431,6 @@ function renderHistory() {
     tr.onclick=()=>{ currentEmpIdx=employees.indexOf(emp); currentMonth=m; gotoPage('payroll',document.querySelector('.nav-item')); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.querySelector('.nav-item').classList.add('active'); renderMonthTabs(); loadPayrollForm(); };
     tr.innerHTML=
       `<td>${m}${mu}</td>`+
-      `<td>${emp.name}</td>`+
       `<td>${v(totalPay)}</td>`+
       `<td>${v(base)}</td>`+
       `<td>${v(kinmu)}</td>`+
