@@ -75,7 +75,7 @@ function applyLang() {
   setTxt('t-card-shikyuu', '支給', '지급');
   setTxt('t-card-kojo', '控除', '공제');
 
-  setTxt('t-r-base', '月給', '월급');
+  setTxt('t-r-base', '基本給', '기본급');
   setTxt('t-r-ot', '残業手当', '잔업수당');
   setTxt('t-r-commute', '非課税通勤手当', '비과세 교통비');
   setTxt('t-r-kinmu', '勤務手当', '근무수당');

@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 10:15 — 지급이력 테이블 16컬럼 재구성, 헤더 고정, 가로 스크롤 추가
+  수정: 2026-06-04 10:15 — 급여명세 '월급' 항목명을 '기본급'으로 수정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -202,7 +202,7 @@
         <span class="card-total" id="totalPayTxt">¥0</span>
       </div>
       <div>
-        <div class="row"><span class="row-label" id="t-r-base">月給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
+        <div class="row"><span class="row-label" id="t-r-base">基本給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
         <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-commute')"></div>
         <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-kinmu')"></div>
         <div class="row"><span class="row-label" id="t-r-kinmu">勤務手当</span><input class="row-input" id="r-kinmu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-shokumu')"></div>
