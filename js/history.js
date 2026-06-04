@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 19:47 — 지급이력 초기 플레이스홀더 + 선택값 캐시 (직전 선택 복원)
+// 수정: 2026-06-04 10:15 — 지급이력 테이블 16컬럼 재구성 (기타지급·기타공제 추가, 0 빈칸, 헤더 고정)
 'use strict';
 let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 
@@ -407,26 +407,47 @@ function renderHistory() {
       try { rows.push({m,emp,d:JSON.parse(s)}); } catch(e){}
     }
   });
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:25px;color:var(--text3);">${LANG==='JP'?'データがありません':'데이터 없음'}</td></tr>`; return; }
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="16" style="text-align:center;padding:25px;color:var(--text3);">${LANG==='JP'?'データがありません':'데이터 없음'}</td></tr>`; return; }
+
+  const v = n => n === 0 ? '' : n.toLocaleString();
+
   let prevEmpNo = null;
   rows.forEach(({m,emp,d})=>{
-    // 사원이 바뀌면 구분 헤더 행 삽입
     if(emp.no !== prevEmpNo) {
       const headerTr = document.createElement('tr');
       headerTr.className = 'hist-emp-header';
       const _histNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
       const _histNo = String(emp.no).padStart(4,'0');
-      headerTr.innerHTML = `<td colspan="8"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
+      headerTr.innerHTML = `<td colspan="16"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
       tbody.appendChild(headerTr);
       prevEmpNo = emp.no;
     }
-    const base=safeInt(d['r-base']),ot=safeInt(d['r-ot']),kintai=safeInt(d['r-kintai']),commute=safeInt(d['r-commute']),commutetax=safeInt(d['r-commutetax']),kinmu=safeInt(d['r-kinmu']),shokumu=safeInt(d['r-shokumu']),field=safeInt(d['r-field']);
+    const base=safeInt(d['r-base']),ot=safeInt(d['r-ot']);
+    const kintai=safeInt(d['r-kintai']),commute=safeInt(d['r-commute']),commutetax=safeInt(d['r-commutetax']),kinmu=safeInt(d['r-kinmu']),shokumu=safeInt(d['r-shokumu']),field=safeInt(d['r-field']);
     const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
-    const {totalPay,kenko,kaigo,nenkin,shotoku,totalKojo,net}=calcPayrollBreakdown(emp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
-    const mu=LANG==='JP'?'月':'월';
+    const {totalPay,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net}=calcPayrollBreakdown(emp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
+    const otherPay  = totalPay  - base - ot;
+    const otherKojo = totalKojo - kenko - kaigo - kodomo - nenkin - koyo - shotoku - jumin;
+    const mu = LANG==='JP'?'月':'월';
     const tr=document.createElement('tr');
     tr.onclick=()=>{ currentEmpIdx=employees.indexOf(emp); currentMonth=m; gotoPage('payroll',document.querySelector('.nav-item')); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.querySelector('.nav-item').classList.add('active'); renderMonthTabs(); loadPayrollForm(); };
-    tr.innerHTML=`<td>${m}${mu}</td><td>${emp.name}</td><td>¥${totalPay.toLocaleString()}</td><td>¥${totalKojo.toLocaleString()}</td><td style="font-weight:600;">¥${net.toLocaleString()}</td><td>¥${nenkin.toLocaleString()}</td><td>¥${kenko.toLocaleString()}</td><td>¥${shotoku.toLocaleString()}</td>`;
+    tr.innerHTML=
+      `<td>${m}${mu}</td>`+
+      `<td>${emp.name}</td>`+
+      `<td>${v(totalPay)}</td>`+
+      `<td>${v(base)}</td>`+
+      `<td>${v(ot)}</td>`+
+      `<td>${v(otherPay)}</td>`+
+      `<td>${v(totalKojo)}</td>`+
+      `<td>${v(kenko)}</td>`+
+      `<td>${v(kaigo)}</td>`+
+      `<td>${v(kodomo)}</td>`+
+      `<td>${v(nenkin)}</td>`+
+      `<td>${v(koyo)}</td>`+
+      `<td>${v(shotoku)}</td>`+
+      `<td>${v(jumin)}</td>`+
+      `<td>${v(otherKojo)}</td>`+
+      `<td>${v(net)}</td>`;
     tbody.appendChild(tr);
   });
 }

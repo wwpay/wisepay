@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 10:15 — GAS URL 고정값 교체, 데이터 관리 화면의 URL 입력 섹션 제거
+  수정: 2026-06-04 10:15 — 지급이력 테이블 16컬럼 재구성, 헤더 고정, 가로 스크롤 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -322,15 +322,17 @@
     <div style="font-size:12px;" id="t-hist-ph-sub">위 드롭다운에서 사원 또는 전체를 선택하면 지급 이력이 표시됩니다.</div>
   </div>
   <div class="card" id="historyCard" style="display:none;">
-    <table class="history-table">
-      <thead><tr>
-        <th id="t-h-month">月</th><th id="t-h-name">氏名</th>
-        <th id="t-h-pay">支給総額</th><th id="t-h-kojo">控除総額</th>
-        <th id="t-h-net">手取り</th><th id="t-h-nenkin">厚生年金</th>
-        <th id="t-h-kenko">健康保険</th><th id="t-h-shotoku">所得税</th>
-      </tr></thead>
-      <tbody id="historyBody"></tbody>
-    </table>
+    <div style="overflow-x:auto;">
+      <table class="history-table">
+        <thead><tr>
+          <th id="t-h-month">월</th><th id="t-h-name">이름</th>
+          <th id="t-h-pay">지급총액</th><th id="t-h-base">기본급</th><th id="t-h-ot">잔업수당</th><th id="t-h-otherpay">기타지급</th>
+          <th id="t-h-kojo">공제총액</th><th id="t-h-kenko">건강보험</th><th id="t-h-kaigo">개호보험</th><th id="t-h-kodomo">자녀육아</th><th id="t-h-nenkin">후생연금</th><th id="t-h-koyo">고용보험</th><th id="t-h-shotoku">소득세</th><th id="t-h-jumin">주민세</th><th id="t-h-otherkojo">기타공제</th>
+          <th id="t-h-net">실수령액</th>
+        </tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 

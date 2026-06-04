@@ -166,14 +166,22 @@ function applyLang() {
   setTxt('t-annual-confirm',    '確認',        '확인');
 
   setTxt('t-history-title', '支給履歴', '지급 이력');
-  setTxt('t-h-month', '月', '월');
-  setTxt('t-h-name', '氏名', '이름');
-  setTxt('t-h-pay', '支給総額', '지급총액');
-  setTxt('t-h-kojo', '控除総額', '공제총액');
-  setTxt('t-h-net', '手取り', '실수령액');
-  setTxt('t-h-nenkin', '厚生年金', '후생연금');
-  setTxt('t-h-kenko', '健康保険', '건강보험');
-  setTxt('t-h-shotoku', '所得税', '소득세');
+  setTxt('t-h-month',     '月',         '월');
+  setTxt('t-h-name',      '氏名',       '이름');
+  setTxt('t-h-pay',       '支給合計',   '지급총액');
+  setTxt('t-h-base',      '基本給',     '기본급');
+  setTxt('t-h-ot',        '残業手当',   '잔업수당');
+  setTxt('t-h-otherpay',  'その他支給', '기타지급');
+  setTxt('t-h-kojo',      '控除合計',   '공제총액');
+  setTxt('t-h-kenko',     '健康保険',   '건강보험');
+  setTxt('t-h-kaigo',     '介護保険',   '개호보험');
+  setTxt('t-h-kodomo',    '子ども',     '자녀육아');
+  setTxt('t-h-nenkin',    '厚生年金',   '후생연금');
+  setTxt('t-h-koyo',      '雇用保険',   '고용보험');
+  setTxt('t-h-shotoku',   '所得税',     '소득세');
+  setTxt('t-h-jumin',     '住民税',     '주민세');
+  setTxt('t-h-otherkojo', 'その他控除', '기타공제');
+  setTxt('t-h-net',       '実支給額',   '실수령액');
 
   setTxt('empFormTitle', '従業員を選択してください', '사원을 선택해 주세요');
   setTxt('t-emp-select-hint', '左のリストから従業員を選択するか、「新規」ボタンで登録してください。', '좌측 목록에서 사원을 선택하거나, 「사원 추가」 버튼으로 등록해 주세요。');
