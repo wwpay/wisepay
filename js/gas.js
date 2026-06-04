@@ -1,4 +1,4 @@
-// 수정: 2026-06-11 16:27 — paidYMs GAS 동기화를 add→replace로 수정 (시트 삭제 반영 안 되는 버그)
+// 수정: 2026-06-04 10:15 — GAS URL UI 입력 섹션 제거, 고정값으로 관리
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -59,8 +59,7 @@ function collectAllPayrolls() {
 async function testGas() { await testGasConnection(); }
 
 async function testGasConnection() {
-  const urlInput = document.getElementById('gasUrlInput');
-  const url = (urlInput?.value || gasUrl || '').trim();
+  const url = gasUrl;
 
   if (!url) {
     showToast(LANG === 'JP' ? 'URLを入力してください' : 'URL을 입력해 주세요', 'w');
@@ -139,15 +138,6 @@ async function testGasConnection() {
   document.body.appendChild(script);
 }
 
-function saveGasUrl() {
-  const url = document.getElementById('gasUrlInput')?.value.trim();
-  if(!url) { showToast(LANG==='JP'?'URLを入力してください':'URL을 입력해 주세요','w'); return; }
-  gasUrl = url;
-  localStorage.setItem(LS.gas, gasUrl);
-  updateGasStatus();
-  showToast(LANG==='JP'?'Google連携URLを保存しました ✓':'Google 연동 URL 저장됨 ✓','s');
-}
-
 function updateGasStatus() {
   const dot = document.getElementById('gasDot') || document.getElementById('gas-dot');
   const txt = document.getElementById('gasText') || document.getElementById('gas-txt');
@@ -193,37 +183,8 @@ const GAS_CODE = '// WisePay GAS 코드는 별도 파일(WisePay_GAS_code.gs)을
 function openGasModal() {
   const preview = document.getElementById('gasCodePreview');
   if (preview) preview.textContent = GAS_CODE;
-  const inp = document.getElementById('gasUrlInput');
-  if (inp) inp.value = gasUrl || '';
-  updateGasUrlBadge();
   renderBackupFolderStatus();
   if (typeof renderUserMgmt === 'function') renderUserMgmt();
-}
-
-function updateGasUrlBadge() {
-  const input = document.getElementById('gasUrlInput');
-  const badge = document.getElementById('gasUrlBadge');
-  if (!input || !badge) return;
-  const url = input.value.trim();
-  if (!url) { badge.style.display = 'none'; return; }
-  const jp = LANG === 'JP';
-  badge.style.display = 'inline-block';
-  if (url.endsWith('/exec')) {
-    badge.textContent = jp ? '✅ デプロイ (exec)' : '✅ 배포 (exec)';
-    badge.style.background = '#dcfce7';
-    badge.style.color = '#166534';
-    badge.style.borderColor = '#bbf7d0';
-  } else if (url.endsWith('/dev')) {
-    badge.textContent = jp ? '🧪 テストデプロイ (dev)' : '🧪 테스트 배포 (dev)';
-    badge.style.background = '#fef3c7';
-    badge.style.color = '#92400e';
-    badge.style.borderColor = '#fde68a';
-  } else {
-    badge.textContent = jp ? '⚠️ URL確認' : '⚠️ URL 확인';
-    badge.style.background = '#fee2e2';
-    badge.style.color = '#991b1b';
-    badge.style.borderColor = '#fecaca';
-  }
 }
 
 // 로그인 후 GAS에서 조용히 최신 데이터 가져오기 (confirm 없음)

@@ -1,14 +1,13 @@
 ﻿'use strict';
-// 수정: 2026-05-31 15:28 — 지급완료 기능 2단계: paidDetails(지급일시) 상태 추가
+// 수정: 2026-06-04 10:15 — GAS_URL 고정값 교체, UI 입력 섹션 제거
 let LANG = 'KR';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
 let currentEmpIdx = -1; // -1 = 미선택
 let editingEmpIdx = -1;
 let tempFamilies = [];
-// 기본 GAS URL — 브라우저 앱이므로 환경변수 사용 불가, 하드코딩이 표준.
-// 설정 화면에서 URL을 저장하면 localStorage(kyuyo_gas)가 우선 적용됨.
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwP9Nyb5RCZ7UtFZtH41dBCa-Z_UJFzOc2UJm8leb9lQXq3YrcM35WJins7tGbKCIREgQ/exec';
+// GAS URL — 코드에 고정값으로 관리. UI에서 변경 불가.
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4ENHtGwZEx8YUCU9ILnXNwrPwK-y8BQr7uHIu2-YZzT8eS3Qm9XB1K3VgImLbLNLE8A/exec';
 let gasUrl = GAS_URL;
 let rates = { kenko:9.85, kaigo:1.62, kodomo:0.23, nenkin:18.30, koyo:0.50 };
 // 월별 요율 이력 [{from:'2026-01', kenko:9.91, kaigo:1.60, ...}, ...]

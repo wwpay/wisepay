@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-13 15:32 — checkAndShowPayrollAlerts 조기 호출 제거 (autoLoadFromGas 완료 후로 이동)
+﻿// 수정: 2026-06-04 10:15 — GAS URL 고정값으로 관리, gasUrlInput DOM 참조 제거
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -85,7 +85,6 @@ function initApp() {
   migratePayrollKeys();
   // GAS URL은 state.js에서 하드코딩 — localStorage에 동기화
   localStorage.setItem(LS.gas, gasUrl);
-  document.getElementById('gasUrlInput').value = gasUrl;
 
   // 급여 입력란: 포커스 이탈 시 빈 값 → "0" 복원
   document.addEventListener('focusout', e => {
