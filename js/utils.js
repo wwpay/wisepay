@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 04:39 — normalizeYM strict화: 비정상 값 '' 반환
+﻿// 수정: 2026-06-04 23:13 — getPayDate 추가: 익월 10일 지급 예정일 (토→금8일, 일→금9일)
 'use strict';
 
 function openModal(id) {
@@ -54,6 +54,17 @@ function normalizeDate(val) {
   const s = String(val).trim();
   const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : s;
+}
+
+// 익월 10일 지급 예정일 계산. year/month는 급여 귀속 월(1-based).
+// JS Date의 month가 0-based이므로 month를 그대로 넘기면 익월 10일이 된다.
+// 토요일(6)이면 8일(금), 일요일(0)이면 9일(금)으로 조정.
+function getPayDate(year, month) {
+  const d = new Date(year, month, 10);
+  const dow10 = d.getDay();
+  if (dow10 === 6) d.setDate(8);
+  if (dow10 === 0) d.setDate(9);
+  return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate(), dow10 };
 }
 
 function fmtYM(ym) {

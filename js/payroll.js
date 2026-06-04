@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 21:57 — disabled 버튼 cursor: not-allowed 통일 (payroll.js)
+// 수정: 2026-06-04 23:13 — 지급 예정일 토/일 → 직전 금요일 자동 조정 (getPayDate 공통함수 사용)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -322,11 +322,14 @@ function updateEmpHeader() {
   const jp = LANG==='JP';
   const yu = jp?'年':'년', mu = jp?'月分':'월분';
   document.getElementById('empMonthTxt').textContent = `${currentYear}${yu}${currentMonth}${mu}`;
-  const payYear  = currentMonth === 12 ? currentYear + 1 : currentYear;
-  const payMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  const pd = getPayDate(currentYear, currentMonth);
   const payTxt = jp
-    ? `(${payYear}年${payMonth}月10日 支給予定)`
-    : `(${payYear}년 ${payMonth}월 10일 지급 예정)`;
+    ? pd.dow10 === 6 ? `(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が土曜日)`
+    : pd.dow10 === 0 ? `(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が日曜日)`
+    : `(${pd.y}年${pd.m}月10日 支給予定)`
+    : pd.dow10 === 6 ? `(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 토요일)`
+    : pd.dow10 === 0 ? `(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 일요일)`
+    : `(${pd.y}년 ${pd.m}월 10일 지급 예정)`;
   document.getElementById('empPayDayTxt').textContent = payTxt;
 }
 
