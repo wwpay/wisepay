@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-03 23:24 — 사원 선택 팝업·임금대장·사원관리 카나를 이름 밑에서 옆으로 이동
+  수정: 2026-06-04 21:50 — 임금대장 연도 필터링 버그 수정: 전년 12월분 + 당해 1~11월분 기준으로 변경
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -937,10 +937,18 @@ function mRenderAnnual() {
   const f   = n => n === 0 ? '0' : Math.round(n).toLocaleString();
   let tNet=0, tPay=0, tKojo=0, rows='';
 
-  for (let m=1; m<=12; m++) {
-    const c   = mCalc(emp, mAY, m);
-    const mu  = jp ? `${m}月` : `${m}월`;
-    const ym  = `${mAY}-${String(m).padStart(2,'0')}`;
+  // 지급일(익월 10일) 기준: 전년 12월분 + 당해 1~11월분 = 해당 연도 임금대장 12개월
+  const fiscalMonths = [
+    { year: mAY - 1, month: 12 },
+    ...Array.from({length: 11}, (_, i) => ({ year: mAY, month: i + 1 }))
+  ];
+
+  for (const { year: fy, month: fm } of fiscalMonths) {
+    const c   = mCalc(emp, fy, fm);
+    const mu  = (fm === 12 && fy === mAY - 1)
+      ? (jp ? `前年<br>12月` : `전년<br>12월`)
+      : (jp ? `${fm}月` : `${fm}월`);
+    const ym  = `${fy}-${String(fm).padStart(2,'0')}`;
     const paid = typeof paidYMs !== 'undefined' && paidYMs.has(ym);
     if (!c || !paid) {
       rows += `<div class="m-annual-item">
