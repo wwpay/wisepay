@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 22:20 — 지급이력 이름 열 제거, 사원명을 섹션 타이틀로 표시 (18열)
+  수정: 2026-06-04 22:32 — 지급이력 사원별 섹션 구조 개편: 이름 타이틀 상단 + 세부 항목 테이블 하단
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -325,18 +325,8 @@
     <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--text2);" id="t-hist-ph-main">사원을 선택해 주세요</div>
     <div style="font-size:12px;" id="t-hist-ph-sub">위 드롭다운에서 사원 또는 전체를 선택하면 지급 이력이 표시됩니다.</div>
   </div>
-  <div class="card" id="historyCard" style="display:none;">
-    <div style="overflow-x:auto;">
-      <table class="history-table">
-        <thead><tr>
-          <th id="t-h-month">월</th>
-          <th id="t-h-pay">지급총액</th><th id="t-h-base">기본급</th><th id="t-h-kinmu">근무수당</th><th id="t-h-shokumu">직무수당</th><th id="t-h-field">현장수당</th><th id="t-h-ot">잔업수당</th><th id="t-h-commute">비과세교통비</th>
-          <th id="t-h-kojo">공제총액</th><th id="t-h-kenko">건강보험</th><th id="t-h-kaigo">개호보험</th><th id="t-h-kodomo">자녀육아</th><th id="t-h-nenkin">후생연금</th><th id="t-h-koyo">고용보험</th><th id="t-h-shotoku">소득세</th><th id="t-h-jumin">주민세</th><th id="t-h-nencho">연말정산</th>
-          <th id="t-h-net">실수령액</th>
-        </tr></thead>
-        <tbody id="historyBody"></tbody>
-      </table>
-    </div>
+  <div id="historyCard" style="display:none;">
+    <div id="historyContainer"></div>
   </div>
 </div>
 

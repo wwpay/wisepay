@@ -1,4 +1,4 @@
-/* 수정: 2026-06-04 22:20 — 지급이력 이름 열 제거: nth-child 갱신 (2→2,9,18), 섹션 타이틀 스타일 강조 */
+/* 수정: 2026-06-04 22:32 — 지급이력 섹션 구조: hist-emp-section + hist-emp-title-bar 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -235,11 +235,10 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .history-table th:nth-child(9),.history-table td:nth-child(9),
 .history-table th:nth-child(18),.history-table td:nth-child(18){border-left:2px solid var(--border);}
 .history-table td:nth-child(2),.history-table td:nth-child(9),.history-table td:nth-child(18){font-weight:700;}
-.hist-emp-header td{background:var(--accent2);border-top:2px solid var(--accent3);border-bottom:1px solid var(--accent3);padding:8px 11px;cursor:default !important;}
-.hist-emp-header:first-child td{border-top:none;}
-.hist-emp-header:hover td{background:var(--accent2) !important;}
+.hist-emp-section{margin-bottom:16px;border:1px solid var(--accent3);border-radius:var(--r);overflow:hidden;}
+.hist-emp-title-bar{background:var(--accent2);border-bottom:1px solid var(--accent3);padding:9px 12px;display:flex;align-items:center;gap:8px;}
 .hist-emp-label{font-weight:700;font-size:calc(13px + var(--fs-delta));color:var(--accent);}
-.hist-emp-label-no{color:var(--text3);font-size:calc(11px + var(--fs-delta));margin-left:0;margin-right:8px;}
+.hist-emp-label-no{color:var(--text3);font-size:calc(11px + var(--fs-delta));}
 
 /* RATES PAGE */
 .rates-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 13px;}

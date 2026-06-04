@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 22:20 — 지급이력 이름 열 제거, 사원명 섹션 타이틀로 표시 (18열)
+// 수정: 2026-06-04 22:32 — 지급이력 사원별 섹션 구조로 개편 (이름 타이틀 상단, 세부 항목 하단)
 'use strict';
 let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 
@@ -380,74 +380,108 @@ function buildHistEmpSel() {
 }
 
 function renderHistory() {
-  const tbody=document.getElementById('historyBody');
-  if(!tbody) return;
-  const empSel=document.getElementById('histEmpSel').value;
+  const container = document.getElementById('historyContainer');
+  if (!container) return;
+  const empSel = document.getElementById('histEmpSel').value;
   _histEmpSelCache = empSel;
 
   const ph   = document.getElementById('historyPlaceholder');
   const card = document.getElementById('historyCard');
 
   if (empSel === 'none') {
-    if (ph)   ph.style.display   = 'flex';
+    if (ph)   ph.style.display = 'flex';
     if (card) card.style.display = 'none';
     return;
   }
-  if (ph)   ph.style.display   = 'none';
+  if (ph)   ph.style.display = 'none';
   if (card) card.style.display = '';
 
-  const year=parseInt(document.getElementById('histYearSel').value);
-  tbody.innerHTML='';
-  const rows=[];
-  employees.forEach((emp,ei)=>{
-    if(empSel!=='all'&&empSel!=='none'&&parseInt(empSel)!==ei) return;
-    for(let m=1;m<=12;m++){
-      const s=localStorage.getItem(`kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${m}`);
-      if(!s) continue;
-      try { rows.push({m,emp,d:JSON.parse(s)}); } catch(e){}
+  const year = parseInt(document.getElementById('histYearSel').value);
+  container.innerHTML = '';
+  const rows = [];
+  employees.forEach((emp, ei) => {
+    if (empSel !== 'all' && empSel !== 'none' && parseInt(empSel) !== ei) return;
+    for (let m = 1; m <= 12; m++) {
+      const s = localStorage.getItem(`kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${m}`);
+      if (!s) continue;
+      try { rows.push({m, emp, d: JSON.parse(s)}); } catch(e) {}
     }
   });
-  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="18" style="text-align:center;padding:25px;color:var(--text3);">${LANG==='JP'?'データがありません':'데이터 없음'}</td></tr>`; return; }
+
+  const jp = LANG === 'JP';
+  const mu = jp ? '月' : '월';
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="card" style="text-align:center;padding:25px;color:var(--text3);">${jp ? 'データがありません' : '데이터 없음'}</div>`;
+    return;
+  }
 
   const v = n => n === 0 ? '' : n.toLocaleString();
 
-  let prevEmpNo = null;
-  rows.forEach(({m,emp,d})=>{
-    if(emp.no !== prevEmpNo) {
-      const headerTr = document.createElement('tr');
-      headerTr.className = 'hist-emp-header';
-      const _histNameKana = LANG==='JP' && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
-      const _histNo = String(emp.no).padStart(4,'0');
-      headerTr.innerHTML = `<td colspan="18"><span class="hist-emp-label-no" style="margin-left:0;">${_histNo}</span><span class="hist-emp-label" style="margin-left:6px;">${_histNameKana}</span></td>`;
-      tbody.appendChild(headerTr);
-      prevEmpNo = emp.no;
+  // 사원별 그룹핑 (순서 유지)
+  const empMap = new Map();
+  const empOrder = [];
+  rows.forEach(row => {
+    if (!empMap.has(row.emp.no)) {
+      empMap.set(row.emp.no, {emp: row.emp, months: []});
+      empOrder.push(row.emp.no);
     }
-    const base=safeInt(d['r-base']),ot=safeInt(d['r-ot']);
-    const kintai=safeInt(d['r-kintai']),commute=safeInt(d['r-commute']),commutetax=safeInt(d['r-commutetax']),kinmu=safeInt(d['r-kinmu']),shokumu=safeInt(d['r-shokumu']),field=safeInt(d['r-field']);
-    const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
-    const {totalPay,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net}=calcPayrollBreakdown(emp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
-    const mu = LANG==='JP'?'月':'월';
-    const tr=document.createElement('tr');
-    tr.onclick=()=>{ currentEmpIdx=employees.indexOf(emp); currentMonth=m; gotoPage('payroll',document.querySelector('.nav-item')); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.querySelector('.nav-item').classList.add('active'); renderMonthTabs(); loadPayrollForm(); };
-    tr.innerHTML=
-      `<td>${m}${mu}</td>`+
-      `<td>${v(totalPay)}</td>`+
-      `<td>${v(base)}</td>`+
-      `<td>${v(kinmu)}</td>`+
-      `<td>${v(shokumu)}</td>`+
-      `<td>${v(field)}</td>`+
-      `<td>${v(ot)}</td>`+
-      `<td>${v(commute)}</td>`+
-      `<td>${v(totalKojo)}</td>`+
-      `<td>${v(kenko)}</td>`+
-      `<td>${v(kaigo)}</td>`+
-      `<td>${v(kodomo)}</td>`+
-      `<td>${v(nenkin)}</td>`+
-      `<td>${v(koyo)}</td>`+
-      `<td>${v(shotoku)}</td>`+
-      `<td>${v(jumin)}</td>`+
-      `<td>${v(nencho)}</td>`+
-      `<td>${v(net)}</td>`;
-    tbody.appendChild(tr);
+    empMap.get(row.emp.no).months.push(row);
+  });
+
+  const theadHtml =
+    `<thead><tr>` +
+    `<th>${jp?'月':'월'}</th>` +
+    `<th>${jp?'支給合計':'지급총액'}</th><th>${jp?'基本給':'기본급'}</th><th>${jp?'勤務手当':'근무수당'}</th><th>${jp?'職務手当':'직무수당'}</th><th>${jp?'現場手当':'현장수당'}</th><th>${jp?'残業手当':'잔업수당'}</th><th>${jp?'非課税通勤手当':'비과세교통비'}</th>` +
+    `<th>${jp?'控除合計':'공제총액'}</th><th>${jp?'健康保険':'건강보험'}</th><th>${jp?'介護保険':'개호보험'}</th><th>${jp?'子ども':'자녀육아'}</th><th>${jp?'厚生年金':'후생연금'}</th><th>${jp?'雇用保険':'고용보험'}</th><th>${jp?'所得税':'소득세'}</th><th>${jp?'住民税':'주민세'}</th><th>${jp?'年末調整':'연말정산'}</th>` +
+    `<th>${jp?'実支給額':'실수령액'}</th>` +
+    `</tr></thead>`;
+
+  empOrder.forEach(no => {
+    const {emp, months} = empMap.get(no);
+    const _nameKana = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
+    const _no = String(emp.no).padStart(4, '0');
+
+    const section = document.createElement('div');
+    section.className = 'hist-emp-section';
+
+    const titleBar = document.createElement('div');
+    titleBar.className = 'hist-emp-title-bar';
+    titleBar.innerHTML = `<span class="hist-emp-label-no">${_no}</span><span class="hist-emp-label">${_nameKana}</span>`;
+    section.appendChild(titleBar);
+
+    const scrollWrap = document.createElement('div');
+    scrollWrap.style.overflowX = 'auto';
+
+    const table = document.createElement('table');
+    table.className = 'history-table';
+    table.innerHTML = theadHtml;
+
+    const tbody = document.createElement('tbody');
+    months.forEach(({m, emp: rowEmp, d}) => {
+      const base=safeInt(d['r-base']),ot=safeInt(d['r-ot']);
+      const kintai=safeInt(d['r-kintai']),commute=safeInt(d['r-commute']),commutetax=safeInt(d['r-commutetax']),kinmu=safeInt(d['r-kinmu']),shokumu=safeInt(d['r-shokumu']),field=safeInt(d['r-field']);
+      const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
+      const {totalPay,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net}=calcPayrollBreakdown(rowEmp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
+      const tr = document.createElement('tr');
+      tr.onclick = () => {
+        currentEmpIdx = employees.indexOf(rowEmp); currentMonth = m;
+        gotoPage('payroll', document.querySelector('.nav-item'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector('.nav-item').classList.add('active');
+        renderMonthTabs(); loadPayrollForm();
+      };
+      tr.innerHTML =
+        `<td>${m}${mu}</td>`+
+        `<td>${v(totalPay)}</td>`+`<td>${v(base)}</td>`+`<td>${v(kinmu)}</td>`+`<td>${v(shokumu)}</td>`+`<td>${v(field)}</td>`+`<td>${v(ot)}</td>`+`<td>${v(commute)}</td>`+
+        `<td>${v(totalKojo)}</td>`+`<td>${v(kenko)}</td>`+`<td>${v(kaigo)}</td>`+`<td>${v(kodomo)}</td>`+`<td>${v(nenkin)}</td>`+`<td>${v(koyo)}</td>`+`<td>${v(shotoku)}</td>`+`<td>${v(jumin)}</td>`+`<td>${v(nencho)}</td>`+
+        `<td>${v(net)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    scrollWrap.appendChild(table);
+    section.appendChild(scrollWrap);
+    container.appendChild(section);
   });
 }
