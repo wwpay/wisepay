@@ -1,4 +1,4 @@
-/* 수정: 2026-06-04 22:32 — 지급이력 섹션 구조: hist-emp-section + hist-emp-title-bar 추가 */
+/* 수정: 2026-06-04 22:41 — 지급이력 행 호버 색상 accent2→accent3으로 강화 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -230,7 +230,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .history-table th:first-child{text-align:left;}
 .history-table td{padding:8px 11px;border-bottom:1px solid var(--border2);text-align:right;}
 .history-table td:first-child{text-align:left;}
-.history-table tr:hover td{background:var(--accent2);cursor:pointer;}
+.history-table tr:hover td{background:var(--accent3);cursor:pointer;}
 .history-table th:nth-child(2),.history-table td:nth-child(2),
 .history-table th:nth-child(9),.history-table td:nth-child(9),
 .history-table th:nth-child(18),.history-table td:nth-child(18){border-left:2px solid var(--border);}
