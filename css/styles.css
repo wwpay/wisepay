@@ -1,4 +1,4 @@
-/* 수정: 2026-06-13 15:32 — payroll-balloon 색상 inline으로 분리 (알림 2/3번 색상 구분) */
+/* 수정: 2026-06-04 21:57 — 비활성 버튼/입력 전체에 cursor: not-allowed 통일 적용 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -59,6 +59,7 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .page{display:none;} .page.active{display:block;}
 
 /* BTNS */
+button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,select:disabled,textarea:disabled{cursor:not-allowed;}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r2);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px + var(--fs-delta));font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .btn:hover{background:var(--bg);}
 .btn svg{width:12px;height:12px;}

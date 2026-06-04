@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 10:15 — updateEmpHeader에 지급 예정일(익월 10일) 추가
+// 수정: 2026-06-04 21:57 — disabled 버튼 cursor: not-allowed 통일 (payroll.js)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -628,7 +628,7 @@ function renderPaidBtn() {
     if (span) span.textContent = jp ? '✓ 送金完了' : '✓ 송금 완료';
     btn.disabled = true;
     btn.style.opacity = '0.55';
-    btn.style.cursor = 'default';
+    btn.style.cursor = 'not-allowed';
   } else if (isSaved) {
     // 저장 완료 — 지급완료 가능
     if (span) span.textContent = jp ? '🔒 送金完了' : '🔒 송금 완료';
