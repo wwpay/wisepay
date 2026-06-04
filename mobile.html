@@ -867,13 +867,13 @@ function mRenderPayroll() {
 
   /* 지급 항목 */
   const payRows = [
-    [jp?'基本給':'기본급',         calc.base],
-    [jp?'残業手当':'잔업수당',     calc.ot],
-    [jp?'非課税通勤費':'비과세 교통비', calc.commute],
-    [jp?'課税通勤費':'과세 교통비',    calc.commutetax],
+    [jp?'基本給':'기본급',             calc.base],
     [jp?'勤務手当':'근무수당',         calc.kinmu],
     [jp?'職務手当':'직무수당',         calc.shokumu],
     [jp?'現場手当':'현장수당',         calc.field],
+    [jp?'残業手当':'잔업수당',         calc.ot],
+    [jp?'非課税通勤費':'비과세 교통비', calc.commute],
+    [jp?'課税通勤費':'과세 교통비',    calc.commutetax],
   ].filter(([,v]) => v !== 0).map(([l,v]) =>
     `<div class="m-row"><span class="m-row-label">${l}</span><span class="m-row-val">¥${f(v)}</span></div>`
   ).join('');

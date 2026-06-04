@@ -236,11 +236,11 @@ function buildEmpTableHtml(emp, year, jp) {
 
   const payItems = [
     {key:'base',    label:jp?'基本給':'기본급'},
-    {key:'ot',      label:jp?'残業手当':'잔업수당'},
-    {key:'commute', label:jp?'非課税通勤手当':'비과세 교통비'},
     {key:'kinmu',   label:jp?'勤務手当':'근무수당'},
     {key:'shokumu', label:jp?'職務手当':'직무수당'},
     {key:'field',   label:jp?'現場手当':'현장수당'},
+    {key:'ot',      label:jp?'残業手当':'잔업수당'},
+    {key:'commute', label:jp?'非課税通勤手当':'비과세 교통비'},
   ];
   const deductItems = [
     {key:'kenko',   label:jp?'健康保険料':'건강보험료'},

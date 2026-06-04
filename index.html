@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 10:15 — 급여명세 '월급' 항목명을 '기본급'으로 수정
+  수정: 2026-06-04 10:15 — 급여 명세서·임금 대장 지급 항목 순서 변경 (기본급→근무→직무→현장→잔업→교통비)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -202,12 +202,12 @@
         <span class="card-total" id="totalPayTxt">¥0</span>
       </div>
       <div>
-        <div class="row"><span class="row-label" id="t-r-base">基本給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
-        <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-commute')"></div>
-        <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-kinmu')"></div>
+        <div class="row"><span class="row-label" id="t-r-base">基本給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-kinmu')"></div>
         <div class="row"><span class="row-label" id="t-r-kinmu">勤務手当</span><input class="row-input" id="r-kinmu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-shokumu')"></div>
         <div class="row"><span class="row-label" id="t-r-shokumu">職務手当</span><input class="row-input" id="r-shokumu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-field')"></div>
-        <div class="row"><span class="row-label" id="t-r-field">現場手当</span><input class="row-input" id="r-field" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-hyo')"></div>
+        <div class="row"><span class="row-label" id="t-r-field">現場手当</span><input class="row-input" id="r-field" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
+        <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-commute')"></div>
+        <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-hyo')"></div>
         <div class="row" style="background:var(--accent2);border-radius:var(--r2);"><span class="row-label" id="t-r-hyo" style="font-size:11px;color:var(--text2);">標準報酬月額<br>（手動指定・任意）</span><input class="row-input" id="r-hyo" placeholder="0=自動" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-jumin')" style="font-style:italic;"></div>
         <div class="row row-total"><span class="row-label" id="t-r-total">計</span><span class="row-val" id="shikyuuTotal">0</span></div>
       </div>
