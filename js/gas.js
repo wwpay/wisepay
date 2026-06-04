@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 10:15 — GAS URL UI 입력 섹션 제거, 고정값으로 관리
+// 수정: 2026-06-04 23:34 — fetchHolidayCache 추가 (7일마다 GAS에서 공휴일 캐시 갱신)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -179,6 +179,24 @@ function gasRequest(params, timeoutMs = 15000) {
 }
 const GAS_CODE = '// WisePay GAS 코드는 별도 파일(WisePay_GAS_code.gs)을 사용해 주세요';
 
+// 공휴일 캐시 갱신 (7일마다 GAS에서 fetch → localStorage 저장)
+async function fetchHolidayCache() {
+  if (!gasUrl) return;
+  try {
+    const today = jstToday();
+    const cacheDate = localStorage.getItem('holidayCacheDate');
+    if (cacheDate && daysDiff(today, cacheDate) < 7) return;
+    const res = await gasRequest({ action: 'getHolidays' }, 10000);
+    if (res && res.ok && Array.isArray(res.data)) {
+      localStorage.setItem('holidayCache', JSON.stringify(res.data.map(h => h.date)));
+      localStorage.setItem('holidayCacheDate', today);
+      try { updateEmpHeader(); } catch(e) {}
+    }
+  } catch(e) {
+    console.log('[WisePay] holiday cache fetch skipped:', e.message);
+  }
+}
+
 // GAS 페이지 준비
 function openGasModal() {
   const preview = document.getElementById('gasCodePreview');
@@ -272,6 +290,7 @@ async function autoLoadFromGas() {
     if (typeof currentUser !== 'undefined' && currentUser && currentUser.id === 'wiseadmin') {
       if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
     }
+    fetchHolidayCache().catch(() => {}); // 공휴일 캐시 갱신 (7일마다, fire-and-forget)
   } catch (err) {
     gasAppendLog('자동동기화', '전체', '실패', err.message);
     console.warn('GAS auto-load failed:', err);

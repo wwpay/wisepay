@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 23:13 — 지급 예정일 토/일 → 직전 금요일 자동 조정
+  수정: 2026-06-04 23:34 — 지급 예정일 공휴일·은행휴업일 대응 + fetchHolidayCache 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -408,6 +408,24 @@ function migratePayrollKeys()  {}
 /* ── viewer 모드 GAS 데이터 ── */
 let mViewerPayrolls = null; // null=admin모드, 배열=viewer모드(GAS 데이터)
 
+// 공휴일 캐시 갱신 (7일마다 GAS에서 fetch, fire-and-forget)
+async function fetchHolidayCache() {
+  if (!gasUrl) return;
+  try {
+    const today = jstToday();
+    const cacheDate = localStorage.getItem('holidayCacheDate');
+    if (cacheDate && daysDiff(today, cacheDate) < 7) return;
+    const res = await gasRequest({ action: 'getHolidays' }, 10000);
+    if (res && res.ok && Array.isArray(res.data)) {
+      localStorage.setItem('holidayCache', JSON.stringify(res.data.map(h => h.date)));
+      localStorage.setItem('holidayCacheDate', today);
+      try { mRenderPayroll(); } catch(e) {}
+    }
+  } catch(e) {
+    console.log('[WisePay] holiday cache fetch skipped:', e.message);
+  }
+}
+
 async function mSyncFromGas() {
   if (!gasUrl) return;
   const jp = LANG === 'JP';
@@ -456,6 +474,7 @@ async function mSyncFromGas() {
     mRenderPayroll();
     mRenderAnnual();
     mRenderEmpList();
+    fetchHolidayCache().catch(() => {}); // 공휴일 캐시 갱신 (fire-and-forget)
   } catch(err) {
     console.warn('mSyncFromGas failed:', err);
     if (!employees.length) {
@@ -900,7 +919,7 @@ function mRenderPayroll() {
     <div class="m-net-card">
       <div class="m-net-label">${jp?'差引総支給額（手取り）':'차인지급액'}</div>
       <div class="m-net-amount">¥${f(calc.net)}</div>
-      <div class="m-net-sub">${emp.name}${jp&&emp.kana?'（'+emp.kana+'）':''} · ${mY}${jp?'年':'년'} ${mM}${jp?'月':'월'}분 ${(()=>{const pd=getPayDate(mY,mM);return jp?pd.dow10===6?`(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が土曜日)`:pd.dow10===0?`(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が日曜日)`:`(${pd.y}年${pd.m}月10日 支給予定)`:pd.dow10===6?`(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 토요일)`:pd.dow10===0?`(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 일요일)`:`(${pd.y}년 ${pd.m}월 10일 지급 예정)`;})()}</div>
+      <div class="m-net-sub">${emp.name}${jp&&emp.kana?'（'+emp.kana+'）':''} · ${mY}${jp?'年':'년'} ${mM}${jp?'月':'월'}분 ${fmtPayDateTxt(getPayDate(mY,mM),jp)}</div>
     </div>
     <div class="m-card">
       <div class="m-card-header">${jp?'支給':'지급'}</div>

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 23:13 — getPayDate 추가: 익월 10일 지급 예정일 (토→금8일, 일→금9일)
+﻿// 수정: 2026-06-04 23:34 — 공휴일·은행휴업일 레이어 추가 (isNonBusinessDay, fmtPayDateTxt, jstToday, daysDiff)
 'use strict';
 
 function openModal(id) {
@@ -56,15 +56,47 @@ function normalizeDate(val) {
   return m ? m[1] : s;
 }
 
-// 익월 10일 지급 예정일 계산. year/month는 급여 귀속 월(1-based).
-// JS Date의 month가 0-based이므로 month를 그대로 넘기면 익월 10일이 된다.
-// 토요일(6)이면 8일(금), 일요일(0)이면 9일(금)으로 조정.
+// JST 오늘 날짜를 'YYYY-MM-DD' 형식으로 반환
+function jstToday() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// 두 'YYYY-MM-DD' 문자열 사이의 일수 차이 (절댓값)
+function daysDiff(a, b) {
+  return Math.abs((new Date(a) - new Date(b)) / 86400000);
+}
+
+// 비영업일 판정: 레이어1=토/일, 레이어2=공휴일 캐시, 레이어3=은행 휴업일(매년 고정)
+function isNonBusinessDay(d, holidays) {
+  const dow = d.getDay();
+  const mm  = String(d.getMonth() + 1).padStart(2, '0');
+  const dd  = String(d.getDate()).padStart(2, '0');
+  const mmdd = `${mm}-${dd}`;
+  if (dow === 0 || dow === 6) return true;
+  if (mmdd === '12-31' || mmdd === '01-02' || mmdd === '01-03') return true;
+  if (Array.isArray(holidays) && holidays.includes(`${d.getFullYear()}-${mmdd}`)) return true;
+  return false;
+}
+
+// 익월 10일 지급 예정일 계산 (year/month: 급여 귀속 월 1-based)
+// JS Date month が 0-based なので month をそのまま渡すと翌月10日になる
 function getPayDate(year, month) {
-  const d = new Date(year, month, 10);
-  const dow10 = d.getDay();
-  if (dow10 === 6) d.setDate(8);
-  if (dow10 === 0) d.setDate(9);
-  return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate(), dow10 };
+  const holidays = JSON.parse(localStorage.getItem('holidayCache') || '[]');
+  let d = new Date(year, month, 10);
+  for (let i = 0; i < 7; i++) {
+    if (!isNonBusinessDay(d, holidays)) break;
+    d.setDate(d.getDate() - 1);
+  }
+  return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate(), isAdjusted: d.getDate() !== 10 };
+}
+
+// 지급 예정일 표시 텍스트 생성
+function fmtPayDateTxt(pd, jp) {
+  if (!pd.isAdjusted) return jp ? `(${pd.y}年${pd.m}月10日 支給予定)` : `(${pd.y}년 ${pd.m}월 10일 지급 예정)`;
+  return jp
+    ? `(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が休日)`
+    : `(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 휴일)`;
 }
 
 function fmtYM(ym) {

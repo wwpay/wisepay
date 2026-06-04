@@ -323,14 +323,7 @@ function updateEmpHeader() {
   const yu = jp?'年':'년', mu = jp?'月分':'월분';
   document.getElementById('empMonthTxt').textContent = `${currentYear}${yu}${currentMonth}${mu}`;
   const pd = getPayDate(currentYear, currentMonth);
-  const payTxt = jp
-    ? pd.dow10 === 6 ? `(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が土曜日)`
-    : pd.dow10 === 0 ? `(${pd.y}年${pd.m}月${pd.d}日 支給予定 ※10日が日曜日)`
-    : `(${pd.y}年${pd.m}月10日 支給予定)`
-    : pd.dow10 === 6 ? `(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 토요일)`
-    : pd.dow10 === 0 ? `(${pd.y}년 ${pd.m}월 ${pd.d}일 지급 예정 ※10일이 일요일)`
-    : `(${pd.y}년 ${pd.m}월 10일 지급 예정)`;
-  document.getElementById('empPayDayTxt').textContent = payTxt;
+  document.getElementById('empPayDayTxt').textContent = fmtPayDateTxt(pd, jp);
 }
 
 // ══ CALC ══
