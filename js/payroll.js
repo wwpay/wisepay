@@ -1,4 +1,4 @@
-// 수정: 2026-06-05 16:45 — 전월 대비 계산을 _net 직접 참조 → PFIELD 재계산 방식으로 변경 (구버전 데이터 대응)
+// 수정: 2026-06-05 16:51 — 미저장(임시값) 달은 전월 대비 란 공백 처리
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -545,8 +545,16 @@ function recalc() {
       document.getElementById('ci-koyo').textContent = koyoEnabled ? `労働者：${r.koyo.toFixed(2)}%、賃金総額：${fmt(totalPay)}円` : (LANG==='JP'?'未加入':'미가입');
       document.getElementById('ci-shotoku').textContent = `${shotokuKbn==='otsu'?(LANG==='JP'?'乙欄':'을란'):(LANG==='JP'?'甲欄':'갑란')}、課税対象：${fmt(shotokuBase)}円${fuyouTxt}`;
     }
-    // ── 전월 대비 (1월이면 전년 12월과 비교)
+    // ── 전월 대비 (미저장/임시값 달은 공백)
     if(emp && de) {
+      const curKey = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
+      const curRaw = localStorage.getItem(curKey);
+      const hasCurSaved = !!curRaw && (() => {
+        try { const d=JSON.parse(curRaw); return PFIELDS.some(f=>parseInt(String(d[f]||'0').replace(/,/g,''))!==0); }
+        catch(e){ return false; }
+      })();
+      if (!hasCurSaved) { de.textContent=' '; de.className='net-diff'; }
+      else {
       const prevY = currentMonth===1 ? currentYear-1 : currentYear;
       const prevM = currentMonth===1 ? 12 : currentMonth-1;
       const pk = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${prevY}_${prevM}`;
@@ -571,6 +579,7 @@ function recalc() {
         else{de.textContent=u+'  ─ ±0';de.className='net-diff nc';}
       } catch(e){ de.textContent=' '; de.className='net-diff'; } }
       else { de.textContent = ' '; de.className = 'net-diff'; }
+      } // hasCurSaved
     }
   }
 
