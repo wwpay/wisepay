@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-04 23:34 — 지급 예정일 공휴일·은행휴업일 대응 + fetchHolidayCache 추가
+  수정: 2026-06-05 00:43 — mInitApp 내 중복 initFontSize() 호출 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -617,7 +617,6 @@ function mInitApp() {
 
   document.getElementById('m-app').classList.remove('hidden');
 
-  initFontSize();
   if (typeof applyViewerRestrictions === 'function') applyViewerRestrictions();
   mApplyLang();
   mRenderMonthSel();

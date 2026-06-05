@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 09:10 — 컬럼 헤더 "(근로자)" 제거, 근로자 부담분 안내 문구 추가
+﻿// 수정: 2026-06-05 00:43 — 디버그용 console.log 제거 (scrapeRates raw response)
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -24,7 +24,6 @@ async function openRateModal() {
 
   try {
     const result = await gasRequest({ action: 'scrapeRates' }, 30000);
-    console.log('[WisePay] GAS scrapeRates raw response:', JSON.stringify(result));
     if (!result.ok) throw new Error(result.error || (jp ? '取得失敗' : '가져오기 실패'));
 
     _pendingScrapedRates = result;
