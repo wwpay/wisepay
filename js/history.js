@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 22:32 — 지급이력 사원별 섹션 구조로 개편 (이름 타이틀 상단, 세부 항목 하단)
+// 수정: 2026-06-05 14:50 — 월 표시를 N월 → N월분(N月分) 형식으로 변경
 'use strict';
 let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 
@@ -209,7 +209,7 @@ function getJoinNote(emp, year, jp) {
 
 // 한 사원의 임금대장 표 + 요약바 HTML 반환 (지급완료 달 없으면 null)
 function buildEmpTableHtml(emp, year, jp) {
-  const mu = jp ? '月' : '월';
+  const mu = jp ? '月分' : '월분';
   const fmt = n => n.toLocaleString();
 
   // 전년 12월 + 당해 1~11월 = 12열 고정 (익월10일 지급 기준: 지급년도 1/10~12/10 = 급여월 전년12~당해11)
@@ -409,7 +409,7 @@ function renderHistory() {
   });
 
   const jp = LANG === 'JP';
-  const mu = jp ? '月' : '월';
+  const mu = jp ? '月分' : '월분';
 
   if (!rows.length) {
     container.innerHTML = `<div class="card" style="text-align:center;padding:25px;color:var(--text3);">${jp ? 'データがありません' : '데이터 없음'}</div>`;
