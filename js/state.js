@@ -1,8 +1,10 @@
 ﻿'use strict';
-// 수정: 2026-06-04 10:15 — GAS_URL 고정값 교체, UI 입력 섹션 제거
+// 수정: 2026-06-05 17:00 — 초기 포커스 달을 현재달-1(전월)로 변경
 let LANG = 'KR';
-let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth() + 1;
+const _initNow = new Date();
+const _initNowM = _initNow.getMonth() + 1; // 1-12
+let currentYear  = _initNowM === 1 ? _initNow.getFullYear() - 1 : _initNow.getFullYear();
+let currentMonth = _initNowM === 1 ? 12 : _initNowM - 1;
 let currentEmpIdx = -1; // -1 = 미선택
 let editingEmpIdx = -1;
 let tempFamilies = [];
