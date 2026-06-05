@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 23:13 — 지급 예정일 토/일 → 직전 금요일 자동 조정 (getPayDate 공통함수 사용)
+// 수정: 2026-06-05 16:45 — 전월 대비 계산을 _net 직접 참조 → PFIELD 재계산 방식으로 변경 (구버전 데이터 대응)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -551,7 +551,21 @@ function recalc() {
       const prevM = currentMonth===1 ? 12 : currentMonth-1;
       const pk = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${prevY}_${prevM}`;
       const ps = localStorage.getItem(pk);
-      if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비';
+      if(ps) { try { const pd=JSON.parse(ps);
+        const safeI = v => parseInt(String(v==null?'0':v).replace(/,/g,''))||0;
+        let prevNet;
+        if (PFIELDS.some(f => safeI(pd[f]) !== 0)) {
+          // raw 필드로 재계산 — _net が未保存の旧データ・GAS同期データに対応
+          prevNet = calcPayrollBreakdown(emp, {
+            base:safeI(pd['r-base']), ot:safeI(pd['r-ot']), kintai:safeI(pd['r-kintai']),
+            commute:safeI(pd['r-commute']), commutetax:safeI(pd['r-commutetax']),
+            kinmu:safeI(pd['r-kinmu']), shokumu:safeI(pd['r-shokumu']), field:safeI(pd['r-field']),
+            hyo_override:safeI(pd['r-hyo']), jumin:safeI(pd['k-jumin']), nencho:safeI(pd['k-nencho']),
+          }, prevY, prevM).net;
+        } else {
+          prevNet = safeI(pd._net) || safeI(pd.net) || 0;
+        }
+        const diff=net-prevNet; const u=LANG==='JP'?'前月比':'전월 대비';
         if(diff>0){de.textContent=u+'  ▲ +'+fmt(diff);de.className='net-diff up';}
         else if(diff<0){de.textContent=u+'  ▼ '+fmt(diff);de.className='net-diff dn';}
         else{de.textContent=u+'  ─ ±0';de.className='net-diff nc';}
