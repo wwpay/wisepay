@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:53 — 휴가 중복 날짜 등록 시 경고 팝업 추가
+// 수정: 2026-06-08 17:28 — 플레이스홀더 가운데, 내역 날짜순 정렬, 달력 클릭 리스트 강조, today-mark 가독성
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -265,7 +265,7 @@ function renderVacationCards() {
 
   let selectedNos = getSelectedVacNos();
   if (selectedNos.size === 0) {
-    container.innerHTML = `<div style="padding:60px 20px;text-align:center;color:var(--text3);">
+    container.innerHTML = `<div style="width:100%;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);">
       <div style="font-size:40px;margin-bottom:12px;">🌴</div>
       <div style="font-size:14px;">${jp ? '従業員を選択してください' : '사원을 선택해 주세요'}</div>
     </div>`;
@@ -422,7 +422,8 @@ function _renderVacCalendar() {
     if (dow_idx === 6) cls += ' sat';
     if (info) cls += info.used < 1 ? ' used half' : ' used';
     if (dateStr === today) cls += ' today-mark';
-    cells += `<div class="${cls}">${d}</div>`;
+    const clickAttr = info ? ` onclick="_highlightVacCalDate('${dateStr}')"` : '';
+    cells += `<div class="${cls}"${clickAttr}>${d}</div>`;
   }
 
   cal.innerHTML = `
@@ -449,7 +450,8 @@ function _renderVacList() {
   const records = vacationData[no] || [];
   const monthRecords = records
     .map((r, idx) => ({ ...r, _idx: idx }))
-    .filter(r => r.used > 0 && r.date && r.date.startsWith(monthStr));
+    .filter(r => r.used > 0 && r.date && r.date.startsWith(monthStr))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   const hdr = `<div class="vac-panel-hdr">${jp ? '使用履歴 / 사용 내역' : '사용 내역 / 使用履歴'}</div>`;
 
@@ -469,6 +471,15 @@ function _renderVacList() {
         <button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>
       </div>`;
     }).join('');
+}
+
+function _highlightVacCalDate(dateStr) {
+  const no  = _vacDetailEmpNo;
+  const rec = (vacationData[no] || [])
+    .map((r, i) => ({ ...r, _idx: i }))
+    .find(r => r.used > 0 && r.date === dateStr);
+  if (!rec) return;
+  _highlightVacListItem(rec._idx);
 }
 
 function _highlightVacListItem(idx) {

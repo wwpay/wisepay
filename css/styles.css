@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 16:16 — 캘린더 사용일 cursor 제거, 토/일 색상 추가 */
+/* 수정: 2026-06-08 17:28 — 사용일 cursor:pointer 복원, today-mark 가독성 개선 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -372,10 +372,10 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:50%;cursor:default;}
 .vac-cal-dow.sun,.vac-cal-day.sun:not(.used){color:#dc2626;}
 .vac-cal-dow.sat,.vac-cal-day.sat:not(.used){color:#2563eb;}
-.vac-cal-day.used{background:#3B82F6;color:#fff;font-weight:700;cursor:default;}
-.vac-cal-day.used.half{background:#93C5FD;color:#1E40AF;font-weight:700;cursor:default;}
+.vac-cal-day.used{background:#3B82F6;color:#fff;font-weight:700;cursor:pointer;}
+.vac-cal-day.used.half{background:#93C5FD;color:#1E40AF;font-weight:700;cursor:pointer;}
 .vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
-.vac-cal-day.today-mark{font-weight:700;color:var(--green);}
+.vac-cal-day.today-mark{font-weight:700;background:var(--accent2);color:var(--accent);}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
 .vac-list-item:hover{background:var(--surface2);}
 .vac-list-item.active{background:var(--accent2);border-color:var(--accent3);}
