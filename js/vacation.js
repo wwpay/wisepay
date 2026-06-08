@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:08 — 캘린더 헤더→년월, 사용입력 버튼 캘린더 아래, 리스트 영역 배경 구분 (vacation.js)
+// 수정: 2026-06-08 16:16 — 캘린더 사용일 클릭 제거, 토/일 색상 적용 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -409,21 +409,26 @@ function _renderVacCalendar() {
     : ['일','월','화','수','목','금','토'];
 
   let cells = '';
-  for (let i = 0; i < firstDay; i++) cells += '<div class="vac-cal-day"></div>';
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCls = i === 0 ? ' sun' : i === 6 ? ' sat' : '';
+    cells += `<div class="vac-cal-day${emptyCls}"></div>`;
+  }
   for (let d = 1; d <= lastDate; d++) {
-    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const info    = usedDates[dateStr];
+    const dateStr  = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const info     = usedDates[dateStr];
+    const dow_idx  = (firstDay + d - 1) % 7; // 0=Sun, 6=Sat
     let cls = 'vac-cal-day';
+    if (dow_idx === 0) cls += ' sun';
+    if (dow_idx === 6) cls += ' sat';
     if (info) cls += info.used < 1 ? ' used half' : ' used';
     if (dateStr === today) cls += ' today-mark';
-    const onclick = info ? `_highlightVacListItem(${info.idx})` : '';
-    cells += `<div class="${cls}" ${onclick ? `onclick="${onclick}" title="${jp?'取得日':'사용일'}"` : ''}>${d}</div>`;
+    cells += `<div class="${cls}">${d}</div>`;
   }
 
   cal.innerHTML = `
     <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
     <div class="vac-cal-grid">
-      ${dow.map(d => `<div class="vac-cal-dow">${d}</div>`).join('')}
+      ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
       ${cells}
     </div>
     <div style="margin-top:12px;text-align:center;">
