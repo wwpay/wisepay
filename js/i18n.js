@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 10:34 — 유급휴가 i18n 항목 추가
+﻿// 수정: 2026-06-08 12:25 — vacationApplied 숨김 필터 i18n 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -79,6 +79,7 @@ function applyLang() {
   setTxt('t-vac-reason-label', '事由（任意）', '사유 (선택)');
   setTxt('t-vac-modal-cancel', 'キャンセル', '취소');
   setTxt('t-vac-modal-save', '記録する', '기록하기');
+  setTxt('t-vac-hide-not-applied', '対象外を非表示', '미적용 사원 숨김');
 
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
   setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '協会けんぽ 최신 요율 가져오기');

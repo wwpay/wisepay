@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 09:35 — saveEmployee: 신규 사원 등록 시 initEmployeeVacation 호출 추가
+﻿// 수정: 2026-06-08 12:25 — vacationApplied 필드 추가: 사원 폼 체크박스 + saveEmployee 저장
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -343,6 +343,17 @@ function renderEmpFormFields(emp, readOnly = false) {
       <select class="form-select" id="f-fuyou" onchange="markDirty()"${dis}>
         ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${(emp ? countFamilies(emp) : 0)===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
       </select>
+    </div>
+    <div class="form-group">
+      <div class="form-label-block" style="min-height:unset;">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'有給休暇管理':'유급휴가 관리'}</label>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:${readOnly?'default':'pointer'};padding:6px 0;">
+        <input type="checkbox" id="f-vacation-applied" ${emp?.vacationApplied !== false?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;"${readOnly?' disabled':' onchange="markDirty()"'}>
+        <span>${jp?'有給管理対象にする':'유급휴가 관리 대상으로 설정'}</span>
+      </label>
     </div>
   </div>
 
@@ -852,6 +863,7 @@ function saveEmployee() {
     shaho_start: (document.getElementById('f-shaho-start')?.value||'').trim(),
     shotokuKbn: document.getElementById('f-shotoku-kbn')?.value||'ko',
     fuyouCount: parseInt(document.getElementById('f-fuyou')?.value)||0,
+    vacationApplied: document.getElementById('f-vacation-applied')?.checked !== false,
     base: 0,
     families: [...tempFamilies],
   };

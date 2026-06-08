@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 10:34 — 유급휴가 관리 UI 함수 추가 / 키 정규화 migration 추가 (vacation.js)
+// 수정: 2026-06-08 12:25 — 수정1~4: 확인버튼 후 카드표시, 사용/잔여만 표시, vacationApplied 필드, 상세 연/월 네비게이션 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -156,6 +156,7 @@ let _vacDetailEmpNo = null;
 let _vacDetailYear  = new Date().getFullYear();
 let _vacDetailMonth = new Date().getMonth() + 1;
 let _vacModalEmpNo  = null;
+let _vacHideNotApplied = true;
 
 function _jstDateFmt(dateStr) {
   if (!dateStr) return '';
@@ -184,8 +185,13 @@ function buildVacationEmpList() {
   const jp = LANG === 'JP';
   const selected = getSelectedVacNos();
 
-  list.innerHTML = employees.map(emp => {
-    if (!emp || emp.no == null) return '';
+  const empList = employees.filter(emp => {
+    if (!emp || emp.no == null) return false;
+    if (_vacHideNotApplied && emp.vacationApplied === false) return false;
+    return true;
+  });
+
+  list.innerHTML = empList.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
     const key = `vac_emp_${no}`;
     const chk = selected.has(no);
@@ -198,6 +204,11 @@ function buildVacationEmpList() {
   }).join('');
 
   updateVacSelSummary();
+}
+
+function toggleVacHideNotApplied() {
+  _vacHideNotApplied = document.getElementById('vacHideNotApplied')?.checked !== false;
+  buildVacationEmpList();
 }
 
 function getSelectedVacNos() {
@@ -220,6 +231,10 @@ function updateVacSelSummary() {
       ? (jp ? '従業員選択' : '사원 선택')
       : (jp ? '選択中' : '선택 중');
   }
+}
+
+function confirmVacEmpSel() {
+  closeVacEmpDrop();
   renderVacationCards();
 }
 
@@ -265,6 +280,20 @@ function renderVacationCards() {
 
   container.innerHTML = toShow.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
+    const notApplied = emp.vacationApplied === false;
+    if (notApplied) {
+      return `<div class="vac-card">
+        <div class="vac-card-head">
+          <div>
+            <span class="vac-card-name">${emp.name}</span>
+            <span class="vac-card-no">No.${no}</span>
+            ${emp.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:4px;">（${emp.kana}）</span>` : ''}
+            <span class="vac-badge-none">${jp ? '非適用' : '미적용'}</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);padding:4px 0;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
+      </div>`;
+    }
     const sum = calcVacationSummary(no);
     const remClass = sum.remaining <= 5.0 ? 'red' : '';
     const expiryHtml = sum.expiringInfo ? `<div class="vac-expiry-warn">
@@ -282,10 +311,6 @@ function renderVacationCards() {
         </button>
       </div>
       <div class="vac-stats-row">
-        <div class="vac-stat">
-          <div class="vac-stat-label">${jp ? '付与' : '부여'}</div>
-          <div class="vac-stat-val">${sum.totalGranted.toFixed(1)}</div>
-        </div>
         <div class="vac-stat">
           <div class="vac-stat-label">${jp ? '使用' : '사용'}</div>
           <div class="vac-stat-val">${sum.totalUsed.toFixed(1)}</div>
@@ -345,11 +370,7 @@ function renderVacationDetail() {
           <span style="font-size:12px;color:var(--text3);margin-left:5px;">No.${no}</span>
         </div>
       </div>
-      <div class="vac-stats-row" style="max-width:340px;margin-bottom:10px;">
-        <div class="vac-stat">
-          <div class="vac-stat-label">${jp ? '付与合計' : '총 부여'}</div>
-          <div class="vac-stat-val">${sum.totalGranted.toFixed(1)}</div>
-        </div>
+      <div class="vac-stats-row" style="max-width:240px;margin-bottom:10px;">
         <div class="vac-stat">
           <div class="vac-stat-label">${jp ? '使用合計' : '총 사용'}</div>
           <div class="vac-stat-val">${sum.totalUsed.toFixed(1)}</div>
@@ -403,12 +424,19 @@ function _renderVacCalendar() {
     cells += `<div class="${cls}" ${onclick ? `onclick="${onclick}" title="${jp?'取得日':'사용일'}"` : ''}>${d}</div>`;
   }
 
+  const monthTabs = Array.from({length:12},(_,i)=>{
+    const m = i+1;
+    return `<button class="vac-month-tab${m===month?' active':''}" onclick="vacSetMonth(${m})">${m}${jp?'月':'월'}</button>`;
+  }).join('');
+
   cal.innerHTML = `
-    <div class="vac-cal-head">
-      <button class="vac-cal-nav" onclick="vacCalPrev()">‹</button>
-      <span class="vac-cal-title">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</span>
-      <button class="vac-cal-nav" onclick="vacCalNext()">›</button>
+    <div class="vac-panel-hdr">${jp ? 'カレンダー' : '캘린더'}</div>
+    <div class="vac-year-nav">
+      <button class="vac-cal-nav" onclick="vacYearPrev()">◀</button>
+      <span class="vac-cal-title">${year}${jp ? '年' : '년'}</span>
+      <button class="vac-cal-nav" onclick="vacYearNext()">▶</button>
     </div>
+    <div class="vac-month-tabs">${monthTabs}<button class="vac-today-btn" onclick="vacGotoToday()">${jp?'今月':'이번 달'}</button></div>
     <div class="vac-cal-grid">
       ${dow.map(d => `<div class="vac-cal-dow">${d}</div>`).join('')}
       ${cells}
@@ -422,19 +450,23 @@ function _renderVacList() {
   const no = _vacDetailEmpNo;
   if (!no) { panel.innerHTML = ''; return; }
 
-  const year = _vacDetailYear;
+  const year  = _vacDetailYear;
+  const month = _vacDetailMonth;
+  const monthStr = `${year}-${String(month).padStart(2,'0')}`;
   const records = vacationData[no] || [];
-  const yearRecords = records
+  const monthRecords = records
     .map((r, idx) => ({ ...r, _idx: idx }))
-    .filter(r => r.used > 0 && r.date && r.date.startsWith(String(year)));
+    .filter(r => r.used > 0 && r.date && r.date.startsWith(monthStr));
 
-  if (!yearRecords.length) {
-    panel.innerHTML = `<div style="padding:30px 10px;text-align:center;color:var(--text3);font-size:13px;">${jp ? '取得記録なし' : '사용 기록 없음'}</div>`;
+  const hdr = `<div class="vac-panel-hdr">${jp ? '使用履歴' : '사용 내역'}</div>`;
+
+  if (!monthRecords.length) {
+    panel.innerHTML = hdr + `<div style="padding:30px 10px;text-align:center;color:var(--text3);font-size:13px;">${jp ? '取得記録なし' : '사용 기록 없음'}</div>`;
     return;
   }
 
-  panel.innerHTML = `<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;">${year}${jp ? '年の取得記録' : '년 사용 기록'}</div>` +
-    yearRecords.map(r => {
+  panel.innerHTML = hdr +
+    monthRecords.map(r => {
       const badgeCls = r.used < 1 ? 'half' : 'full';
       const badgeTxt = r.used < 1 ? (jp ? '半日' : '반차') : (jp ? '1日' : '1일');
       return `<div class="vac-list-item" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
@@ -466,16 +498,13 @@ function _highlightVacListItem(idx) {
   if (targetCell) targetCell.classList.add('highlight');
 }
 
-function vacCalPrev() {
-  _vacDetailMonth--;
-  if (_vacDetailMonth < 1) { _vacDetailMonth = 12; _vacDetailYear--; }
-  _renderVacCalendar();
-  _renderVacList();
-}
-
-function vacCalNext() {
-  _vacDetailMonth++;
-  if (_vacDetailMonth > 12) { _vacDetailMonth = 1; _vacDetailYear++; }
+function vacYearPrev() { _vacDetailYear--; _renderVacCalendar(); _renderVacList(); }
+function vacYearNext() { _vacDetailYear++; _renderVacCalendar(); _renderVacList(); }
+function vacSetMonth(m) { _vacDetailMonth = m; _renderVacCalendar(); _renderVacList(); }
+function vacGotoToday() {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+  _vacDetailYear  = now.getFullYear();
+  _vacDetailMonth = now.getMonth() + 1;
   _renderVacCalendar();
   _renderVacList();
 }

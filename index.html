@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 10:34 — 유급휴가 emp_no 키 정규화 버그 수정 (0.0 표시 문제)
+  수정: 2026-06-08 12:25 — 수정1~4: 확인버튼 카드표시, 사용/잔여만, vacationApplied, 연/월 탭 네비
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -331,8 +331,12 @@
             <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
+          <label class="vac-hide-filter">
+            <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
+            <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
+          </label>
           <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
-            <button class="btn btn-primary" onclick="closeVacEmpDrop()" style="font-size:12px;padding:5px 28px;" id="t-vac-confirm">확인</button>
+            <button class="btn btn-primary" onclick="confirmVacEmpSel()" style="font-size:12px;padding:5px 28px;" id="t-vac-confirm">확인</button>
           </div>
         </div>
       </div>

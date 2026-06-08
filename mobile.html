@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 10:34 — 유급휴가 탭 추가 (vacation.js 연동, 카드 목록 + 사용 입력)
+  수정: 2026-06-08 12:25 — 수정2,3: 부여 스탯 제거, vacationApplied 미적용 뱃지
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1140,6 +1140,16 @@ function mRenderVacation() {
 
   out.innerHTML = activeEmps.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
+    if (emp.vacationApplied === false) {
+      return `<div class="m-vac-card">
+        <div style="font-size:14px;font-weight:600;">${emp.name}
+          ${emp.kana ? `<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:4px;">（${emp.kana}）</span>` : ''}
+          <span style="font-size:11px;color:var(--text3);margin-left:5px;">No.${no}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;margin-left:6px;">${jp ? '非適用' : '미적용'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);padding:6px 0;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
+      </div>`;
+    }
     let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null };
     try { sum = calcVacationSummary(no); } catch(e) {}
     const remCls = sum.remaining <= 5.0 ? ' red' : '';
@@ -1152,10 +1162,6 @@ function mRenderVacation() {
         <span style="font-size:11px;color:var(--text3);margin-left:5px;">No.${no}</span>
       </div>
       <div class="m-vac-stats">
-        <div class="m-vac-stat">
-          <div class="m-vac-stat-lbl">${jp ? '付与' : '부여'}</div>
-          <div class="m-vac-stat-val">${sum.totalGranted.toFixed(1)}</div>
-        </div>
         <div class="m-vac-stat">
           <div class="m-vac-stat-lbl">${jp ? '使用' : '사용'}</div>
           <div class="m-vac-stat-val">${sum.totalUsed.toFixed(1)}</div>
