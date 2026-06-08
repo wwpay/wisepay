@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 15:57 — 카드 헤더 이름/사번+카나 2행, 괄호 제거, 카나 JP only
+  수정: 2026-06-08 17:23 — ESC 키로 유급휴가 입력 바텀시트 닫기 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1248,6 +1248,12 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   initFontSize();
   mInitApp();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const ov = document.getElementById('m-vac-modal-ov');
+  if (ov && ov.style.display === 'flex') mCloseVacModal();
 });
 </script>
 

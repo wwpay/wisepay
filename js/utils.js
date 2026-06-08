@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 16:26 — showAnchorToast 추가 (연도 화살표 데이터 없음 고정 위치 토스트)
+﻿// 수정: 2026-06-08 17:23 — ESC 키로 열린 모달 닫기 전역 핸들러 추가
 'use strict';
 
 function openModal(id) {
@@ -125,3 +125,9 @@ function fmtYM(ym) {
   const [y, m] = norm.split('-');
   return LANG === 'JP' ? `${y}年${parseInt(m)}月` : `${y}년 ${parseInt(m)}월`;
 }
+
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const open = document.querySelector('.overlay.open');
+  if (open) { closeModal(open.id); }
+});
