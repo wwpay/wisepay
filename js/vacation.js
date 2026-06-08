@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 15:29 — 수정1~4: 숨김 필터 위치 이동, 연/월 바 분리, 카드 행 레이아웃, 상세 구분선+헤더 (vacation.js)
+// 수정: 2026-06-08 15:48 — 카드 헤더 accent2 색상, 고정폭(260px), flex-wrap 가로 나열 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -283,13 +283,14 @@ function renderVacationCards() {
     const notApplied = emp.vacationApplied === false;
     const nameHtml = `<span class="vac-card-name">${emp.name}</span>
       <span class="vac-card-no">(${no})</span>
-      ${emp.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}`;
+      ${emp.kana ? `<span class="vac-card-kana">（${emp.kana}）</span>` : ''}`;
     if (notApplied) {
       return `<div class="vac-card">
         <div class="vac-card-head">
-          <div>${nameHtml}<span class="vac-badge-none">${jp ? '非適用' : '미적용'}</span></div>
+          <div>${nameHtml}</div>
+          <span class="vac-badge-none">${jp ? '非適用' : '미적용'}</span>
         </div>
-        <div style="font-size:12px;color:var(--text3);padding:4px 0;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
+        <div class="vac-card-body" style="color:var(--text3);font-size:12px;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
       </div>`;
     }
     const sum = calcVacationSummary(no);
@@ -303,17 +304,19 @@ function renderVacationCards() {
         <div>${nameHtml}</div>
         <button class="btn btn-sm btn-primary" onclick="showVacationDetail('${no}')">${jp ? '詳細' : '상세'}</button>
       </div>
-      <div class="vac-card-row">
-        <span class="vac-card-row-label">${jp ? '使用日数' : '사용 일수'}</span>
-        <span class="vac-card-row-val">${sum.totalUsed.toFixed(1)}${unitStr}</span>
-      </div>
-      <div class="vac-card-row">
-        <span class="vac-card-row-label">${jp ? '残日数' : '남은 일수'}</span>
-        <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
-      </div>
-      ${expiryHtml}
-      <div class="vac-card-foot">
-        <button class="btn btn-sm" onclick="showVacationModal('${no}')">+ ${jp ? '取得入力' : '입력'}</button>
+      <div class="vac-card-body">
+        <div class="vac-card-row">
+          <span class="vac-card-row-label">${jp ? '使用日数' : '사용 일수'}</span>
+          <span class="vac-card-row-val">${sum.totalUsed.toFixed(1)}${unitStr}</span>
+        </div>
+        <div class="vac-card-row">
+          <span class="vac-card-row-label">${jp ? '残日数' : '남은 일수'}</span>
+          <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
+        </div>
+        ${expiryHtml}
+        <div class="vac-card-foot">
+          <button class="btn btn-sm" onclick="showVacationModal('${no}')">+ ${jp ? '取得入力' : '입력'}</button>
+        </div>
       </div>
     </div>`;
   }).join('');

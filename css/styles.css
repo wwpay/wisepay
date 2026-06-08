@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 15:29 — 카드 행 레이아웃, 네비바, 구분선 스타일 추가 */
+/* 수정: 2026-06-08 15:48 — 카드 헤더 accent2, 고정폭 260px, flex-wrap 가로 나열 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -347,10 +347,13 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 
 /* VACATION */
 .vac-emp-drop{display:none;position:absolute;top:calc(100% + 5px);left:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.13);z-index:300;padding:10px;}
-.vac-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;margin-bottom:10px;}
-.vac-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
-.vac-card-name{font-size:14px;font-weight:600;}
-.vac-card-no{font-size:11px;color:var(--text3);margin-left:6px;}
+#vacCardsContainer{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;}
+.vac-card{background:var(--surface);border:1px solid var(--accent3);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;width:260px;flex:0 0 260px;}
+.vac-card-head{padding:8px 13px;background:var(--accent2);border-bottom:1px solid var(--accent3);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.vac-card-body{padding:12px 14px;}
+.vac-card-name{font-size:13px;font-weight:700;color:var(--accent);}
+.vac-card-no{font-size:11px;color:var(--text2);margin-left:5px;}
+.vac-card-kana{font-size:10px;color:var(--text3);margin-left:3px;}
 .vac-stats-row{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:9px;}
 .vac-stat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--border);}
 .vac-stat:last-child{border-right:none;}

@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 15:29 — 수정3: 카드 행 레이아웃 (사용일수/남은일수 행 표시)
+  수정: 2026-06-08 15:48 — 카드 헤더 accent2 색상, 미적용 카드 동일 구조
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -203,7 +203,9 @@
 .showToast { bottom: 68px !important; }
 
 /* Vacation mobile */
-.m-vac-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px; }
+.m-vac-card { background:var(--surface);border:1px solid var(--accent3);border-radius:12px;overflow:hidden;margin-bottom:10px; }
+.m-vac-card-head { padding:9px 14px;background:var(--accent2);border-bottom:1px solid var(--accent3); }
+.m-vac-card-body { padding:12px 14px; }
 .m-vac-stats { display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:10px 0; }
 .m-vac-stat { flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--border); }
 .m-vac-stat:last-child { border-right:none; }
@@ -1142,12 +1144,15 @@ function mRenderVacation() {
     const no  = String(emp.no).padStart(4, '0');
     if (emp.vacationApplied === false) {
       return `<div class="m-vac-card">
-        <div style="font-size:14px;font-weight:600;">${emp.name}
-          ${emp.kana ? `<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:4px;">（${emp.kana}）</span>` : ''}
-          <span style="font-size:11px;color:var(--text3);margin-left:5px;">No.${no}</span>
-          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;margin-left:6px;">${jp ? '非適用' : '미적용'}</span>
+        <div class="m-vac-card-head" style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <span style="font-size:13px;font-weight:700;color:var(--accent);">${emp.name}</span>
+            <span style="font-size:11px;color:var(--text2);margin-left:4px;">(${no})</span>
+            ${emp.kana ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
+          </div>
+          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;">${jp ? '非適用' : '미적용'}</span>
         </div>
-        <div style="font-size:12px;color:var(--text3);padding:6px 0;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
+        <div class="m-vac-card-body" style="font-size:12px;color:var(--text3);">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
       </div>`;
     }
     let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null };
@@ -1158,27 +1163,27 @@ function mRenderVacation() {
       ? `<div class="m-vac-expiry">⚠️ ${sum.expiringInfo.days}${unitStr} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効':'개월 이내 소멸'} (${sum.expiringInfo.expireDate})</div>`
       : '';
     return `<div class="m-vac-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
-        <div>
-          <span style="font-size:14px;font-weight:600;">${emp.name}</span>
-          <span style="font-size:11px;color:var(--text3);margin-left:4px;">(${no})</span>
-          ${emp.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
+      <div class="m-vac-card-head">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);">${emp.name}</span>
+        <span style="font-size:11px;color:var(--text2);margin-left:4px;">(${no})</span>
+        ${emp.kana ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
+      </div>
+      <div class="m-vac-card-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);">
+          <span style="font-size:12px;color:var(--text2);">${jp ? '使用日数' : '사용 일수'}</span>
+          <span style="font-size:15px;font-weight:700;">${sum.totalUsed.toFixed(1)}${unitStr}</span>
         </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);">
-        <span style="font-size:12px;color:var(--text2);">${jp ? '使用日数' : '사용 일수'}</span>
-        <span style="font-size:15px;font-weight:700;">${sum.totalUsed.toFixed(1)}${unitStr}</span>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:6px;">
-        <span style="font-size:12px;color:var(--text2);">${jp ? '残日数' : '남은 일수'}</span>
-        <span style="font-size:15px;font-weight:700;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
-      </div>
-      ${expHtml}
-      <div style="display:flex;justify-content:flex-end;">
-        <button onclick="mOpenVacModal('${no}')"
-          style="padding:8px 18px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">
-          + ${jp ? '取得入力' : '입력'}
-        </button>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:6px;">
+          <span style="font-size:12px;color:var(--text2);">${jp ? '残日数' : '남은 일수'}</span>
+          <span style="font-size:15px;font-weight:700;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
+        </div>
+        ${expHtml}
+        <div style="display:flex;justify-content:flex-end;">
+          <button onclick="mOpenVacModal('${no}')"
+            style="padding:8px 18px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">
+            + ${jp ? '取得入力' : '입력'}
+          </button>
+        </div>
       </div>
     </div>`;
   }).join('');
