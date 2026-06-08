@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 15:48 — 카드 헤더 accent2 색상, 미적용 카드 동일 구조
+  수정: 2026-06-08 15:57 — 카드 헤더 이름/사번+카나 2행, 괄호 제거, 카나 JP only
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1142,15 +1142,18 @@ function mRenderVacation() {
 
   out.innerHTML = activeEmps.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
+    const mSubLine = jp
+      ? `${no}${emp.kana ? '　' + emp.kana : ''}`
+      : no;
+    const mTitleHtml = `<div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);">${emp.name}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${mSubLine}</div>
+      </div>`;
     if (emp.vacationApplied === false) {
       return `<div class="m-vac-card">
         <div class="m-vac-card-head" style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <span style="font-size:13px;font-weight:700;color:var(--accent);">${emp.name}</span>
-            <span style="font-size:11px;color:var(--text2);margin-left:4px;">(${no})</span>
-            ${emp.kana ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
-          </div>
-          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;">${jp ? '非適用' : '미적용'}</span>
+          ${mTitleHtml}
+          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;flex-shrink:0;margin-left:8px;">${jp ? '非適用' : '미적용'}</span>
         </div>
         <div class="m-vac-card-body" style="font-size:12px;color:var(--text3);">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
       </div>`;
@@ -1163,11 +1166,7 @@ function mRenderVacation() {
       ? `<div class="m-vac-expiry">⚠️ ${sum.expiringInfo.days}${unitStr} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効':'개월 이내 소멸'} (${sum.expiringInfo.expireDate})</div>`
       : '';
     return `<div class="m-vac-card">
-      <div class="m-vac-card-head">
-        <span style="font-size:13px;font-weight:700;color:var(--accent);">${emp.name}</span>
-        <span style="font-size:11px;color:var(--text2);margin-left:4px;">(${no})</span>
-        ${emp.kana ? `<span style="font-size:10px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
-      </div>
+      <div class="m-vac-card-head">${mTitleHtml}</div>
       <div class="m-vac-card-body">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);">
           <span style="font-size:12px;color:var(--text2);">${jp ? '使用日数' : '사용 일수'}</span>

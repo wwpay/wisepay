@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 15:48 — 카드 헤더 accent2 색상, 고정폭(260px), flex-wrap 가로 나열 (vacation.js)
+// 수정: 2026-06-08 15:57 — 카드 헤더 이름/사번+카나 2행, 괄호 제거, 카나 JP only, 폭 280px (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -281,13 +281,17 @@ function renderVacationCards() {
   container.innerHTML = toShow.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
     const notApplied = emp.vacationApplied === false;
-    const nameHtml = `<span class="vac-card-name">${emp.name}</span>
-      <span class="vac-card-no">(${no})</span>
-      ${emp.kana ? `<span class="vac-card-kana">（${emp.kana}）</span>` : ''}`;
+    const subLine = jp
+      ? `${no}${emp.kana ? '　' + emp.kana : ''}`
+      : no;
+    const titleHtml = `<div class="vac-card-title">
+        <div class="vac-card-name">${emp.name}</div>
+        <div class="vac-card-sub">${subLine}</div>
+      </div>`;
     if (notApplied) {
       return `<div class="vac-card">
         <div class="vac-card-head">
-          <div>${nameHtml}</div>
+          ${titleHtml}
           <span class="vac-badge-none">${jp ? '非適用' : '미적용'}</span>
         </div>
         <div class="vac-card-body" style="color:var(--text3);font-size:12px;">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
@@ -301,7 +305,7 @@ function renderVacationCards() {
     </div>` : '';
     return `<div class="vac-card">
       <div class="vac-card-head">
-        <div>${nameHtml}</div>
+        ${titleHtml}
         <button class="btn btn-sm btn-primary" onclick="showVacationDetail('${no}')">${jp ? '詳細' : '상세'}</button>
       </div>
       <div class="vac-card-body">
