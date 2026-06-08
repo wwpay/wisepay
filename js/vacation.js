@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:26 — 과거 연도 데이터 없을 때 이전 연도 화살표에 앵커 토스트 추가
+// 수정: 2026-06-08 16:36 — 사용 입력 버튼 텍스트 및 크기 변경 (휴가 등록 / 有給取得)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -319,7 +319,7 @@ function renderVacationCards() {
         </div>
         ${expiryHtml}
         <div class="vac-card-foot">
-          <button class="btn btn-sm" onclick="showVacationModal('${no}')">+ ${jp ? '取得入力' : '입력'}</button>
+          <button class="btn" onclick="showVacationModal('${no}')">${jp ? '有給取得' : '휴가 등록'}</button>
         </div>
       </div>
     </div>`;
@@ -432,9 +432,7 @@ function _renderVacCalendar() {
       ${cells}
     </div>
     <div style="margin-top:12px;text-align:center;">
-      <button class="btn btn-sm btn-primary" onclick="showVacationModal('${no}')">
-        + ${jp ? '取得入力' : '사용 입력'}
-      </button>
+      <button class="btn btn-primary" onclick="showVacationModal('${no}')">${jp ? '有給取得' : '휴가 등록'}</button>
     </div>`;
 }
 
