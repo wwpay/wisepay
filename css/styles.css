@@ -1,4 +1,4 @@
-/* 수정: 2026-06-09 07:27 — .vac-day-today 제거 → .vac-day-num + .vac-today-bar div 방식으로 변경 */
+/* 수정: 2026-06-09 07:29 — .vac-list-badge.half 반차 배지 색상 노란→녹색(#BBF7D0/#166534)으로 변경 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -385,7 +385,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-list-date{font-size:12px;font-weight:600;color:var(--text);min-width:76px;}
 .vac-list-badge{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600;}
 .vac-list-badge.full{background:var(--accent2);color:var(--accent);}
-.vac-list-badge.half{background:#fef9c3;color:#92400e;}
+.vac-list-badge.half{background:#BBF7D0;color:#166534;}
 .vac-list-reason{font-size:11px;color:var(--text3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .vac-list-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 3px;line-height:1;flex-shrink:0;}
 .vac-list-del:hover{color:var(--red);}
