@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 12:25 — 수정1~4: 확인버튼 카드표시, 사용/잔여만, vacationApplied, 연/월 탭 네비
+  수정: 2026-06-08 15:29 — 수정1~4: 숨김필터 버튼 옆 이동, vacNavBar 추가, 카드 행 레이아웃, 구분선 헤더
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -326,15 +326,15 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div id="vacEmpDrop" class="vac-emp-drop">
-          <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
             <button class="btn btn-sm" onclick="vacSelectAll()" id="t-vac-sel-all">全選択</button>
             <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
+            <label class="vac-hide-filter" style="border-top:none;margin:0;padding:0 0 0 6px;">
+              <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
+              <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
+            </label>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
-          <label class="vac-hide-filter">
-            <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
-            <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
-          </label>
           <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
             <button class="btn btn-primary" onclick="confirmVacEmpSel()" style="font-size:12px;padding:5px 28px;" id="t-vac-confirm">확인</button>
           </div>
@@ -350,6 +350,7 @@
       <span id="t-vac-back">一覧へ戻る</span>
     </button>
     <div id="vacDetailHead" style="margin-bottom:14px;"></div>
+    <div id="vacNavBar"></div>
     <div class="vac-detail-layout">
       <div class="vac-cal-panel" id="vacCalPanel"></div>
       <div class="vac-list-panel" id="vacListPanel"></div>

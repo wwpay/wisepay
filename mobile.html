@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 12:25 — 수정2,3: 부여 스탯 제거, vacationApplied 미적용 뱃지
+  수정: 2026-06-08 15:29 — 수정3: 카드 행 레이아웃 (사용일수/남은일수 행 표시)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1152,30 +1152,34 @@ function mRenderVacation() {
     }
     let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null };
     try { sum = calcVacationSummary(no); } catch(e) {}
-    const remCls = sum.remaining <= 5.0 ? ' red' : '';
+    const remCls = sum.remaining <= 5.0 ? 'color:var(--red)' : '';
+    const unitStr = jp ? '日' : '일';
     const expHtml = sum.expiringInfo
-      ? `<div class="m-vac-expiry">⚠️ ${sum.expiringInfo.days}${jp?'日':'일'} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効':'개월 이내 소멸'} (${sum.expiringInfo.expireDate})</div>`
+      ? `<div class="m-vac-expiry">⚠️ ${sum.expiringInfo.days}${unitStr} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効':'개월 이내 소멸'} (${sum.expiringInfo.expireDate})</div>`
       : '';
     return `<div class="m-vac-card">
-      <div style="font-size:14px;font-weight:600;">${emp.name}
-        ${emp.kana ? `<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:4px;">（${emp.kana}）</span>` : ''}
-        <span style="font-size:11px;color:var(--text3);margin-left:5px;">No.${no}</span>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <span style="font-size:14px;font-weight:600;">${emp.name}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:4px;">(${no})</span>
+          ${emp.kana ? `<span style="font-size:11px;color:var(--text3);margin-left:3px;">（${emp.kana}）</span>` : ''}
+        </div>
       </div>
-      <div class="m-vac-stats">
-        <div class="m-vac-stat">
-          <div class="m-vac-stat-lbl">${jp ? '使用' : '사용'}</div>
-          <div class="m-vac-stat-val">${sum.totalUsed.toFixed(1)}</div>
-        </div>
-        <div class="m-vac-stat">
-          <div class="m-vac-stat-lbl">${jp ? '残日数' : '잔여'}</div>
-          <div class="m-vac-stat-val${remCls}">${sum.remaining.toFixed(1)}</div>
-        </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);">
+        <span style="font-size:12px;color:var(--text2);">${jp ? '使用日数' : '사용 일수'}</span>
+        <span style="font-size:15px;font-weight:700;">${sum.totalUsed.toFixed(1)}${unitStr}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:6px;">
+        <span style="font-size:12px;color:var(--text2);">${jp ? '残日数' : '남은 일수'}</span>
+        <span style="font-size:15px;font-weight:700;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
       </div>
       ${expHtml}
-      <button onclick="mOpenVacModal('${no}')"
-        style="width:100%;padding:10px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">
-        + ${jp ? '取得入力' : '사용 입력'}
-      </button>
+      <div style="display:flex;justify-content:flex-end;">
+        <button onclick="mOpenVacModal('${no}')"
+          style="padding:8px 18px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">
+          + ${jp ? '取得入力' : '입력'}
+        </button>
+      </div>
     </div>`;
   }).join('');
 }

@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 12:25 — 수정1~4: vacationApplied 뱃지, 연/월 탭 네비, 패널 헤더, 캘린더 색상 강화 */
+/* 수정: 2026-06-08 15:29 — 카드 행 레이아웃, 네비바, 구분선 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -359,7 +359,6 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-stat-val.red{color:var(--red);}
 .vac-expiry-warn{font-size:11px;color:var(--orange);background:var(--orange2);border:1px solid #fde68a;border-radius:var(--r2);padding:5px 9px;margin-bottom:9px;}
 .vac-detail-layout{display:flex;gap:16px;align-items:flex-start;}
-.vac-cal-panel{flex:0 0 300px;min-width:260px;}
 .vac-list-panel{flex:1;min-width:0;}
 .vac-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .vac-cal-nav{background:none;border:1px solid var(--border);border-radius:var(--r2);width:28px;height:28px;cursor:pointer;font-size:15px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
@@ -385,13 +384,21 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-back-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;padding:0;margin-bottom:12px;}
 .vac-back-btn:hover{opacity:.75;}
 .vac-panel-hdr{font-size:12px;font-weight:700;color:var(--text2);padding:4px 0 8px;border-bottom:2px solid var(--border);margin-bottom:8px;}
-.vac-year-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px;}
-.vac-month-tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
+.vac-month-tabs{display:flex;flex-wrap:wrap;gap:3px;}
 .vac-month-tab{font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:var(--r2);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;}
 .vac-month-tab:hover{background:var(--accent2);color:var(--accent);border-color:var(--accent3);}
 .vac-month-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
 .vac-today-btn{font-size:11px;padding:3px 8px;border:1px solid var(--accent3);border-radius:var(--r2);background:var(--accent2);color:var(--accent);cursor:pointer;font-family:inherit;font-weight:600;margin-left:4px;}
 .vac-today-btn:hover{background:var(--accent);color:#fff;}
 .vac-badge-none{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;margin-left:6px;vertical-align:middle;}
-.vac-hide-filter{display:flex;align-items:center;gap:6px;padding:6px 2px;font-size:12px;color:var(--text2);cursor:pointer;border-top:1px solid var(--border);margin-top:6px;}
-@media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;}}
+.vac-hide-filter{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
+.vac-nav-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;flex-wrap:wrap;}
+.vac-nav-year{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.vac-card-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
+.vac-card-row:last-of-type{border-bottom:none;}
+.vac-card-row-label{font-size:12px;color:var(--text2);}
+.vac-card-row-val{font-size:15px;font-weight:700;}
+.vac-card-row-val.red{color:var(--red);}
+.vac-card-foot{display:flex;justify-content:flex-end;margin-top:8px;}
+.vac-cal-panel{flex:0 0 300px;min-width:260px;padding-right:16px;border-right:2px solid var(--border);}
+@media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;padding-right:0;border-right:none;border-bottom:2px solid var(--border);padding-bottom:16px;margin-bottom:16px;}}
