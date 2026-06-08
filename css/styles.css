@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 21:46 — 달력 유급일 표시: 파란 원 배경 → 앰버 밑줄(border-bottom)로 변경 */
+/* 수정: 2026-06-08 21:58 — 달력 유급일: 파란 원/앰버 밑줄 → span 배지(파스텔) + 오늘 앰버 밑줄로 변경 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -372,10 +372,11 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:50%;cursor:default;}
 .vac-cal-dow.sun,.vac-cal-day.sun{color:#dc2626;}
 .vac-cal-dow.sat,.vac-cal-day.sat{color:#2563eb;}
-.vac-cal-day.used{border-bottom:3px solid #F59E0B;cursor:pointer;font-weight:700;}
-.vac-cal-day.used.half{border-bottom:2px dashed #F59E0B;}
+.vac-cal-day.used{cursor:pointer;}
 .vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
-.vac-cal-day.today-mark{font-weight:700;background:var(--accent2);color:var(--accent);}
+.vac-day-used{background:#BFDBFE;color:#1E40AF;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
+.vac-day-half{background:#BBF7D0;color:#166534;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
+.vac-day-today{text-decoration:underline;text-decoration-color:#F59E0B;text-decoration-thickness:3px;text-underline-offset:3px;font-weight:700;}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
 .vac-list-item:hover{background:var(--surface2);}
 .vac-list-item.active{background:var(--accent2);border-color:var(--accent3);}

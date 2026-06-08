@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 21:46 — 달력 유급일 표시: 파란 원 배경 → 앰버 밑줄로 변경 (styles.css 연동)
+// 수정: 2026-06-08 21:58 — 달력 날짜 span 배지 스타일(파스텔 파랑/녹색) + 오늘 앰버 밑줄
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -454,14 +454,19 @@ function _renderVacCalendar() {
   for (let d = 1; d <= lastDate; d++) {
     const dateStr  = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const info     = usedDates[dateStr];
-    const dow_idx  = (firstDay + d - 1) % 7; // 0=Sun, 6=Sat
+    const dow_idx  = (firstDay + d - 1) % 7;
+    const isToday  = dateStr === today;
     let cls = 'vac-cal-day';
     if (dow_idx === 0) cls += ' sun';
     if (dow_idx === 6) cls += ' sat';
-    if (info) cls += info.used < 1 ? ' used half' : ' used';
-    if (dateStr === today) cls += ' today-mark';
+    if (info) cls += ' used';
+    if (isToday) cls += ' today-mark';
+    let spanCls = '';
+    if (info) spanCls = info.used < 1 ? 'vac-day-half' : 'vac-day-used';
+    if (isToday) spanCls += (spanCls ? ' ' : '') + 'vac-day-today';
     const clickAttr = info ? ` onclick="_highlightVacCalDate('${dateStr}')"` : '';
-    cells += `<div class="${cls}"${clickAttr}>${d}</div>`;
+    const inner = spanCls ? `<span class="${spanCls}">${d}</span>` : d;
+    cells += `<div class="${cls}"${clickAttr}>${inner}</div>`;
   }
 
   cal.innerHTML = `
