@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:36 — 사용 입력 버튼 텍스트 및 크기 변경 (휴가 등록 / 有給取得)
+// 수정: 2026-06-08 16:53 — 휴가 중복 날짜 등록 시 경고 팝업 추가
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -574,6 +574,17 @@ function saveVacationUsage() {
   const jp   = LANG === 'JP';
   const date = document.getElementById('vac-modal-date')?.value || '';
   if (!date) { showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e'); return; }
+
+  const key = _vacKey(_vacModalEmpNo);
+  const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === date);
+  if (dup) {
+    const d = _jstDateFmt(date);
+    alert(jp
+      ? `${d} は既に登録されています。\n既存の記録を削除してから再入力してください。`
+      : `${d} 는 이미 등록된 날짜입니다.\n기존 기록을 삭제 후 다시 입력해 주세요.`);
+    return;
+  }
+
   const r1   = document.getElementById('vac-modal-r1');
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
