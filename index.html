@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 16:37 — 미적용 사원 숨김 체크박스를 텍스트 뒤로 이동
+  수정: 2026-06-08 16:40 — 급여명세 기준으로 4개 화면 사원 선택 버튼 크기 통일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -273,7 +273,7 @@
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <!-- 인라인 드롭다운 사원 선택 -->
       <div style="position:relative;" id="annualEmpDropWrap">
-        <button class="btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;gap:5px;">
+        <button class="btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span id="annualEmpSelLabel">사원 선택</span>
           <span id="annualEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
@@ -319,7 +319,7 @@
   <div id="vacMainArea">
     <div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="position:relative;" id="vacEmpDropWrap">
-        <button class="btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;gap:5px;">
+        <button class="btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span id="vacEmpSelLabel" id="t-vac-sel-label">従業員選択</span>
           <span id="vacEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
@@ -362,8 +362,8 @@
 <div class="page" id="page-history">
   <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;">
     <div style="display:flex;gap:7px;">
-      <select id="histEmpSel" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
-      <select id="histYearSel" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);">
+      <select id="histEmpSel" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:4px 7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
+      <select id="histYearSel" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:4px 7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);">
         <option value="2026">2026年</option><option value="2025">2025年</option>
       </select>
     </div>
