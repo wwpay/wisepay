@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 10:15 — 급여명세 동일페이지 재클릭 dirty 경고 버그 수정, btn-discard show/hide
+﻿// 수정: 2026-06-08 10:34 — vacation 페이지 연동 (gotoPage, initApp, rerenderAll)
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -76,6 +76,7 @@ function initApp() {
   try { const s = localStorage.getItem(LS.deletedEmpIds); if(s) deletedEmpIds = JSON.parse(s); } catch(e){}
   try { const s = localStorage.getItem(LS.paidYMs);     if(s) paidYMs     = new Set(JSON.parse(s)); } catch(e){}
   try { const s = localStorage.getItem(LS.paidDetails); if(s) paidDetails = JSON.parse(s);           } catch(e){}
+  try { const s = localStorage.getItem(LS.vacation);    if(s) vacationData = JSON.parse(s);            } catch(e){}
   // 마이그레이션
   syncFuyouFromFamilies();
   migrateRateHistory();
@@ -234,7 +235,7 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급휴가'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   const isPayroll = id === 'payroll';
@@ -250,6 +251,7 @@ function gotoPage(id, el) {
   if(id==='annual') { try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) { console.error('annual render error:', e); } }
   if(id==='gas') openGasModal();
   if(id==='notifications') renderNotificationsPage();
+  if(id==='vacation') { try { renderVacationPage(); } catch(e) { console.error('vacation render error:', e); } }
 }
 
 function resetLocalData() {
@@ -305,6 +307,7 @@ function rerenderAll() {
   checkRateBanner();
   try { buildHistEmpSel(); renderHistory(); } catch(e) {}
   try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) {}
+  try { renderVacationPage(); } catch(e) {}
   updateGasStatus();
   recalc();
 }

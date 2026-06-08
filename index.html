@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 09:35 — vacation.js 신규 생성 + state.js/gas.js/employees.js 유급휴가 연동
+  수정: 2026-06-08 10:34 — 유급휴가 관리 UI (사이드바·페이지·모달) 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,6 +80,10 @@
     <div class="nav-item" data-page="annual" onclick="gotoPage('annual',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span id="t-nav-annual">賃金台帳</span>
+    </div>
+    <div class="nav-item" data-page="vacation" onclick="gotoPage('vacation',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+      <span id="t-nav-vacation">有給休暇</span>
     </div>
     <div class="nav-sec" id="t-nav-setting">設定</div>
     <div class="nav-item" data-page="employees" onclick="gotoPage('employees',this)">
@@ -307,6 +311,46 @@
     </div>
   </div>
   <div id="annualContent" style="display:none;"></div>
+</div>
+
+<!-- ══ PAGE: VACATION ══ -->
+<div class="page" id="page-vacation">
+  <!-- 메인 뷰 -->
+  <div id="vacMainArea">
+    <div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="position:relative;" id="vacEmpDropWrap">
+        <button class="btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span id="vacEmpSelLabel" id="t-vac-sel-label">従業員選択</span>
+          <span id="vacEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="vacEmpDrop" class="vac-emp-drop">
+          <div style="display:flex;gap:5px;margin-bottom:8px;">
+            <button class="btn btn-sm" onclick="vacSelectAll()" id="t-vac-sel-all">全選択</button>
+            <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
+          </div>
+          <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
+          <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
+            <button class="btn btn-primary" onclick="closeVacEmpDrop()" style="font-size:12px;padding:5px 28px;" id="t-vac-confirm">확인</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="vacCardsContainer"></div>
+  </div>
+  <!-- 상세 뷰 -->
+  <div id="vacDetailArea" style="display:none;">
+    <button class="vac-back-btn" onclick="hideVacationDetail()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+      <span id="t-vac-back">一覧へ戻る</span>
+    </button>
+    <div id="vacDetailHead" style="margin-bottom:14px;"></div>
+    <div class="vac-detail-layout">
+      <div class="vac-cal-panel" id="vacCalPanel"></div>
+      <div class="vac-list-panel" id="vacListPanel"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ PAGE: HISTORY ══ -->
@@ -657,6 +701,49 @@
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-rates')" id="t-mr-cancel">キャンセル</button>
       <button class="btn btn-primary" onclick="applyRates()" id="t-mr-apply" style="display:none;">この料率を適用する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: VACATION USAGE ══ -->
+<div class="overlay" id="modal-vacation" onclick="if(event.target===this)closeVacationModal()">
+  <div class="modal" style="width:360px;">
+    <div class="modal-head">
+      <span class="modal-title" id="t-vac-modal-title">有給取得入力</span>
+      <span class="modal-x" onclick="closeVacationModal()">✕</span>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:13px;">
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500;" id="t-vac-date-label">取得日</div>
+        <input type="date" id="vac-modal-date"
+          style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;" id="t-vac-days-label">取得日数</div>
+        <div style="display:flex;gap:16px;">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" id="vac-modal-r1" name="vac-days-radio" value="1" checked
+              style="accent-color:var(--accent);width:16px;height:16px;">
+            <span id="t-vac-r1">1日</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" id="vac-modal-r05" name="vac-days-radio" value="0.5"
+              style="accent-color:var(--accent);width:16px;height:16px;">
+            <span id="t-vac-r05">半日</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500;" id="t-vac-reason-label">事由（任意）</div>
+        <input type="text" id="vac-modal-reason" maxlength="50" placeholder="例）私用、体調不良..."
+          style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeVacationModal()" id="t-vac-modal-cancel">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveVacationUsage()" id="t-vac-modal-save">記録する</button>
     </div>
   </div>
 </div>

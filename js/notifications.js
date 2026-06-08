@@ -1,4 +1,4 @@
-// 수정: 2026-06-11 16:35 — 임시 테스트 코드 제거 (_testAlert, _testAlert1, 디버그 console.log)
+// 수정: 2026-06-08 10:34 — checkVacationAlerts 추가 (유급휴가 소멸 예정 알림)
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -341,4 +341,39 @@ function _renderTrashPage() {
           ${jp ? '復元' : '복원'}
         </button>
       </div>`).join('');
+}
+
+// ══ VACATION ALERTS ══
+
+function checkVacationAlerts() {
+  try {
+    const sessionKey = 'vacAlertShownSession';
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    const emps = (typeof employees !== 'undefined') ? employees : [];
+    if (!emps.length) return;
+    if (typeof calcVacationSummary !== 'function') return;
+    if (document.getElementById('payroll-balloon')) return; // 급여 말풍선 우선
+
+    let urgent = null;
+    emps.forEach(emp => {
+      if (!emp || emp.no == null) return;
+      const no  = String(emp.no).padStart(4, '0');
+      const sum = calcVacationSummary(no);
+      if (!sum.expiringInfo) return;
+      if (!urgent || sum.expiringInfo.monthsLeft < urgent.info.monthsLeft) {
+        urgent = { emp, info: sum.expiringInfo };
+      }
+    });
+
+    if (!urgent) return;
+
+    const jp = LANG === 'JP';
+    const { emp, info } = urgent;
+    const msgKR = `🌴 ${emp.name}님 유급휴가 ${info.days}일이 ${info.monthsLeft}개월 후 소멸 예정입니다. (${info.expireDate})`;
+    const msgJP = `🌴 ${emp.name}さんの有給${info.days}日が${info.monthsLeft}ヶ月後に失効予定です。(${info.expireDate})`;
+
+    showPayrollReminderBanner(msgKR, msgJP, jp, 2);
+    sessionStorage.setItem(sessionKey, '1');
+  } catch(e) {}
 }

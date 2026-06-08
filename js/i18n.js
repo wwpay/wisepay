@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 22:32 — 지급이력 t-h-* setTxt 제거, 언어 전환 시 renderHistory 재실행
+﻿// 수정: 2026-06-08 10:34 — 유급휴가 i18n 항목 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -63,6 +63,22 @@ function applyLang() {
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
   setTxt('t-nav-rates', '保険料率設定', '보험료율 설정');
   setTxt('t-nav-gas', 'データ管理', '데이터 관리');
+  setTxt('t-nav-vacation', '有給休暇', '유급휴가');
+
+  // vacation page
+  setTxt('t-vac-sel-label', '従業員選択', '사원 선택');
+  setTxt('t-vac-sel-all', '全選択', '전체 선택');
+  setTxt('t-vac-sel-none', '全解除', '전체 해제');
+  setTxt('t-vac-confirm', '確認', '확인');
+  setTxt('t-vac-back', '一覧へ戻る', '목록으로 돌아가기');
+  setTxt('t-vac-modal-title', '有給取得入力', '유급휴가 사용 입력');
+  setTxt('t-vac-date-label', '取得日', '사용 날짜');
+  setTxt('t-vac-days-label', '取得日数', '사용 일수');
+  setTxt('t-vac-r1', '1日', '1일');
+  setTxt('t-vac-r05', '半日', '반차');
+  setTxt('t-vac-reason-label', '事由（任意）', '사유 (선택)');
+  setTxt('t-vac-modal-cancel', 'キャンセル', '취소');
+  setTxt('t-vac-modal-save', '記録する', '기록하기');
 
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
   setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '協会けんぽ 최신 요율 가져오기');

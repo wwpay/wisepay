@@ -1,4 +1,4 @@
-/* 수정: 2026-06-04 22:41 — 지급이력 행 호버 색상 accent2→accent3으로 강화 */
+/* 수정: 2026-06-08 10:34 — 유급휴가 관리 UI 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -344,3 +344,44 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .btn-logout:hover{background:var(--red2)!important;}
 
 @media print{.sidebar,.topbar,.rates-wrap,.calc-info,.btn,.banner,.showToast,.month-nav{display:none!important;}}
+
+/* VACATION */
+.vac-emp-drop{display:none;position:absolute;top:calc(100% + 5px);left:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.13);z-index:300;padding:10px;}
+.vac-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;margin-bottom:10px;}
+.vac-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+.vac-card-name{font-size:14px;font-weight:600;}
+.vac-card-no{font-size:11px;color:var(--text3);margin-left:6px;}
+.vac-stats-row{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:9px;}
+.vac-stat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--border);}
+.vac-stat:last-child{border-right:none;}
+.vac-stat-label{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.vac-stat-val{font-size:16px;font-weight:700;}
+.vac-stat-val.red{color:var(--red);}
+.vac-expiry-warn{font-size:11px;color:var(--orange);background:var(--orange2);border:1px solid #fde68a;border-radius:var(--r2);padding:5px 9px;margin-bottom:9px;}
+.vac-detail-layout{display:flex;gap:16px;align-items:flex-start;}
+.vac-cal-panel{flex:0 0 300px;min-width:260px;}
+.vac-list-panel{flex:1;min-width:0;}
+.vac-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.vac-cal-nav{background:none;border:1px solid var(--border);border-radius:var(--r2);width:28px;height:28px;cursor:pointer;font-size:15px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.vac-cal-nav:hover{background:var(--accent2);color:var(--accent);}
+.vac-cal-title{font-size:13px;font-weight:600;}
+.vac-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.vac-cal-dow{font-size:10px;color:var(--text3);text-align:center;padding:3px 0;font-weight:600;}
+.vac-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:50%;cursor:default;}
+.vac-cal-day.used{background:var(--accent2);color:var(--accent);font-weight:700;cursor:pointer;}
+.vac-cal-day.used.half{background:#fef9c3;color:#92400e;}
+.vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
+.vac-cal-day.today-mark{font-weight:700;color:var(--green);}
+.vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
+.vac-list-item:hover{background:var(--surface2);}
+.vac-list-item.active{background:var(--accent2);border-color:var(--accent3);}
+.vac-list-date{font-size:12px;font-weight:600;color:var(--text);min-width:76px;}
+.vac-list-badge{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.vac-list-badge.full{background:var(--accent2);color:var(--accent);}
+.vac-list-badge.half{background:#fef9c3;color:#92400e;}
+.vac-list-reason{font-size:11px;color:var(--text3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vac-list-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 3px;line-height:1;flex-shrink:0;}
+.vac-list-del:hover{color:var(--red);}
+.vac-back-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;padding:0;margin-bottom:12px;}
+.vac-back-btn:hover{opacity:.75;}
+@media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;}}

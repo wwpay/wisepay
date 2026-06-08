@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 09:35 — fetchVacationData / saveVacationToGas 추가 (유급휴가 GAS 연동)
+// 수정: 2026-06-08 10:34 — 유급휴가 알림 트리거 추가 (checkVacationAlerts)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -289,6 +289,7 @@ async function autoLoadFromGas() {
     // GAS 데이터 완전 동기화 후 알림 재체크 (paidYMs·employees·payroll localStorage 갱신 완료 시점)
     if (typeof currentUser !== 'undefined' && currentUser && currentUser.id === 'wiseadmin') {
       if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
+      setTimeout(() => { if (typeof checkVacationAlerts === 'function') checkVacationAlerts(); }, 200);
     }
     fetchHolidayCache().catch(() => {}); // 공휴일 캐시 갱신 (7일마다, fire-and-forget)
     fetchVacationData().catch(() => {}); // 유급휴가 데이터 동기화 (fire-and-forget)
