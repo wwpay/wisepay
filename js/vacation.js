@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 15:57 — 카드 헤더 이름/사번+카나 2행, 괄호 제거, 카나 JP only, 폭 280px (vacation.js)
+// 수정: 2026-06-08 16:03 — 연월 선택바를 급여명세 month-nav 스타일로 통일 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -492,18 +492,22 @@ function _renderVacNavBar() {
   if (!bar) return;
   const year  = _vacDetailYear;
   const month = _vacDetailMonth;
+  const u = jp ? '月' : '월';
   const monthTabs = Array.from({length:12},(_,i)=>{
     const m = i+1;
-    return `<button class="vac-month-tab${m===month?' active':''}" onclick="vacSetMonth(${m})">${m}${jp?'月':'월'}</button>`;
+    return `<button class="month-tab${m===month?' active':''}" onclick="vacSetMonth(${m})">${m}${u}</button>`;
   }).join('');
   bar.innerHTML = `
-    <div class="vac-nav-bar">
-      <div class="vac-nav-year">
-        <button class="vac-cal-nav" onclick="vacYearPrev()">◀</button>
-        <span class="vac-cal-title">${year}${jp ? '年' : '년'}</span>
-        <button class="vac-cal-nav" onclick="vacYearNext()">▶</button>
+    <div class="month-nav">
+      <div class="year-ctrl">
+        <button class="year-btn" onclick="vacYearPrev()">◀</button>
+        <span class="year-txt">${year}${jp ? '年' : '년'}</span>
+        <button class="year-btn" onclick="vacYearNext()">▶</button>
       </div>
-      <div class="vac-month-tabs">${monthTabs}<button class="vac-today-btn" onclick="vacGotoToday()">${jp?'今月':'이번 달'}</button></div>
+      <div class="month-nav-sep"></div>
+      <button class="btn-today" onclick="vacGotoToday()">${jp?'今月':'이번 달'}</button>
+      <div class="month-nav-sep"></div>
+      <div class="month-tabs">${monthTabs}</div>
     </div>`;
 }
 

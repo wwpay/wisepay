@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 15:57 — 카드 이름/사번+카나 2행, 괄호 제거, 카나 JP only, 폭 280px */
+/* 수정: 2026-06-08 16:03 — 연월 선택바 month-nav 스타일 통일, 불필요 vac-nav 클래스 제거 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -387,16 +387,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-back-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;padding:0;margin-bottom:12px;}
 .vac-back-btn:hover{opacity:.75;}
 .vac-panel-hdr{font-size:12px;font-weight:700;color:var(--text2);padding:4px 0 8px;border-bottom:2px solid var(--border);margin-bottom:8px;}
-.vac-month-tabs{display:flex;flex-wrap:wrap;gap:3px;}
-.vac-month-tab{font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:var(--r2);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;}
-.vac-month-tab:hover{background:var(--accent2);color:var(--accent);border-color:var(--accent3);}
-.vac-month-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
-.vac-today-btn{font-size:11px;padding:3px 8px;border:1px solid var(--accent3);border-radius:var(--r2);background:var(--accent2);color:var(--accent);cursor:pointer;font-family:inherit;font-weight:600;margin-left:4px;}
-.vac-today-btn:hover{background:var(--accent);color:#fff;}
 .vac-badge-none{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;margin-left:6px;vertical-align:middle;}
 .vac-hide-filter{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
-.vac-nav-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;flex-wrap:wrap;}
-.vac-nav-year{display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .vac-card-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
 .vac-card-row:last-of-type{border-bottom:none;}
 .vac-card-row-label{font-size:12px;color:var(--text2);}
