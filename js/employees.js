@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-13 19:07 — 카나 표시 통일: renderEmpList 인라인으로 변경 + buildAnnualEmpSel 추가
+﻿// 수정: 2026-06-08 09:35 — saveEmployee: 신규 사원 등록 시 initEmployeeVacation 호출 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -880,6 +880,11 @@ function saveEmployee() {
   }
 
   localStorage.setItem(LS.emp,JSON.stringify(employees));
+
+  // 신규 사원 등록 시 초기 유급휴가 자동 발생
+  if (isNewEmp && typeof initEmployeeVacation === 'function') {
+    initEmployeeVacation(empData);
+  }
 
   // 퇴사일이 새로 설정된 경우 deleted_emp_ids에 기록
   if(leaveVal && !deletedEmpIds.includes(no) && !gasDeletedEmpIds.includes(no)) {

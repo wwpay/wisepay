@@ -1,4 +1,4 @@
-// 수정: 2026-06-04 23:34 — fetchHolidayCache 추가 (7일마다 GAS에서 공휴일 캐시 갱신)
+// 수정: 2026-06-08 09:35 — fetchVacationData / saveVacationToGas 추가 (유급휴가 GAS 연동)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -291,6 +291,7 @@ async function autoLoadFromGas() {
       if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
     }
     fetchHolidayCache().catch(() => {}); // 공휴일 캐시 갱신 (7일마다, fire-and-forget)
+    fetchVacationData().catch(() => {}); // 유급휴가 데이터 동기화 (fire-and-forget)
   } catch (err) {
     gasAppendLog('자동동기화', '전체', '실패', err.message);
     console.warn('GAS auto-load failed:', err);
@@ -629,6 +630,49 @@ function _parseCSV(text) {
     rows.push(row);
   }
   return rows;
+}
+
+// 유급휴가 데이터를 GAS에서 가져와 localStorage에 저장
+async function fetchVacationData() {
+  if (!gasUrl) return;
+  try {
+    const res = await gasRequest({ action: 'getVacation' }, 15000);
+    if (res && res.ok && Array.isArray(res.data)) {
+      const rebuilt = {};
+      res.data.forEach(r => {
+        const no = String(r.emp_no || '').trim();
+        if (!no) return;
+        if (!rebuilt[no]) rebuilt[no] = [];
+        const { emp_no, ...rest } = r;
+        rebuilt[no].push(rest);
+      });
+      vacationData = rebuilt;
+      localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+    }
+  } catch(e) {
+    console.log('[WisePay] vacation fetch skipped:', e.message);
+  }
+}
+
+// 유급휴가 데이터 전체를 GAS에 저장 (fire-and-forget)
+async function saveVacationToGas(vData) {
+  if (!gasUrl) return;
+  const flat = [];
+  Object.keys(vData || {}).forEach(empNo => {
+    (vData[empNo] || []).forEach(r => {
+      flat.push({ emp_no: empNo, ...r });
+    });
+  });
+  try {
+    await fetch(gasUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'saveVacation', data: flat, ...(typeof gasWriteAuth === 'function' ? gasWriteAuth() : {}) })
+    });
+  } catch(e) {
+    console.warn('saveVacationToGas error:', e);
+  }
 }
 
 // GAS 코드 클립보드 복사

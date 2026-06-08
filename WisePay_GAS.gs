@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-04 23:41 — setupHolidaySheet에 2034~2035년 공휴일 데이터 추가
+// 수정: 2026-06-08 09:35 — SHEET_VACATION 상수 추가 + 유급휴가 CRUD 함수 및 doGet/doPost 케이스 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -16,7 +16,8 @@ const SHEET_USERS   = 'users';
 const SHEET_DELETED = 'deleted_emp_ids';
 const SHEET_PAID    = '지급완료이력';
 const SHEET_SNAP    = '급여스냅샷';
-const SHEET_HOLIDAY = '공휴일';
+const SHEET_HOLIDAY   = '공휴일';
+const SHEET_VACATION  = '유급휴가';
 
 // 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
 const KENPO_INDEX_URL = 'https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/';
@@ -35,6 +36,7 @@ function doGet(e) {
     else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
     else if (action === 'getUsers')                                       result = getUsers();
     else if (action === 'getHolidays')                                    result = getHolidaysData();
+    else if (action === 'getVacation')                                    result = getVacationData();
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
@@ -277,6 +279,38 @@ function doPost(e) {
     }
     if (data.type === 'sendPayConfirmReminder') {
       sendPayConfirmReminderEmail(parseInt(data.year), parseInt(data.month));
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'saveVacation') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      if (Array.isArray(data.data)) {
+        if (data.data.length > 0) {
+          saveSheet(SHEET_VACATION, data.data);
+        }
+      }
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'deleteVacationEntry') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var vacSheet = getSheet(SHEET_VACATION);
+      if (vacSheet.getLastRow() < 2) return jsonResponse({ ok: true });
+      var vacVals = vacSheet.getDataRange().getValues();
+      var vacHdrs = vacVals[0];
+      var vNoCol    = vacHdrs.indexOf('emp_no');
+      var vDateCol  = vacHdrs.indexOf('date');
+      var vRsnCol   = vacHdrs.indexOf('reason');
+      var dEmpNo   = String(data.emp_no  || '').trim();
+      var dDate    = String(data.date    || '').trim();
+      var dReason  = String(data.reason  || '').trim();
+      for (var vi = vacVals.length - 1; vi >= 1; vi--) {
+        var vRow = vacVals[vi];
+        if (vNoCol >= 0 && String(vRow[vNoCol]).trim() === dEmpNo &&
+            vDateCol >= 0 && String(vRow[vDateCol]).trim() === dDate &&
+            (vRsnCol < 0 || !dReason || String(vRow[vRsnCol]).trim() === dReason)) {
+          vacSheet.deleteRow(vi + 1);
+          break;
+        }
+      }
       return jsonResponse({ ok: true });
     }
     return jsonResponse({ ok: false, error: 'Unknown type' });
@@ -958,4 +992,66 @@ function setupHolidaySheet() {
 
   sheet.getRange(1, 1, holidays.length, 2).setValues(holidays);
   Logger.log('✅ 공휴일 시트 초기화 완료: ' + (holidays.length - 1) + '건');
+}
+
+// ── 유급휴가 ─────────────────────────────────────────────────────
+
+// 유급휴가 시트 전체를 { emp_no, date, used, reason, grant_year, days } 배열로 반환
+function getVacationData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_VACATION);
+  if (!sheet || sheet.getLastRow() < 2) return { ok: true, data: [] };
+  var rows = sheetToObjects(sheet);
+  // date 필드: Date 객체 → 문자열 변환 (sheetToObjects에서 처리 안 된 경우 대비)
+  rows = rows.map(function(r) {
+    if (r.date instanceof Date) {
+      r.date = Utilities.formatDate(r.date, 'Asia/Tokyo', 'yyyy-MM-dd');
+    }
+    return r;
+  });
+  return { ok: true, data: rows };
+}
+
+// 매년 1월 1일 자동 실행: 재직 중인 전 사원에게 15일 연간발생 추가
+function checkAndGrantAnnualVacation() {
+  var now = new Date();
+  var jstMonth = parseInt(Utilities.formatDate(now, 'Asia/Tokyo', 'M'));
+  if (jstMonth !== 1) return; // 1월에만 실행
+
+  var today = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd');
+  var grantYear = parseInt(today.substring(0, 4));
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var empSheet = ss.getSheetByName(SHEET_EMP);
+  if (!empSheet) return;
+
+  var emps = sheetToObjects(empSheet);
+  var vacSheet = getSheet(SHEET_VACATION);
+
+  if (vacSheet.getLastRow() === 0) {
+    vacSheet.getRange(1, 1, 1, 6).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'days']]);
+  }
+
+  emps.forEach(function(emp) {
+    var leaveVal = String(emp.leave || '').trim();
+    if (leaveVal) return; // 퇴사자 제외
+    var empNo = String(emp.no || '').trim().padStart ? String(parseInt(emp.no || '0')).padStart(4, '0') : String(emp.no || '');
+    if (!empNo || empNo === '0000') return;
+    vacSheet.appendRow([empNo, today, 0, '연간발생', grantYear, 15]);
+  });
+
+  Logger.log('✅ 연간 유급휴가 발생 완료: ' + grantYear + '년 / ' + emps.filter(function(e) { return !String(e.leave || '').trim(); }).length + '명');
+}
+
+// GAS 편집기에서 한 번 실행 → 매월 1일 오전 9시(JST) 트리거 등록 (1월에만 실행)
+function createAnnualVacationTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter(function(t) { return t.getHandlerFunction() === 'checkAndGrantAnnualVacation'; })
+    .forEach(function(t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('checkAndGrantAnnualVacation')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .create();
+  Logger.log('✅ 매월 1일 오전 9시 유급휴가 트리거 설정 완료 (1월에만 실제 발생)');
 }
