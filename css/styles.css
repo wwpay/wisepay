@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 17:28 — 사용일 cursor:pointer 복원, today-mark 가독성 개선 */
+/* 수정: 2026-06-08 17:35 — today-mark: 휴가일 겹침 시 box-shadow 링으로 오늘 표시 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -375,7 +375,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-day.used{background:#3B82F6;color:#fff;font-weight:700;cursor:pointer;}
 .vac-cal-day.used.half{background:#93C5FD;color:#1E40AF;font-weight:700;cursor:pointer;}
 .vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
-.vac-cal-day.today-mark{font-weight:700;background:var(--accent2);color:var(--accent);}
+.vac-cal-day.today-mark:not(.used){font-weight:700;background:var(--accent2);color:var(--accent);}
+.vac-cal-day.today-mark.used{box-shadow:0 0 0 2px #fff,0 0 0 4px #3B82F6;}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
 .vac-list-item:hover{background:var(--surface2);}
 .vac-list-item.active{background:var(--accent2);border-color:var(--accent3);}
