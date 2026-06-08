@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 12:25 — vacationApplied 필드 추가: 사원 폼 체크박스 + saveEmployee 저장
+﻿// 수정: 2026-06-08 17:31 — 유급휴가 관리 체크박스를 form-input 박스 스타일로 통일
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -345,14 +345,14 @@ function renderEmpFormFields(emp, readOnly = false) {
       </select>
     </div>
     <div class="form-group">
-      <div class="form-label-block" style="min-height:unset;">
+      <div class="form-label-block">
         <div class="form-label-row">
           <label class="form-label">${jp?'有給休暇管理':'유급휴가 관리'}</label>
         </div>
       </div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:${readOnly?'default':'pointer'};padding:6px 0;">
-        <input type="checkbox" id="f-vacation-applied" ${emp?.vacationApplied !== false?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;"${readOnly?' disabled':' onchange="markDirty()"'}>
-        <span>${jp?'有給管理対象にする':'유급휴가 관리 대상으로 설정'}</span>
+      <label class="form-input" style="display:flex;align-items:center;gap:8px;cursor:${readOnly?'default':'pointer'};">
+        <input type="checkbox" id="f-vacation-applied" ${emp?.vacationApplied !== false?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;"${readOnly?' disabled':' onchange="markDirty()"'}>
+        <span style="font-size:calc(12.5px + var(--fs-delta));">${jp?'有給管理対象にする':'관리 대상으로 설정'}</span>
       </label>
     </div>
   </div>
