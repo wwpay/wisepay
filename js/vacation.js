@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 10:34 — 유급휴가 관리 UI 함수 추가 (vacation.js)
+// 수정: 2026-06-08 10:34 — 유급휴가 관리 UI 함수 추가 / 키 정규화 migration 추가 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -10,8 +10,26 @@ function calcInitialDays(joinMonth) {
 }
 
 // grant_year별 부여/사용 집계 맵 생성
+// empNo 키 정규화: '2' → '0002', '19' → '0019' (GAS 숫자 변환 대응)
+function _vacKey(empNo) {
+  const s = String(empNo).trim();
+  return s.padStart(4, '0');
+}
+
+// vacationData 전체 키를 4자리 패딩으로 일괄 정규화 (마이그레이션용)
+function _normalizeVacationKeys() {
+  const needsFix = Object.keys(vacationData).some(k => k !== k.padStart(4, '0'));
+  if (!needsFix) return;
+  const fixed = {};
+  Object.keys(vacationData).forEach(k => {
+    fixed[k.padStart(4, '0')] = vacationData[k];
+  });
+  vacationData = fixed;
+  localStorage.setItem(typeof LS !== 'undefined' ? LS.vacation : 'kyuyo_vacation', JSON.stringify(vacationData));
+}
+
 function _buildGrantMap(empNo) {
-  const records = vacationData[String(empNo)] || [];
+  const records = vacationData[_vacKey(empNo)] || [];
   const map = {};
   records.forEach(r => {
     const gy = parseInt(r.grant_year);
@@ -86,7 +104,7 @@ function _resolveGrantYear(empNo) {
 
 // 유급휴가 사용 추가
 function addVacationUsage(empNo, date, used, reason) {
-  const key = String(empNo);
+  const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
 
   const grantYear = _resolveGrantYear(empNo);
@@ -98,7 +116,7 @@ function addVacationUsage(empNo, date, used, reason) {
 
 // 유급휴가 발생 추가 (초기발생·연간발생)
 function addVacationGrant(empNo, days, grantYear, reason) {
-  const key = String(empNo);
+  const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
 
   const today = jstToday();
@@ -110,7 +128,7 @@ function addVacationGrant(empNo, days, grantYear, reason) {
 
 // 사용 기록 삭제 (index: vacationData[empNo] 배열 인덱스)
 function deleteVacationUsage(empNo, index) {
-  const key = String(empNo);
+  const key = _vacKey(empNo);
   if (!vacationData[key] || vacationData[key][index] === undefined) return;
 
   vacationData[key].splice(index, 1);
@@ -216,6 +234,7 @@ function vacSelectNone() {
 }
 
 function renderVacationPage() {
+  _normalizeVacationKeys(); // '2'→'0002' 등 기존 비패딩 키 자동 정규화
   if (_vacTab === 'detail') {
     renderVacationDetail();
     return;

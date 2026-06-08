@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 10:34 — 유급휴가 알림 트리거 추가 (checkVacationAlerts)
+// 수정: 2026-06-08 10:34 — 유급휴가 emp_no padStart(4,'0') 수정 (GAS 숫자 변환 대응)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -641,8 +641,8 @@ async function fetchVacationData() {
     if (res && res.ok && Array.isArray(res.data)) {
       const rebuilt = {};
       res.data.forEach(r => {
-        const no = String(r.emp_no || '').trim();
-        if (!no) return;
+        const no = String(r.emp_no || '').trim().padStart(4, '0');
+        if (!no || no === '0000') return;
         if (!rebuilt[no]) rebuilt[no] = [];
         const { emp_no, ...rest } = r;
         rebuilt[no].push(rest);
