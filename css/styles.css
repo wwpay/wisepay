@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 22:07 — .emp-sel-btn 공통 클래스 추가: 사원 선택 드롭다운 height/min-width 통일 */
+/* 수정: 2026-06-09 07:20 — .vac-day-today 오늘 앰버 밑줄 두께 4px, 색상 #D97706, offset 4px로 변경 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -377,7 +377,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
 .vac-day-used{background:#BFDBFE;color:#1E40AF;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
 .vac-day-half{background:#BBF7D0;color:#166534;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
-.vac-day-today{text-decoration:underline;text-decoration-color:#F59E0B;text-decoration-thickness:3px;text-underline-offset:3px;font-weight:700;}
+.vac-day-today{text-decoration:underline;text-decoration-color:#D97706;text-decoration-thickness:4px;text-underline-offset:4px;font-weight:700;}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
 .vac-list-item:hover{background:var(--surface2);}
 .vac-list-item.active{background:var(--accent2);border-color:var(--accent3);}
