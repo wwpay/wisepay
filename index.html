@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 16:40 — 급여명세 기준으로 4개 화면 사원 선택 버튼 크기 통일
+  수정: 2026-06-08 16:44 — 유급휴가 사용 입력 모달 사유 필드 엔터키로 저장 가능
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -743,7 +743,8 @@
         <div style="font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500;" id="t-vac-reason-label">事由（任意）</div>
         <input type="text" id="vac-modal-reason" maxlength="50" placeholder="例）私用、体調不良..."
           style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')saveVacationUsage()">
       </div>
     </div>
     <div class="modal-foot">
