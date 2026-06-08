@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 21:58 — 달력 날짜 span 배지 스타일(파스텔 파랑/녹색) + 오늘 앰버 밑줄
+// 수정: 2026-06-09 07:27 — 오늘 날짜 표시를 text-decoration 밑줄 → .vac-today-bar div 요소 방식으로 변경
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -463,10 +463,10 @@ function _renderVacCalendar() {
     if (isToday) cls += ' today-mark';
     let spanCls = '';
     if (info) spanCls = info.used < 1 ? 'vac-day-half' : 'vac-day-used';
-    if (isToday) spanCls += (spanCls ? ' ' : '') + 'vac-day-today';
     const clickAttr = info ? ` onclick="_highlightVacCalDate('${dateStr}')"` : '';
-    const inner = spanCls ? `<span class="${spanCls}">${d}</span>` : d;
-    cells += `<div class="${cls}"${clickAttr}>${inner}</div>`;
+    const numSpan = spanCls ? `<span class="${spanCls}">${d}</span>` : `<span class="vac-day-num">${d}</span>`;
+    const todayBar = isToday ? '<div class="vac-today-bar"></div>' : '';
+    cells += `<div class="${cls}"${clickAttr}>${numSpan}${todayBar}</div>`;
   }
 
   cal.innerHTML = `
