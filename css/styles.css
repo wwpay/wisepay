@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 21:58 — 달력 유급일: 파란 원/앰버 밑줄 → span 배지(파스텔) + 오늘 앰버 밑줄로 변경 */
+/* 수정: 2026-06-08 22:07 — .emp-sel-btn 공통 클래스 추가: 사원 선택 드롭다운 height/min-width 통일 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -76,6 +76,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .btn-discard:disabled{background:var(--surface2);color:var(--text3);border-color:var(--border);cursor:not-allowed;}
 
 .btn-sm{padding:4px 9px;font-size:calc(11px + var(--fs-delta));}
+.emp-sel-btn{height:36px;min-width:160px;box-sizing:border-box;}
 
 /* GAS BAR */
 .gas-bar{display:flex;align-items:center;gap:7px;padding:6px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);font-size:calc(11.5px + var(--fs-delta));color:var(--text2);cursor:pointer;transition:all .15s;}
