@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 16:36 — 사용 입력 버튼 텍스트 변경 (휴가 등록 / 有給取得), 버튼 크기 확대
+  수정: 2026-06-08 16:37 — 미적용 사원 숨김 체크박스를 텍스트 뒤로 이동
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -330,8 +330,8 @@
             <button class="btn btn-sm" onclick="vacSelectAll()" id="t-vac-sel-all">全選択</button>
             <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
             <label class="vac-hide-filter" style="border-top:none;margin:0;padding:0 0 0 6px;">
-              <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
               <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
+              <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
             </label>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
