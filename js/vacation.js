@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 17:28 — 플레이스홀더 가운데, 내역 날짜순 정렬, 달력 클릭 리스트 강조, today-mark 가독성
+// 수정: 2026-06-08 21:41 — 카드 4행 레이아웃(1월1일기준잔여/현재까지사용/남은연차/올해소진필요) + 버튼 休暇登録 변경
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -47,6 +47,9 @@ function _buildGrantMap(empNo) {
 // 사원의 현재 유급휴가 현황 계산
 function calcVacationSummary(empNo) {
   const today = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
+  const jan1Str = `${thisYear}-01-01`;
+  const records = vacationData[_vacKey(empNo)] || [];
   const map = _buildGrantMap(empNo);
 
   let totalGranted = 0;
@@ -77,11 +80,41 @@ function calcVacationSummary(empNo) {
     }
   });
 
+  // 올해 1월 1일 기준 잔여 (소멸되지 않은 grant_year 기준, 1월1일 이전 기록만)
+  let _jan1G = 0, _jan1U = 0;
+  records.forEach(r => {
+    const gy = parseInt(r.grant_year);
+    if (isNaN(gy) || gy < thisYear - 1) return; // 1월1일 기준 소멸된 연도 제외
+    if (!r.date || r.date >= jan1Str) return;    // 1월1일 이후 기록 제외
+    if (r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
+      _jan1G += (r.days || 0);
+    } else if (r.used > 0) {
+      _jan1U += r.used;
+    }
+  });
+  const jan1Remaining = parseFloat(Math.max(0, _jan1G - _jan1U).toFixed(1));
+
+  // 올해 1월 1일 이후 오늘까지 사용
+  let usedSinceJan1 = 0;
+  records.forEach(r => {
+    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
+      usedSinceJan1 += r.used;
+    }
+  });
+
+  // 올해 소진 필요 (전년도 grant_year → 올해 12월31일 소멸)
+  const prevGY = thisYear - 1;
+  const prevGYData = map[prevGY] || { granted: 0, used: 0 };
+  const mustUseByYearEnd = parseFloat(Math.max(0, prevGYData.granted - prevGYData.used).toFixed(1));
+
   return {
     totalGranted,
     totalUsed,
     remaining: parseFloat(remaining.toFixed(1)),
-    expiringInfo
+    expiringInfo,
+    jan1Remaining,
+    usedSinceJan1: parseFloat(usedSinceJan1.toFixed(1)),
+    mustUseByYearEnd,
   };
 }
 
@@ -260,6 +293,7 @@ function renderVacationPage() {
 
 function renderVacationCards() {
   const jp = LANG === 'JP';
+  const thisYear = parseInt(jstToday().substring(0, 4));
   const container = document.getElementById('vacCardsContainer');
   if (!container) return;
 
@@ -281,9 +315,7 @@ function renderVacationCards() {
   container.innerHTML = toShow.map(emp => {
     const no  = String(emp.no).padStart(4, '0');
     const notApplied = emp.vacationApplied === false;
-    const subLine = jp
-      ? `${no}${emp.kana ? '　' + emp.kana : ''}`
-      : no;
+    const subLine = `${no}${emp.kana ? (jp ? '　' : ' ') + emp.kana : ''}`;
     const titleHtml = `<div class="vac-card-title">
         <div class="vac-card-name">${emp.name}</div>
         <div class="vac-card-sub">${subLine}</div>
@@ -298,11 +330,10 @@ function renderVacationCards() {
       </div>`;
     }
     const sum = calcVacationSummary(no);
-    const remClass = sum.remaining <= 5.0 ? 'red' : '';
     const unitStr = jp ? '日' : '일';
-    const expiryHtml = sum.expiringInfo ? `<div class="vac-expiry-warn">
-      ⚠️ ${sum.expiringInfo.days}${unitStr} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効予定':'개월 이내 소멸 예정'} (${sum.expiringInfo.expireDate})
-    </div>` : '';
+    const remClass = sum.remaining <= 5.0 ? 'red' : '';
+    const mustClass = sum.mustUseByYearEnd > 0 ? 'red' : '';
+    const jan1Label = jp ? `${thisYear}年1月1日時点残日数` : `${thisYear}년 1월 1일 기준 잔여`;
     return `<div class="vac-card">
       <div class="vac-card-head">
         ${titleHtml}
@@ -310,16 +341,23 @@ function renderVacationCards() {
       </div>
       <div class="vac-card-body">
         <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '使用日数' : '사용 일수'}</span>
-          <span class="vac-card-row-val">${sum.totalUsed.toFixed(1)}${unitStr}</span>
+          <span class="vac-card-row-label">${jan1Label}</span>
+          <span class="vac-card-row-val">${sum.jan1Remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '残日数' : '남은 일수'}</span>
+          <span class="vac-card-row-label">${jp ? '現在までの使用' : '현재까지 사용'}</span>
+          <span class="vac-card-row-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</span>
+        </div>
+        <div class="vac-card-row">
+          <span class="vac-card-row-label">${jp ? '残年次' : '남은 연차'}</span>
           <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
-        ${expiryHtml}
+        <div class="vac-card-row">
+          <span class="vac-card-row-label">${jp ? '今年中に消化必要' : '올해 소진 필요'}</span>
+          <span class="vac-card-row-val ${mustClass}">${sum.mustUseByYearEnd.toFixed(1)}${unitStr}</span>
+        </div>
         <div class="vac-card-foot">
-          <button class="btn" onclick="showVacationModal('${no}')">${jp ? '有給取得' : '휴가 등록'}</button>
+          <button class="btn" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
         </div>
       </div>
     </div>`;
@@ -433,7 +471,7 @@ function _renderVacCalendar() {
       ${cells}
     </div>
     <div style="margin-top:12px;text-align:center;">
-      <button class="btn btn-primary" onclick="showVacationModal('${no}')">${jp ? '有給取得' : '휴가 등록'}</button>
+      <button class="btn btn-primary" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
     </div>`;
 }
 
