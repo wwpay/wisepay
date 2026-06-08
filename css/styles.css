@@ -1,4 +1,4 @@
-/* 수정: 2026-06-08 16:03 — 연월 선택바 month-nav 스타일 통일, 불필요 vac-nav 클래스 제거 */
+/* 수정: 2026-06-08 16:08 — 캘린더 헤더→년월, 사용입력 버튼 이동, 리스트 패널 배경 구분 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -386,7 +386,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-list-del:hover{color:var(--red);}
 .vac-back-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;padding:0;margin-bottom:12px;}
 .vac-back-btn:hover{opacity:.75;}
-.vac-panel-hdr{font-size:12px;font-weight:700;color:var(--text2);padding:4px 0 8px;border-bottom:2px solid var(--border);margin-bottom:8px;}
+.vac-cal-month-hdr{font-size:15px;font-weight:700;color:var(--text);text-align:center;padding-bottom:10px;letter-spacing:0.3px;}
+.vac-panel-hdr{font-size:12px;font-weight:700;color:var(--text2);padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;}
 .vac-badge-none{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);font-weight:600;margin-left:6px;vertical-align:middle;}
 .vac-hide-filter{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
 .vac-card-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
@@ -395,5 +396,6 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-card-row-val{font-size:15px;font-weight:700;}
 .vac-card-row-val.red{color:var(--red);}
 .vac-card-foot{display:flex;justify-content:flex-end;margin-top:8px;}
-.vac-cal-panel{flex:0 0 300px;min-width:260px;padding-right:16px;border-right:2px solid var(--border);}
-@media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;padding-right:0;border-right:none;border-bottom:2px solid var(--border);padding-bottom:16px;margin-bottom:16px;}}
+.vac-cal-panel{flex:0 0 300px;min-width:260px;}
+.vac-list-panel{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
+@media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;}}

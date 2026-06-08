@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:03 — 연월 선택바를 급여명세 month-nav 스타일로 통일 (vacation.js)
+// 수정: 2026-06-08 16:08 — 캘린더 헤더→년월, 사용입력 버튼 캘린더 아래, 리스트 영역 배경 구분 (vacation.js)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -378,10 +378,7 @@ function renderVacationDetail() {
           <div class="vac-stat-val" style="${remClass}">${sum.remaining.toFixed(1)}</div>
         </div>
       </div>
-      ${sum.expiringInfo ? `<div class="vac-expiry-warn">⚠️ ${sum.expiringInfo.days}${jp?'日':'일'} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効予定':'개월 이내 소멸 예정'} (${sum.expiringInfo.expireDate})</div>` : ''}
-      <button class="btn btn-sm btn-primary" onclick="showVacationModal('${no}')" style="margin-bottom:2px;">
-        + ${jp ? '取得入力' : '사용 입력'}
-      </button>`;
+      ${sum.expiringInfo ? `<div class="vac-expiry-warn">⚠️ ${sum.expiringInfo.days}${jp?'日':'일'} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効予定':'개월 이내 소멸 예정'} (${sum.expiringInfo.expireDate})</div>` : ''}`;
   }
 
   _renderVacNavBar();
@@ -424,10 +421,15 @@ function _renderVacCalendar() {
   }
 
   cal.innerHTML = `
-    <div class="vac-panel-hdr">${jp ? 'カレンダー / 캘린더' : '캘린더 / カレンダー'}</div>
+    <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
     <div class="vac-cal-grid">
       ${dow.map(d => `<div class="vac-cal-dow">${d}</div>`).join('')}
       ${cells}
+    </div>
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn btn-sm btn-primary" onclick="showVacationModal('${no}')">
+        + ${jp ? '取得入力' : '사용 입력'}
+      </button>
     </div>`;
 }
 
