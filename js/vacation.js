@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:16 — 캘린더 사용일 클릭 제거, 토/일 색상 적용 (vacation.js)
+// 수정: 2026-06-08 16:26 — 과거 연도 데이터 없을 때 이전 연도 화살표에 앵커 토스트 추가
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -507,7 +507,7 @@ function _renderVacNavBar() {
   bar.innerHTML = `
     <div class="month-nav">
       <div class="year-ctrl">
-        <button class="year-btn" onclick="vacYearPrev()">◀</button>
+        <button class="year-btn" onclick="vacYearPrev(this)">◀</button>
         <span class="year-txt">${year}${jp ? '年' : '년'}</span>
         <button class="year-btn" onclick="vacYearNext()">▶</button>
       </div>
@@ -518,8 +518,23 @@ function _renderVacNavBar() {
     </div>`;
 }
 
-function vacYearPrev() { _vacDetailYear--; _vacDetailMonth = 12; _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
-function vacYearNext() { _vacDetailYear++; _vacDetailMonth = 1;  _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
+function _hasVacDataForYear(year) {
+  return Object.values(vacationData).some(records =>
+    records.some(r => r.date && r.date.startsWith(String(year)))
+  );
+}
+
+function vacYearPrev(btn) {
+  const prevYear = _vacDetailYear - 1;
+  if (!_hasVacDataForYear(prevYear)) {
+    const jp = LANG === 'JP';
+    const msg = jp ? `${prevYear}年のデータは存在しません` : `${prevYear}년은 데이터가 존재하지 않습니다`;
+    if (btn) showAnchorToast(btn, msg, 3000);
+    return;
+  }
+  _vacDetailYear = prevYear; _vacDetailMonth = 12; _renderVacNavBar(); _renderVacCalendar(); _renderVacList();
+}
+function vacYearNext(btn) { _vacDetailYear++; _vacDetailMonth = 1;  _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
 function vacSetMonth(m) { _vacDetailMonth = m; _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
 function vacGotoToday() {
   const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));

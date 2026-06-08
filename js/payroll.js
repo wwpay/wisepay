@@ -1,4 +1,4 @@
-// 수정: 2026-06-05 16:51 — 미저장(임시값) 달은 전월 대비 란 공백 처리
+// 수정: 2026-06-08 16:26 — 과거 연도 데이터 없을 때 이전 연도 화살표에 앵커 토스트 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -98,11 +98,27 @@ function renderMonthTabs() {
   document.getElementById('yearTxt').textContent = currentYear + (LANG==='JP'?'年':'년');
 }
 
-function changeYear(d) {
+function hasPayrollDataForYear(year) {
+  return employees.some(emp => {
+    const no = String(emp.no).padStart(4, '0');
+    for (let m = 1; m <= 12; m++) {
+      if (localStorage.getItem(`kyuyo_p_${no}_${year}_${m}`)) return true;
+    }
+    return false;
+  });
+}
+
+function changeYear(d, btn) {
   if(payrollDirty) {
     const jp = LANG==='JP';
     const msg = jp ? '保存されていない給与データがあります。このまま切り替えますか？' : '저장되지 않은 급여 데이터가 있습니다. 전환하시겠습니까?';
     if(!confirm(msg)) return;
+  }
+  if (d < 0 && !hasPayrollDataForYear(currentYear + d)) {
+    const jp = LANG === 'JP';
+    const msg = jp ? `${currentYear + d}年のデータは存在しません` : `${currentYear + d}년은 데이터가 존재하지 않습니다`;
+    if (btn) showAnchorToast(btn, msg, 3000);
+    return;
   }
   currentYear+=d; currentMonth = d < 0 ? 12 : 1; renderMonthTabs(); onMonthYearChange();
 }

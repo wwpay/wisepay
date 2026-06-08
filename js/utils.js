@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-04 23:34 — 공휴일·은행휴업일 레이어 추가 (isNonBusinessDay, fmtPayDateTxt, jstToday, daysDiff)
+﻿// 수정: 2026-06-08 16:26 — showAnchorToast 추가 (연도 화살표 데이터 없음 고정 위치 토스트)
 'use strict';
 
 function openModal(id) {
@@ -24,6 +24,26 @@ function showToast(msg, type = '') {
   setTimeout(() => {
     el.className = 'showToast ' + type;
   }, 2600);
+}
+
+function showAnchorToast(anchorEl, msg, duration) {
+  duration = duration || 3000;
+  const existing = document.getElementById('_anchor-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = '_anchor-toast';
+  toast.style.cssText = 'position:fixed;z-index:9999;background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.28);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;line-height:1.5;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  const rect = anchorEl.getBoundingClientRect();
+  toast.style.left = (rect.left + rect.width / 2) + 'px';
+  toast.style.top  = (rect.top - 8) + 'px';
+  toast.style.transform = 'translate(-50%, -100%)';
+  requestAnimationFrame(function() { toast.style.opacity = '1'; });
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 220);
+  }, duration);
 }
 
 function fmt(n) {

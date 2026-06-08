@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 16:16 — 캘린더 사용일 클릭 제거, 토/일 색상 적용
+  수정: 2026-06-08 16:26 — 과거 연도 데이터 없을 때 이전 연도 화살표 앵커 토스트 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,7 +161,7 @@
       <select id="empSelect" onchange="onEmpChange()" style="border:1px solid var(--border);border-radius:var(--r2);padding:4px 7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);cursor:pointer;"></select>
     </div>
     <div class="year-ctrl">
-      <button class="year-btn" onclick="changeYear(-1)">◀</button>
+      <button class="year-btn" onclick="changeYear(-1, this)">◀</button>
       <span class="year-txt" id="yearTxt">2026年</span>
       <button class="year-btn" onclick="changeYear(1)">▶</button>
     </div>
