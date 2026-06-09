@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-09 16:11 — sortVacationSheet() 추가 (1회 수동 실행: emp_no→date 순 정렬)
+// 수정: 2026-06-09 18:24 — cleanVacationGrantRows() 추가 (1회 수동 실행: used=0 행 삭제)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -1099,4 +1099,34 @@ function sortVacationSheet() {
 
   dataRange.setValues(data);
   Logger.log('✅ 유급휴가 시트 정렬 완료: ' + (lastRow - 1) + '행 처리');
+}
+
+// ── 유급휴가 발생 기록 일괄 삭제 (GAS 편집기에서 1회 수동 실행) ──────────────
+// used === 0 인 행(초기발생·연간발생)을 모두 삭제. 사용 기록(used > 0)은 유지.
+function cleanVacationGrantRows() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_VACATION);
+  if (!sheet) { Logger.log('❌ 유급휴가 시트 없음'); return; }
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) { Logger.log('삭제할 데이터 없음'); return; }
+
+  var lastCol  = sheet.getLastColumn();
+  var headers  = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var usedCol  = headers.indexOf('used');
+  if (usedCol < 0) {
+    Logger.log('❌ used 컬럼을 찾을 수 없음. 헤더: ' + headers.join(', '));
+    return;
+  }
+
+  var deletedCount = 0;
+  // 아래에서 위로 순회해 행 번호 어긋남 방지
+  for (var row = lastRow; row >= 2; row--) {
+    var usedVal = sheet.getRange(row, usedCol + 1).getValue();
+    if (parseFloat(usedVal) === 0) {
+      sheet.deleteRow(row);
+      deletedCount++;
+    }
+  }
+  Logger.log('✅ 발생 기록 ' + deletedCount + '행 삭제 완료');
 }

@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 16:11 — 이미 등록된 날짜 클릭 시 모달 차단(toast), 버튼 기본 날짜 중복 자동 클리어, 등록하기·사유 포커스
+// 수정: 2026-06-09 18:24 — calcVacationSummary 코드 규칙 기반 재작성(FIFO), 발생 기록 localStorage 제거, GAS 전송 필터, saveVacationUsage rAF 수정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -32,18 +32,35 @@ function _normalizeVacationKeys() {
 }
 
 function _buildGrantMap(empNo) {
-  const records = vacationData[_vacKey(empNo)] || [];
-  const map = {};
-  records.forEach(r => {
+  const today    = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
+  const key      = _vacKey(empNo);
+  const map      = {};
+
+  // 코드 규칙으로 발생일수 계산 (저장된 발생 기록 대신)
+  const emp = typeof employees !== 'undefined'
+    ? employees.find(e => _vacKey(String(e.no)) === key)
+    : null;
+  if (emp && emp.join) {
+    const joinYear  = parseInt(emp.join.substring(0, 4));
+    const joinMonth = parseInt(emp.join.substring(5, 7));
+    for (let y = joinYear; y <= thisYear; y++) {
+      const gDate = y === joinYear ? emp.join : `${y}-01-01`;
+      if (gDate > today) continue;
+      if (!map[y]) map[y] = { granted: 0, used: 0 };
+      map[y].granted += (y === joinYear ? calcInitialDays(joinMonth) : 15);
+    }
+  }
+
+  // 사용 기록 집계
+  (vacationData[key] || []).forEach(r => {
+    if ((r.used || 0) <= 0) return;
     const gy = parseInt(r.grant_year);
     if (isNaN(gy)) return;
     if (!map[gy]) map[gy] = { granted: 0, used: 0 };
-    if (r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
-      map[gy].granted += (r.days || 0);
-    } else if (r.used > 0) {
-      map[gy].used += r.used;
-    }
+    map[gy].used += r.used;
   });
+
   return map;
 }
 
@@ -78,22 +95,49 @@ function _calcRemainingAtDate(empNo, asOfDate) {
 }
 
 // 전 레코드의 remaining 필드를 날짜순으로 재계산 (추가·삭제 후 호출)
+// 가상 발생(코드 규칙)을 기준으로 계산해 발생 기록 purge 후에도 정확히 동작
 function _rebuildRemainingForEmp(empNo) {
-  const key = _vacKey(empNo);
+  const key     = _vacKey(empNo);
   const records = vacationData[key];
   if (!records || !records.length) return;
-  const sorted = records
-    .map((r, i) => ({ ...r, _i: i }))
-    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a._i - b._i);
-  let running = 0;
-  sorted.forEach(({ _i, used, reason, days }) => {
-    if (used === 0 && (reason === '초기발생' || reason === '연간발생')) {
-      running += (days || 0);
-    } else if (used > 0) {
-      running = Math.max(0, running - used);
+
+  const today    = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
+  const emp      = typeof employees !== 'undefined'
+    ? employees.find(e => _vacKey(String(e.no)) === key)
+    : null;
+
+  // 코드 규칙 기반 가상 발생 엔트리
+  const virtualGrants = [];
+  if (emp && emp.join) {
+    const joinYear  = parseInt(emp.join.substring(0, 4));
+    const joinMonth = parseInt(emp.join.substring(5, 7));
+    for (let y = joinYear; y <= thisYear; y++) {
+      virtualGrants.push({
+        date: y === joinYear ? emp.join : `${y}-01-01`,
+        _days: y === joinYear ? calcInitialDays(joinMonth) : 15,
+        _virtual: true,
+      });
     }
-    running = parseFloat(running.toFixed(1));
-    records[_i].remaining = running;
+  }
+
+  // 실제 사용 기록만 (used > 0) 원본 인덱스 보존
+  const usageWithIdx = records
+    .map((r, i) => ({ ...r, _i: i }))
+    .filter(r => (r.used || 0) > 0);
+
+  const combined = [...virtualGrants, ...usageWithIdx]
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a._virtual ? -1 : 1));
+
+  let running = 0;
+  combined.forEach(item => {
+    if (item._virtual) {
+      running += item._days;
+    } else {
+      running = Math.max(0, running - item.used);
+      running = parseFloat(running.toFixed(1));
+      records[item._i].remaining = running;
+    }
   });
 }
 
@@ -115,76 +159,116 @@ function _migrateVacationRemaining() {
   localStorage.setItem('vacMigrated', 'v2');
 }
 
-// 사원의 현재 유급휴가 현황 계산 (하이브리드: remaining 스냅샷 우선, 없으면 전체 재계산)
+// 발생 기록(used === 0)을 vacationData·localStorage·GAS 시트에서 제거 (1회 마이그레이션)
+// calcVacationSummary がコード規則ベースに移行したため発生記録は不要
+function _purgeGrantRecords() {
+  if (localStorage.getItem('vacGrantsPurged') === '1') return;
+  const LS_KEY = typeof LS !== 'undefined' ? LS.vacation : 'kyuyo_vacation';
+  let changed = false;
+  Object.keys(vacationData).forEach(empNo => {
+    const original = vacationData[empNo] || [];
+    const purged   = original.filter(r => (r.used || 0) > 0);
+    if (purged.length !== original.length) {
+      vacationData[empNo] = purged;
+      changed = true;
+    }
+  });
+  if (changed) {
+    localStorage.setItem(LS_KEY, JSON.stringify(vacationData));
+    if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
+  }
+  localStorage.setItem('vacGrantsPurged', '1');
+}
+
+// 사원의 현재 유급휴가 현황 계산
+// ─ 발생일수는 저장 기록이 아닌 코드 규칙(입사월·매년 15일)으로 산출
+// ─ FIFO 소멸 감안: 만료 직전 그랜트부터 차감해 잔여·소멸 예정을 정확히 계산
 function calcVacationSummary(empNo) {
-  const today = jstToday();
+  const today    = jstToday();
   const thisYear = parseInt(today.substring(0, 4));
   const prevYear = thisYear - 1;
   const jan1Str  = `${thisYear}-01-01`;
   const prevYearEnd = `${prevYear}-12-31`;
-  const records = vacationData[_vacKey(empNo)] || [];
-  const map = _buildGrantMap(empNo);
 
-  // totalGranted / totalUsed (전체 이력 집계)
-  let totalGranted = 0, totalUsed = 0;
-  Object.keys(map).forEach(gy => {
-    const d = map[parseInt(gy)];
-    totalGranted += d.granted;
-    totalUsed    += d.used;
-  });
+  const key     = _vacKey(empNo);
+  const records = (vacationData[key] || []).filter(r => (r.used || 0) > 0);
 
-  // 전년도 12월 31일 시점 잔여
-  const snapPrev = getLastRemaining(empNo, prevYearEnd);
-  const prevYearEndRemaining = snapPrev != null ? snapPrev : _calcRemainingAtDate(empNo, prevYearEnd);
+  // 사원 입사 정보
+  const emp = typeof employees !== 'undefined'
+    ? employees.find(e => _vacKey(String(e.no)) === key)
+    : null;
+  const joinDate  = emp && emp.join ? emp.join : null;
+  const joinYear  = joinDate ? parseInt(joinDate.substring(0, 4)) : thisYear;
+  const joinMonth = joinDate ? parseInt(joinDate.substring(5, 7)) : 1;
 
-  // 올해 1월 1일 기준 잔여 (전년도 말 잔여 + 1월 1일 발생분)
-  const snapJan1 = getLastRemaining(empNo, jan1Str);
-  let jan1Remaining;
-  if (snapJan1 != null) {
-    jan1Remaining = snapJan1;
-  } else {
-    let jan1Grants = 0;
-    records.forEach(r => {
-      if (r.date === jan1Str && r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
-        jan1Grants += (r.days || 0);
-      }
-    });
-    jan1Remaining = parseFloat((prevYearEndRemaining + jan1Grants).toFixed(1));
+  // cutoffDate 시점까지 발생한 일수 합계 (minGrantYear 미만 소멸 제외)
+  function _grants(cutoffDate, minGrantYear) {
+    if (!joinDate) return 0;
+    let total = 0;
+    for (let y = joinYear; y <= thisYear; y++) {
+      if (y < minGrantYear) continue;
+      const gDate = y === joinYear ? joinDate : `${y}-01-01`;
+      if (gDate > cutoffDate) continue;
+      total += (y === joinYear ? calcInitialDays(joinMonth) : 15);
+    }
+    return parseFloat(total.toFixed(1));
   }
 
-  // 올해 1월 1일 이후 오늘까지 사용 (미래 예약일 제외)
+  // cutoffDate까지 사용 합계
+  function _usedUpTo(cutoffDate) {
+    let total = 0;
+    records.forEach(r => { if (r.date && r.date <= cutoffDate) total += (r.used || 0); });
+    return parseFloat(total.toFixed(1));
+  }
+
+  const TU_prev = _usedUpTo(prevYearEnd);
+
+  // 전년도 12/31 잔여 — FIFO: 만료 그랜트 먼저 소진 후 유효 그랜트 잔여 산출
+  const TG_all_prev    = _grants(prevYearEnd, -Infinity);
+  const TG_valid_prev  = _grants(prevYearEnd, thisYear - 1);
+  const TG_exp_prev    = TG_all_prev - TG_valid_prev;
+  const prevYearEndRemaining = parseFloat(
+    Math.max(0, TG_valid_prev - Math.max(0, TU_prev - TG_exp_prev)).toFixed(1));
+
+  // 올해 1/1 기준 잔여 — 같은 FIFO 방식
+  const TG_all_jan1    = _grants(jan1Str, -Infinity);
+  const TG_valid_jan1  = _grants(jan1Str, thisYear - 1);
+  const TG_exp_jan1    = TG_all_jan1 - TG_valid_jan1;
+  const jan1Remaining  = parseFloat(
+    Math.max(0, TG_valid_jan1 - Math.max(0, TU_prev - TG_exp_jan1)).toFixed(1));
+
+  // 올해 1/1 이후 오늘까지 사용
   let usedSinceJan1 = 0;
   records.forEach(r => {
-    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
-      usedSinceJan1 += r.used;
-    }
+    if (r.date && r.date >= jan1Str && r.date <= today) usedSinceJan1 += (r.used || 0);
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 남은 연차
-  const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
+  // 오늘 기준 잔여 — FIFO
+  const TU_total       = _usedUpTo(today);
+  const TG_all_today   = _grants(today, -Infinity);
+  const TG_valid_today = _grants(today, thisYear - 1);
+  const TG_exp_today   = TG_all_today - TG_valid_today;
+  const remaining      = parseFloat(
+    Math.max(0, TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
 
-  // 소멸 예정 = prevYearEndRemaining에서 올해 사용분을 FIFO 차감한 잔여
-  // grant_year 필드에 의존하지 않아 구버전 레코드에도 정확함
+  // 내년 1/1 소멸 예정 (prevYear 그랜트 잔여 - 올해 사용)
   const expiringNextYear = parseFloat(Math.max(0, prevYearEndRemaining - usedSinceJan1).toFixed(1));
 
-  // 3개월 이내 소멸 예정 (grant_year 기반, 유효기간 grant_year+1년 12/31)
+  // 전체 이력
+  const totalGranted = parseFloat(TG_all_today.toFixed(1));
+  const totalUsed    = parseFloat(TU_total.toFixed(1));
+
+  // 3개월 이내 소멸 예정 알림
   let expiringInfo = null;
-  Object.keys(map).forEach(gy => {
-    const gyNum = parseInt(gy);
-    if (gyNum < thisYear - 1) return; // 소멸된 grant_year 제외
-    const { granted, used } = map[gyNum];
-    const expireDate = (gyNum + 1) + '-12-31';
-    if (expireDate < today) return;
-    const rem = Math.max(0, granted - used);
-    if (rem > 0) {
-      const diffDays = (new Date(expireDate) - new Date(today)) / 86400000;
-      const monthsLeft = diffDays / 30.44;
-      if (monthsLeft <= 3 && (!expiringInfo || gyNum < parseInt(expiringInfo.grantYear))) {
-        expiringInfo = { days: rem, expireDate, monthsLeft: Math.ceil(monthsLeft), grantYear: gy };
-      }
+  if (expiringNextYear > 0) {
+    const expireDate = `${thisYear}-12-31`;
+    const diffDays   = (new Date(expireDate) - new Date(today)) / 86400000;
+    const monthsLeft = diffDays / 30.44;
+    if (monthsLeft <= 3) {
+      expiringInfo = { days: expiringNextYear, expireDate, monthsLeft: Math.ceil(monthsLeft), grantYear: prevYear };
     }
-  });
+  }
 
   return {
     totalGranted,
@@ -194,7 +278,7 @@ function calcVacationSummary(empNo) {
     jan1Remaining,
     usedSinceJan1,
     expiringNextYear,
-    mustUseByYearEnd: expiringNextYear, // 하위 호환
+    mustUseByYearEnd: expiringNextYear,
   };
 }
 
@@ -366,7 +450,8 @@ function vacSelectNone() {
 
 function renderVacationPage() {
   _normalizeVacationKeys();
-  _migrateVacationRemaining(); // remaining 없는 기존 레코드 1회 보정
+  _migrateVacationRemaining();
+  _purgeGrantRecords(); // 발생 기록(used=0) 1회 제거
   if (_vacTab === 'detail') {
     renderVacationDetail();
     return;
@@ -759,10 +844,25 @@ function saveVacationUsage() {
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
 
   addVacationUsage(_vacModalEmpNo, date, used, reason);
+  console.log('[vac] saved', _vacModalEmpNo, date, used,
+    '→ records:', (vacationData[key] || []).length,
+    'summary:', calcVacationSummary(_vacModalEmpNo));
+
+  // 모달 닫기 전에 empNo·탭 상태를 캡처해 rAF 시점 변경 방지
+  const savedEmpNo   = _vacModalEmpNo;
+  const savedTab     = _vacTab;
+  const savedDetailNo = _vacDetailEmpNo;
+
   closeVacationModal();
-  if (_vacTab === 'detail' && _vacDetailEmpNo === _vacModalEmpNo) renderVacationDetail();
-  renderVacationCards(); // 항상 카드 갱신 (숨겨진 카드도 최신화)
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
+
+  // 렌더링은 모달 닫기 애니메이션 후 실행해 DOM 상태 충돌 방지
+  requestAnimationFrame(() => {
+    console.log('[vac] render start — tab:', savedTab, 'detail:', savedDetailNo, 'emp:', savedEmpNo);
+    if (savedTab === 'detail' && savedDetailNo === savedEmpNo) renderVacationDetail();
+    renderVacationCards();
+    console.log('[vac] render done — summary:', calcVacationSummary(savedEmpNo));
+  });
 }
 
 document.addEventListener('click', e => {

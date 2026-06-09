@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 16:11 — saveVacationToGas: emp_no→date 오름차순 정렬 후 전송
+// 수정: 2026-06-09 18:24 — saveVacationToGas: used>0 필터 추가(발생 기록 제외 전송)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -665,7 +665,10 @@ async function saveVacationToGas(vData) {
   if (!gasUrl) return;
   const flat = [];
   Object.keys(vData || {}).sort().forEach(empNo => {
-    const sorted = (vData[empNo] || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const sorted = (vData[empNo] || [])
+      .filter(r => (r.used || 0) > 0)   // 발생 기록(used=0) 제외
+      .slice()
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     sorted.forEach(r => {
       flat.push({ emp_no: empNo, ...r });
     });
