@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-09 15:45 — mSyncFromGas: _vacDirtyVersion 가드 + key padding, mOpenVacModal: prefillDate 파라미터 추가
+  수정: 2026-06-09 16:11 — 미래 날짜 등록 시 올해 사용 즉시 반영, 등록하기 버튼·사유 자동포커스
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -705,7 +705,7 @@ function mApplyLang() {
   setT('m-vac-r1-txt',    '1日',         '1일');
   setT('m-vac-r05-txt',   '半日',        '반차');
   setT('m-vac-rsn-lbl',   '事由（任意）','사유 (선택)');
-  setT('m-vac-save-btn',  '記録する',    '기록하기');
+  setT('m-vac-save-btn',  '登録する',    '등록하기');
 }
 
 function mToggleLang() {
@@ -1180,7 +1180,7 @@ function mRenderVacation() {
           <span style="font-size:14px;font-weight:700;">${sum.jan1Remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div style="${rowStyle}">
-          <span style="font-size:11px;color:var(--text2);">${jp ? '現在までの使用' : '현재까지 사용'}</span>
+          <span style="font-size:11px;color:var(--text2);">${jp ? '今年使用' : '올해 사용'}</span>
           <span style="font-size:14px;font-weight:700;">${sum.usedSinceJan1.toFixed(1)}${unitStr}</span>
         </div>
         <div style="${rowStyle}">
@@ -1213,6 +1213,7 @@ function mOpenVacModal(empNo, prefillDate) {
   if (reasonEl) reasonEl.value = '';
   const ov = document.getElementById('m-vac-modal-ov');
   if (ov) { ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  setTimeout(() => { if (reasonEl) reasonEl.focus(); }, 50);
 }
 
 function mCloseVacModal() {
@@ -1334,7 +1335,7 @@ document.addEventListener('keydown', function(e) {
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <button onclick="mSaveVacUsage()"
-      style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;" id="m-vac-save-btn">記録する</button>
+      style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;" id="m-vac-save-btn">登録する</button>
   </div>
 </div>
 

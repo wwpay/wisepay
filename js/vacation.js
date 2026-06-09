@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 15:45 — Bug1 _vacDirtyVersion 가드, Bug2 expiringNextYear 스냅샷 계산, 캘린더 날짜 클릭 등록 팝업
+// 수정: 2026-06-09 16:11 — 미래 날짜 등록 시 통계 반영 (usedSinceJan1 당년 12/31까지), 등록하기 버튼·사유 자동포커스
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -152,10 +152,11 @@ function calcVacationSummary(empNo) {
     jan1Remaining = parseFloat((prevYearEndRemaining + jan1Grants).toFixed(1));
   }
 
-  // 올해 1월 1일 이후 오늘까지 사용 (미래 날짜 제외)
+  // 올해 1월 1일 이후 당해 12월 31일까지 사용 (미래 예약 포함)
+  const yearEndStr = `${thisYear}-12-31`;
   let usedSinceJan1 = 0;
   records.forEach(r => {
-    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
+    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= yearEndStr) {
       usedSinceJan1 += r.used;
     }
   });
@@ -429,7 +430,7 @@ function renderVacationCards() {
           <span class="vac-card-row-val">${sum.jan1Remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '現在までの使用' : '현재까지 사용'}</span>
+          <span class="vac-card-row-label">${jp ? '今年使用' : '올해 사용'}</span>
           <span class="vac-card-row-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
@@ -488,7 +489,7 @@ function renderVacationDetail() {
     const remStyle = sum.remaining       <= 5.0 ? 'color:var(--red)' : '';
     const expStyle = sum.expiringNextYear >  0   ? 'color:var(--red)' : '';
     const jan1Lbl  = jp ? `${thisYear}年1月1日<br>時点残日数`       : `${thisYear}년 1월 1일<br>기준 잔여`;
-    const usedLbl  = jp ? `現在までの<br>使用`                      : `현재까지<br>사용`;
+    const usedLbl  = jp ? `今年<br>使用`                             : `올해<br>사용`;
     const remLbl   = jp ? `残<br>年次`                              : `남은<br>연차`;
     const expLbl   = jp ? `${thisYear+1}年1月1日<br>消滅予定`       : `${thisYear+1}년 1월 1일<br>소멸 예정`;
     headEl.innerHTML = `
@@ -719,6 +720,7 @@ function showVacationModal(empNo, prefillDate) {
   const reasonEl = document.getElementById('vac-modal-reason');
   if (reasonEl) reasonEl.value = '';
   openModal('modal-vacation');
+  setTimeout(() => { if (reasonEl) reasonEl.focus(); }, 50);
 }
 
 function closeVacationModal() { closeModal('modal-vacation'); }
