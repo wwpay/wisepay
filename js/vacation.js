@@ -186,6 +186,7 @@ function calcVacationSummary(empNo) {
     }
   });
 
+  console.log(`[VAC] calcVacationSummary(${empNo}) — jan1:${jan1Remaining} used:${usedSinceJan1} rem:${remaining} exp:${expiringNextYear} prevEnd:${prevYearEndRemaining} records:${records.length}`);
   return {
     totalGranted,
     totalUsed,
@@ -226,6 +227,7 @@ function addVacationUsage(empNo, date, used, reason) {
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+  console.log('[VAC] addVacationUsage done — key:', key, '| records:', vacationData[key].length, '| dirtyVer:', _vacDirtyVersion);
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
 
@@ -379,9 +381,10 @@ function renderVacationCards() {
   const jp = LANG === 'JP';
   const thisYear = parseInt(jstToday().substring(0, 4));
   const container = document.getElementById('vacCardsContainer');
-  if (!container) return;
+  if (!container) { console.warn('[VAC] renderVacationCards: #vacCardsContainer not found'); return; }
 
   let selectedNos = getSelectedVacNos();
+  console.log('[VAC] renderVacationCards — selectedNos:', [...selectedNos], '| employees count:', employees.length);
   if (selectedNos.size === 0) {
     container.innerHTML = `<div style="width:100%;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);">
       <div style="font-size:40px;margin-bottom:12px;">🌴</div>
@@ -391,6 +394,7 @@ function renderVacationCards() {
   }
 
   const toShow = employees.filter(e => e && e.no != null && selectedNos.has(String(e.no).padStart(4, '0')));
+  console.log('[VAC] renderVacationCards — toShow:', toShow.map(e => e.no));
   if (!toShow.length) {
     container.innerHTML = '';
     return;
@@ -741,10 +745,21 @@ function saveVacationUsage() {
   const r1   = document.getElementById('vac-modal-r1');
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
+
+  console.log('[VAC] saveVacationUsage — empNo:', _vacModalEmpNo, '| date:', date, '| _vacTab:', _vacTab, '| _vacDetailEmpNo:', _vacDetailEmpNo);
   addVacationUsage(_vacModalEmpNo, date, used, reason);
+  console.log('[VAC] after addVacationUsage — vacationData[key] len:', (vacationData[key]||[]).length);
+
   closeVacationModal();
-  if (_vacTab === 'detail' && _vacDetailEmpNo === _vacModalEmpNo) renderVacationDetail();
-  renderVacationCards(); // 항상 카드 갱신 (숨겨진 카드도 최신화)
+
+  if (_vacTab === 'detail' && _vacDetailEmpNo === _vacModalEmpNo) {
+    console.log('[VAC] calling renderVacationDetail()');
+    renderVacationDetail();
+  }
+
+  console.log('[VAC] calling renderVacationCards() — container exists:', !!document.getElementById('vacCardsContainer'));
+  renderVacationCards();
+
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
 }
 
