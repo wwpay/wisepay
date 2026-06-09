@@ -102,6 +102,20 @@
 | role | admin / viewer |
 | sessionType | persistent / session |
 
+### 유급휴가 (SHEET_VAC = '유급휴가')
+| 컬럼 | 내용 |
+|---|---|
+| emp_no | 사원번호 (4자리 패딩) |
+| date | 날짜 (YYYY-MM-DD) |
+| used | 사용일수 (0=발생, 0.5=반차, 1.0=1일) |
+| reason | 사유 (초기발생/연간발생/사유문자열) |
+| grant_year | 부여 연도 (yyyy) |
+| days | 발생일수 (발생 레코드 전용) |
+| remaining | **잔여일수 스냅샷** — 이 레코드 반영 후 잔여 (소수점1자리) |
+
+> `remaining` 컬럼은 2026-06-09 추가. GAS `saveVacation` 핸들러에서 컬럼 목록에 `remaining` 추가 필요.
+> `getVacation` 핸들러는 행을 그대로 객체로 반환하므로 컬럼 추가만 하면 자동 반영됨.
+
 ### deleted_emp_ids (SHEET_DELETED)
 | 컬럼 | 내용 |
 |---|---|
@@ -121,6 +135,7 @@
 
 | type 값 | 기능 |
 |---|---|
+| saveVacation | 유급휴가 데이터 저장 (remaining 컬럼 포함) |
 | saveAll | 전체 데이터 저장 (사원+급여+요율) |
 | savePayrolls | 급여데이터만 저장 |
 | saveEmployees | 사원정보만 저장 |
@@ -138,6 +153,7 @@
 | action 값 | 기능 |
 |---|---|
 | getAll | 전체 데이터 조회 (사원+급여+요율+지급완료이력+삭제ID) |
+| getVacation | 유급휴가 데이터 조회 (remaining 컬럼 포함) |
 | getUsers | 사용자 목록 조회 |
 | scrapeRates | 협회けんぽ 최신 요율 스크래핑 |
 | testConnection | 연결 테스트 |

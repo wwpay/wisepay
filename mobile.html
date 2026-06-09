@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-08 21:41 — mRenderVacation: 카드 4행 레이아웃 + 계산 항목 추가 + 버튼 休暇登録 변경
+  수정: 2026-06-09 09:14 — mRenderVacation: expiringNextYear 적용, 4행 레이블 소멸 예정(이월)으로 변경
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1157,11 +1157,11 @@ function mRenderVacation() {
         <div class="m-vac-card-body" style="font-size:12px;color:var(--text3);">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
       </div>`;
     }
-    let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null, jan1Remaining: 0, usedSinceJan1: 0, mustUseByYearEnd: 0 };
+    let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null, jan1Remaining: 0, usedSinceJan1: 0, expiringNextYear: 0, mustUseByYearEnd: 0 };
     try { sum = calcVacationSummary(no); } catch(e) {}
     const unitStr = jp ? '日' : '일';
-    const remCls   = sum.remaining       <= 5.0 ? 'color:var(--red);font-weight:700;' : 'font-weight:700;';
-    const mustCls  = sum.mustUseByYearEnd > 0   ? 'color:var(--red);font-weight:700;' : 'font-weight:700;';
+    const remCls  = sum.remaining        <= 5.0 ? 'color:var(--red);font-weight:700;' : 'font-weight:700;';
+    const expCls  = sum.expiringNextYear  > 0   ? 'color:var(--red);font-weight:700;' : 'font-weight:700;';
     const jan1Label = jp ? `${thisYear}年1月1日時点残日数` : `${thisYear}년 1월 1일 기준 잔여`;
     const rowStyle = 'display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);';
     const lastRowStyle = 'display:flex;align-items:center;justify-content:space-between;padding:5px 0;';
@@ -1183,8 +1183,8 @@ function mRenderVacation() {
           <span style="font-size:14px;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div style="${lastRowStyle}margin-bottom:8px;">
-          <span style="font-size:11px;color:var(--text2);">${jp ? '今年中に消化必要' : '올해 소진 필요'}</span>
-          <span style="font-size:14px;${mustCls}">${sum.mustUseByYearEnd.toFixed(1)}${unitStr}</span>
+          <span style="font-size:11px;color:var(--text2);">${jp ? '失効予定（繰越）' : '소멸 예정 (이월)'}</span>
+          <span style="font-size:14px;${expCls}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
         </div>
         <div style="display:flex;justify-content:flex-end;">
           <button onclick="mOpenVacModal('${no}')"

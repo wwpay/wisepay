@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 09:14 — 유급 소멸 시효 1년→2년 수정(expireDate·jan1Remaining·mustUseByYearEnd·_resolveGrantYear)
+// 수정: 2026-06-09 09:14 — remaining 필드 스냅샷 방식 도입 + 마이그레이션 함수 추가
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -44,33 +44,134 @@ function _buildGrantMap(empNo) {
   return map;
 }
 
-// 사원의 현재 유급휴가 현황 계산
+// beforeDate(YYYY-MM-DD) 이전 마지막 레코드의 remaining 반환. 없으면 null.
+function getLastRemaining(empNo, beforeDate) {
+  const records = vacationData[_vacKey(empNo)] || [];
+  let lastIdx = -1, lastDate = '';
+  records.forEach((r, i) => {
+    if (!r.date || r.date > beforeDate) return;
+    if (r.date >= lastDate) { lastDate = r.date; lastIdx = i; }
+  });
+  if (lastIdx === -1) return null;
+  const rem = records[lastIdx].remaining;
+  return rem != null ? parseFloat(rem) : null;
+}
+
+// asOfDate까지의 잔여를 전체 재계산 (remaining 미존재 시 fallback)
+function _calcRemainingAtDate(empNo, asOfDate) {
+  const records = vacationData[_vacKey(empNo)] || [];
+  const sorted = records
+    .filter(r => r.date && r.date <= asOfDate)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let running = 0;
+  sorted.forEach(r => {
+    if (r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
+      running += (r.days || 0);
+    } else if (r.used > 0) {
+      running = Math.max(0, running - r.used);
+    }
+  });
+  return parseFloat(running.toFixed(1));
+}
+
+// 전 레코드의 remaining 필드를 날짜순으로 재계산 (추가·삭제 후 호출)
+function _rebuildRemainingForEmp(empNo) {
+  const key = _vacKey(empNo);
+  const records = vacationData[key];
+  if (!records || !records.length) return;
+  const sorted = records
+    .map((r, i) => ({ ...r, _i: i }))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a._i - b._i);
+  let running = 0;
+  sorted.forEach(({ _i, used, reason, days }) => {
+    if (used === 0 && (reason === '초기발생' || reason === '연간발생')) {
+      running += (days || 0);
+    } else if (used > 0) {
+      running = Math.max(0, running - used);
+    }
+    running = parseFloat(running.toFixed(1));
+    records[_i].remaining = running;
+  });
+}
+
+// remaining 없는 기존 레코드를 일괄 보정 (앱 첫 진입 시 1회)
+function _migrateVacationRemaining() {
+  const LS_KEY = typeof LS !== 'undefined' ? LS.vacation : 'kyuyo_vacation';
+  if (localStorage.getItem('vacMigrated') === 'true') return;
+  let changed = false;
+  Object.keys(vacationData).forEach(empNo => {
+    const records = vacationData[empNo];
+    if (!records || !records.length || records.every(r => r.remaining != null)) return;
+    _rebuildRemainingForEmp(empNo);
+    changed = true;
+  });
+  if (changed) {
+    localStorage.setItem(LS_KEY, JSON.stringify(vacationData));
+    if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
+  }
+  localStorage.setItem('vacMigrated', 'true');
+}
+
+// 사원의 현재 유급휴가 현황 계산 (하이브리드: remaining 스냅샷 우선, 없으면 전체 재계산)
 function calcVacationSummary(empNo) {
   const today = jstToday();
   const thisYear = parseInt(today.substring(0, 4));
-  const jan1Str = `${thisYear}-01-01`;
+  const prevYear = thisYear - 1;
+  const jan1Str  = `${thisYear}-01-01`;
+  const prevYearEnd = `${prevYear}-12-31`;
   const records = vacationData[_vacKey(empNo)] || [];
   const map = _buildGrantMap(empNo);
 
-  let totalGranted = 0;
-  let totalUsed = 0;
-  let remaining = 0;
-  let expiringInfo = null;
+  // totalGranted / totalUsed (전체 이력 집계)
+  let totalGranted = 0, totalUsed = 0;
+  Object.keys(map).forEach(gy => {
+    const d = map[parseInt(gy)];
+    totalGranted += d.granted;
+    totalUsed    += d.used;
+  });
 
+  // 전년도 12월 31일 시점 잔여
+  const snapPrev = getLastRemaining(empNo, prevYearEnd);
+  const prevYearEndRemaining = snapPrev != null ? snapPrev : _calcRemainingAtDate(empNo, prevYearEnd);
+
+  // 올해 1월 1일 기준 잔여 (전년도 말 잔여 + 1월 1일 발생분)
+  const snapJan1 = getLastRemaining(empNo, jan1Str);
+  let jan1Remaining;
+  if (snapJan1 != null) {
+    jan1Remaining = snapJan1;
+  } else {
+    let jan1Grants = 0;
+    records.forEach(r => {
+      if (r.date === jan1Str && r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
+        jan1Grants += (r.days || 0);
+      }
+    });
+    jan1Remaining = parseFloat((prevYearEndRemaining + jan1Grants).toFixed(1));
+  }
+
+  // 올해 1월 1일 이후 오늘까지 사용 (미래 날짜 제외)
+  let usedSinceJan1 = 0;
+  records.forEach(r => {
+    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
+      usedSinceJan1 += r.used;
+    }
+  });
+  usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
+
+  // 남은 연차
+  const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
+
+  // 소멸 예정 = 전년도 말 잔여 (이월된 구잔여, 올해 말 소멸)
+  const expiringNextYear = parseFloat(prevYearEndRemaining.toFixed(1));
+
+  // 3개월 이내 소멸 예정 (grant_year 기반)
+  let expiringInfo = null;
   Object.keys(map).forEach(gy => {
     const gyNum = parseInt(gy);
     const { granted, used } = map[gyNum];
-    totalGranted += granted;
-    totalUsed += used;
-
-    // 유효기간: 발생연도+2년 12월 31일 소멸 (노동기준법 2년 소멸시효)
     const expireDate = (gyNum + 2) + '-12-31';
     if (expireDate < today) return;
-
     const rem = Math.max(0, granted - used);
-    remaining += rem;
-
-    // 3개월 이내 소멸 예정
     if (rem > 0) {
       const diffDays = (new Date(expireDate) - new Date(today)) / 86400000;
       const monthsLeft = diffDays / 30.44;
@@ -80,41 +181,15 @@ function calcVacationSummary(empNo) {
     }
   });
 
-  // 올해 1월 1일 기준 잔여 (소멸되지 않은 grant_year 기준, 1월1일 이전 기록만)
-  let _jan1G = 0, _jan1U = 0;
-  records.forEach(r => {
-    const gy = parseInt(r.grant_year);
-    if (isNaN(gy) || gy < thisYear - 2) return; // 1월1일 기준 소멸된 연도 제외 (2년 소멸시효)
-    if (!r.date || r.date >= jan1Str) return;    // 1월1일 이후 기록 제외
-    if (r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
-      _jan1G += (r.days || 0);
-    } else if (r.used > 0) {
-      _jan1U += r.used;
-    }
-  });
-  const jan1Remaining = parseFloat(Math.max(0, _jan1G - _jan1U).toFixed(1));
-
-  // 올해 1월 1일 이후 오늘까지 사용
-  let usedSinceJan1 = 0;
-  records.forEach(r => {
-    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
-      usedSinceJan1 += r.used;
-    }
-  });
-
-  // 올해 소진 필요 (2년 전 grant_year → 올해 12월31일 소멸)
-  const prevGY = thisYear - 2;
-  const prevGYData = map[prevGY] || { granted: 0, used: 0 };
-  const mustUseByYearEnd = parseFloat(Math.max(0, prevGYData.granted - prevGYData.used).toFixed(1));
-
   return {
     totalGranted,
     totalUsed,
-    remaining: parseFloat(remaining.toFixed(1)),
+    remaining,
     expiringInfo,
     jan1Remaining,
-    usedSinceJan1: parseFloat(usedSinceJan1.toFixed(1)),
-    mustUseByYearEnd,
+    usedSinceJan1,
+    expiringNextYear,
+    mustUseByYearEnd: expiringNextYear, // 하위 호환
   };
 }
 
@@ -139,11 +214,10 @@ function _resolveGrantYear(empNo) {
 function addVacationUsage(empNo, date, used, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-
   const grantYear = _resolveGrantYear(empNo);
   vacationData[key].push({ date, used, reason, grant_year: grantYear });
-
-  localStorage.setItem('kyuyo_vacation', JSON.stringify(vacationData));
+  _rebuildRemainingForEmp(empNo);
+  localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
 
@@ -151,21 +225,20 @@ function addVacationUsage(empNo, date, used, reason) {
 function addVacationGrant(empNo, days, grantYear, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-
   const today = jstToday();
   vacationData[key].push({ date: today, used: 0, reason, grant_year: grantYear, days });
-
-  localStorage.setItem('kyuyo_vacation', JSON.stringify(vacationData));
+  _rebuildRemainingForEmp(empNo);
+  localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
 
-// 사용 기록 삭제 (index: vacationData[empNo] 배열 인덱스)
+// 사용 기록 삭제 — 삭제 후 remaining 재계산
 function deleteVacationUsage(empNo, index) {
   const key = _vacKey(empNo);
   if (!vacationData[key] || vacationData[key][index] === undefined) return;
-
   vacationData[key].splice(index, 1);
-  localStorage.setItem('kyuyo_vacation', JSON.stringify(vacationData));
+  _rebuildRemainingForEmp(empNo);
+  localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
 
@@ -282,7 +355,8 @@ function vacSelectNone() {
 }
 
 function renderVacationPage() {
-  _normalizeVacationKeys(); // '2'→'0002' 등 기존 비패딩 키 자동 정규화
+  _normalizeVacationKeys();
+  _migrateVacationRemaining(); // remaining 없는 기존 레코드 1회 보정
   if (_vacTab === 'detail') {
     renderVacationDetail();
     return;
@@ -331,8 +405,8 @@ function renderVacationCards() {
     }
     const sum = calcVacationSummary(no);
     const unitStr = jp ? '日' : '일';
-    const remClass = sum.remaining <= 5.0 ? 'red' : '';
-    const mustClass = sum.mustUseByYearEnd > 0 ? 'red' : '';
+    const remClass  = sum.remaining        <= 5.0 ? 'red' : '';
+    const expClass  = sum.expiringNextYear  > 0   ? 'red' : '';
     const jan1Label = jp ? `${thisYear}年1月1日時点残日数` : `${thisYear}년 1월 1일 기준 잔여`;
     return `<div class="vac-card">
       <div class="vac-card-head">
@@ -353,8 +427,8 @@ function renderVacationCards() {
           <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '今年中に消化必要' : '올해 소진 필요'}</span>
-          <span class="vac-card-row-val ${mustClass}">${sum.mustUseByYearEnd.toFixed(1)}${unitStr}</span>
+          <span class="vac-card-row-label">${jp ? '失効予定（繰越）' : '소멸 예정 (이월)'}</span>
+          <span class="vac-card-row-val ${expClass}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-foot">
           <button class="btn" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
