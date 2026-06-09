@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 12:21 — 소멸 예정 grant_year(올해-1) 기반으로 수정, FIFO 유효 범위 fix, 마이그레이션 v2
+// 수정: 2026-06-09 12:33 — 소멸 예정 계산 prevYearEndRemaining(전년말 잔여 스냅샷)으로 수정
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -161,9 +161,8 @@ function calcVacationSummary(empNo) {
   // 남은 연차
   const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
 
-  // 소멸 예정 = grant_year(올해-1) 잔여 (내년 1월 1일 소멸)
-  const expGYData = map[thisYear - 1] || { granted: 0, used: 0 };
-  const expiringNextYear = parseFloat(Math.max(0, expGYData.granted - expGYData.used).toFixed(1));
+  // 소멸 예정 = 전년도 12/31 시점 잔여 스냅샷 (그 잔여분이 내년 1/1에 소멸)
+  const expiringNextYear = parseFloat(prevYearEndRemaining.toFixed(1));
 
   // 3개월 이내 소멸 예정 (grant_year 기반, 유효기간 grant_year+1년 12/31)
   let expiringInfo = null;
