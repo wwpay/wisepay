@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 07:27 — 오늘 날짜 표시를 text-decoration 밑줄 → .vac-today-bar div 요소 방식으로 변경
+// 수정: 2026-06-09 09:14 — 유급 소멸 시효 1년→2년 수정(expireDate·jan1Remaining·mustUseByYearEnd·_resolveGrantYear)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -63,8 +63,8 @@ function calcVacationSummary(empNo) {
     totalGranted += granted;
     totalUsed += used;
 
-    // 유효기간: 발생연도+1년 12월 31일 소멸
-    const expireDate = (gyNum + 1) + '-12-31';
+    // 유효기간: 발생연도+2년 12월 31일 소멸 (노동기준법 2년 소멸시효)
+    const expireDate = (gyNum + 2) + '-12-31';
     if (expireDate < today) return;
 
     const rem = Math.max(0, granted - used);
@@ -84,7 +84,7 @@ function calcVacationSummary(empNo) {
   let _jan1G = 0, _jan1U = 0;
   records.forEach(r => {
     const gy = parseInt(r.grant_year);
-    if (isNaN(gy) || gy < thisYear - 1) return; // 1월1일 기준 소멸된 연도 제외
+    if (isNaN(gy) || gy < thisYear - 2) return; // 1월1일 기준 소멸된 연도 제외 (2년 소멸시효)
     if (!r.date || r.date >= jan1Str) return;    // 1월1일 이후 기록 제외
     if (r.used === 0 && (r.reason === '초기발생' || r.reason === '연간발생')) {
       _jan1G += (r.days || 0);
@@ -102,8 +102,8 @@ function calcVacationSummary(empNo) {
     }
   });
 
-  // 올해 소진 필요 (전년도 grant_year → 올해 12월31일 소멸)
-  const prevGY = thisYear - 1;
+  // 올해 소진 필요 (2년 전 grant_year → 올해 12월31일 소멸)
+  const prevGY = thisYear - 2;
   const prevGYData = map[prevGY] || { granted: 0, used: 0 };
   const mustUseByYearEnd = parseFloat(Math.max(0, prevGYData.granted - prevGYData.used).toFixed(1));
 
@@ -125,7 +125,7 @@ function _resolveGrantYear(empNo) {
 
   const sortedYears = Object.keys(map)
     .map(gy => parseInt(gy))
-    .filter(gyNum => (gyNum + 1) + '-12-31' >= today)
+    .filter(gyNum => (gyNum + 2) + '-12-31' >= today)
     .sort((a, b) => a - b);
 
   for (const gyNum of sortedYears) {
