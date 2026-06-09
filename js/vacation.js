@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 00:11 — _purgeGrantRecords() 완전 제거 (GAS 시트의 used=0 발생 기록 보존)
+// 수정: 2026-06-10 03:31 — calcVacationSummary 시트 발생 기록 기반으로 전환, calcInitialDays 규칙 수정, _buildGrantMap·_rebuildRemainingForEmp 저장 데이터 기반으로 전환
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -6,10 +6,10 @@ let _vacDirtyVersion = 0;
 
 // 입사월 → 초기 발생일수
 function calcInitialDays(joinMonth) {
-  if (joinMonth >= 1 && joinMonth <= 9) {
-    return 15 - (joinMonth - 1);
+  if (joinMonth >= 1 && joinMonth <= 6) {
+    return 15 - (joinMonth - 1); // 1월=15, 2월=14, ..., 6월=10
   }
-  return 1; // 10~12월 입사
+  return 13 - joinMonth; // 7월=6, 8월=5, 9월=4, 10월=3, 11월=2, 12월=1
 }
 
 // grant_year별 부여/사용 집계 맵 생성
@@ -32,33 +32,19 @@ function _normalizeVacationKeys() {
 }
 
 function _buildGrantMap(empNo) {
-  const today    = jstToday();
-  const thisYear = parseInt(today.substring(0, 4));
-  const key      = _vacKey(empNo);
-  const map      = {};
+  const key = _vacKey(empNo);
+  const map = {};
 
-  // 코드 규칙으로 발생일수 계산 (저장된 발생 기록 대신)
-  const emp = typeof employees !== 'undefined'
-    ? employees.find(e => _vacKey(String(e.no)) === key)
-    : null;
-  if (emp && emp.join) {
-    const joinYear  = parseInt(emp.join.substring(0, 4));
-    const joinMonth = parseInt(emp.join.substring(5, 7));
-    for (let y = joinYear; y <= thisYear; y++) {
-      const gDate = y === joinYear ? emp.join : `${y}-01-01`;
-      if (gDate > today) continue;
-      if (!map[y]) map[y] = { granted: 0, used: 0 };
-      map[y].granted += (y === joinYear ? calcInitialDays(joinMonth) : 15);
-    }
-  }
-
-  // 사용 기록 집계
+  // 시트 발생 기록(used=0, days>0)과 사용 기록(used>0)을 grant_year별로 집계
   (vacationData[key] || []).forEach(r => {
-    if ((r.used || 0) <= 0) return;
     const gy = parseInt(r.grant_year);
     if (isNaN(gy)) return;
     if (!map[gy]) map[gy] = { granted: 0, used: 0 };
-    map[gy].used += r.used;
+    if ((r.used || 0) === 0 && (r.days || 0) > 0) {
+      map[gy].granted += (r.days || 0);
+    } else if ((r.used || 0) > 0) {
+      map[gy].used += r.used;
+    }
   });
 
   return map;
@@ -95,44 +81,26 @@ function _calcRemainingAtDate(empNo, asOfDate) {
 }
 
 // 전 레코드의 remaining 필드를 날짜순으로 재계산 (추가·삭제 후 호출)
-// 가상 발생(코드 규칙)을 기준으로 계산해 발생 기록 purge 후에도 정확히 동작
+// 시트 발생 기록(used=0, days>0)을 기준으로 계산
 function _rebuildRemainingForEmp(empNo) {
   const key     = _vacKey(empNo);
   const records = vacationData[key];
   if (!records || !records.length) return;
 
-  const today    = jstToday();
-  const thisYear = parseInt(today.substring(0, 4));
-  const emp      = typeof employees !== 'undefined'
-    ? employees.find(e => _vacKey(String(e.no)) === key)
-    : null;
-
-  // 코드 규칙 기반 가상 발생 엔트리
-  const virtualGrants = [];
-  if (emp && emp.join) {
-    const joinYear  = parseInt(emp.join.substring(0, 4));
-    const joinMonth = parseInt(emp.join.substring(5, 7));
-    for (let y = joinYear; y <= thisYear; y++) {
-      virtualGrants.push({
-        date: y === joinYear ? emp.join : `${y}-01-01`,
-        _days: y === joinYear ? calcInitialDays(joinMonth) : 15,
-        _virtual: true,
-      });
-    }
-  }
-
-  // 실제 사용 기록만 (used > 0) 원본 인덱스 보존
-  const usageWithIdx = records
+  // 부여(used=0, days>0)와 사용(used>0)을 날짜순으로 합쳐서 remaining 재계산
+  const combined = records
     .map((r, i) => ({ ...r, _i: i }))
-    .filter(r => (r.used || 0) > 0);
-
-  const combined = [...virtualGrants, ...usageWithIdx]
-    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a._virtual ? -1 : 1));
+    .filter(r => (r.used || 0) === 0 ? (r.days || 0) > 0 : true)
+    .sort((a, b) => {
+      const dateCmp = (a.date || '').localeCompare(b.date || '');
+      if (dateCmp !== 0) return dateCmp;
+      return (a.used || 0) === 0 ? -1 : 1; // 같은 날짜: 부여 먼저
+    });
 
   let running = 0;
   combined.forEach(item => {
-    if (item._virtual) {
-      running += item._days;
+    if ((item.used || 0) === 0) {
+      running += (item.days || 0);
     } else {
       running = Math.max(0, running - item.used);
       running = parseFloat(running.toFixed(1));
@@ -160,7 +128,7 @@ function _migrateVacationRemaining() {
 }
 
 // 사원의 현재 유급휴가 현황 계산
-// ─ 발생일수는 저장 기록이 아닌 코드 규칙(입사월·매년 15일)으로 산출
+// ─ 발생일수는 시트 발생 기록(used=0, days>0)에서 산출
 // ─ FIFO 소멸 감안: 만료 직전 그랜트부터 차감해 잔여·소멸 예정을 정확히 계산
 function calcVacationSummary(empNo) {
   const today    = jstToday();
@@ -169,34 +137,26 @@ function calcVacationSummary(empNo) {
   const jan1Str  = `${thisYear}-01-01`;
   const prevYearEnd = `${prevYear}-12-31`;
 
-  const key     = _vacKey(empNo);
-  const records = (vacationData[key] || []).filter(r => (r.used || 0) > 0);
+  const key    = _vacKey(empNo);
+  const grants = (vacationData[key] || []).filter(r => (r.used || 0) === 0 && (r.days || 0) > 0);
+  const usages = (vacationData[key] || []).filter(r => (r.used || 0) > 0);
 
-  // 사원 입사 정보
-  const emp = typeof employees !== 'undefined'
-    ? employees.find(e => _vacKey(String(e.no)) === key)
-    : null;
-  const joinDate  = emp && emp.join ? emp.join : null;
-  const joinYear  = joinDate ? parseInt(joinDate.substring(0, 4)) : thisYear;
-  const joinMonth = joinDate ? parseInt(joinDate.substring(5, 7)) : 1;
-
-  // cutoffDate 시점까지 발생한 일수 합계 (minGrantYear 미만 소멸 제외)
+  // cutoffDate 시점까지 minGrantYear 이상인 부여 합계 (시트 발생 기록 사용)
   function _grants(cutoffDate, minGrantYear) {
-    if (!joinDate) return 0;
     let total = 0;
-    for (let y = joinYear; y <= thisYear; y++) {
-      if (y < minGrantYear) continue;
-      const gDate = y === joinYear ? joinDate : `${y}-01-01`;
-      if (gDate > cutoffDate) continue;
-      total += (y === joinYear ? calcInitialDays(joinMonth) : 15);
-    }
+    grants.forEach(r => {
+      const gy = parseInt(r.grant_year);
+      if (isNaN(gy) || gy < minGrantYear) return;
+      if (!r.date || r.date > cutoffDate) return;
+      total += (r.days || 0);
+    });
     return parseFloat(total.toFixed(1));
   }
 
   // cutoffDate까지 사용 합계
   function _usedUpTo(cutoffDate) {
     let total = 0;
-    records.forEach(r => { if (r.date && r.date <= cutoffDate) total += (r.used || 0); });
+    usages.forEach(r => { if (r.date && r.date <= cutoffDate) total += (r.used || 0); });
     return parseFloat(total.toFixed(1));
   }
 
@@ -218,7 +178,7 @@ function calcVacationSummary(empNo) {
 
   // 올해 1/1 이후 오늘까지 사용
   let usedSinceJan1 = 0;
-  records.forEach(r => {
+  usages.forEach(r => {
     if (r.date && r.date >= jan1Str && r.date <= today) usedSinceJan1 += (r.used || 0);
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));

@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 18:24 — saveVacationToGas: used>0 필터 추가(발생 기록 제외 전송)
+// 수정: 2026-06-10 03:31 — saveVacationToGas: 발생 기록(used=0) 포함 전체 전송으로 변경
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -666,7 +666,6 @@ async function saveVacationToGas(vData) {
   const flat = [];
   Object.keys(vData || {}).sort().forEach(empNo => {
     const sorted = (vData[empNo] || [])
-      .filter(r => (r.used || 0) > 0)   // 발생 기록(used=0) 제외
       .slice()
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     sorted.forEach(r => {
