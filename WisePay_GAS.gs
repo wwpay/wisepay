@@ -1079,12 +1079,11 @@ function sortVacationSheet() {
   var dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
   var data = dataRange.getValues();
 
-  // date 셀이 Date 객체인 경우 문자열로 변환 후 정렬
+  // emp_no 오름차순(숫자) → date 오름차순 정렬
   data.sort(function(a, b) {
-    var noA = String(a[noCol] || '').trim();
-    var noB = String(b[noCol] || '').trim();
-    if (noA < noB) return -1;
-    if (noA > noB) return  1;
+    var noA = parseInt(String(a[noCol] || '0').trim(), 10) || 0;
+    var noB = parseInt(String(b[noCol] || '0').trim(), 10) || 0;
+    if (noA !== noB) return noA - noB;
     // emp_no 동일: date 비교
     var dA = a[dateCol] instanceof Date
       ? Utilities.formatDate(a[dateCol], 'Asia/Tokyo', 'yyyy-MM-dd')
