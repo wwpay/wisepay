@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 10:34 — 유급휴가 emp_no padStart(4,'0') 수정 (GAS 숫자 변환 대응)
+// 수정: 2026-06-09 15:45 — fetchVacationData: _vacDirtyVersion 가드로 로컬 변경분 보호
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -634,11 +634,15 @@ function _parseCSV(text) {
 }
 
 // 유급휴가 데이터를 GAS에서 가져와 localStorage에 저장
+// 페치 시작 후 로컬 변경이 발생하면 덮어쓰지 않음 (_vacDirtyVersion 가드)
 async function fetchVacationData() {
   if (!gasUrl) return;
+  const versionAtStart = typeof _vacDirtyVersion !== 'undefined' ? _vacDirtyVersion : 0;
   try {
     const res = await gasRequest({ action: 'getVacation' }, 15000);
     if (res && res.ok && Array.isArray(res.data)) {
+      // 페치 중 로컬 변경이 발생했으면 GAS 데이터로 덮어쓰지 않음
+      if (typeof _vacDirtyVersion !== 'undefined' && _vacDirtyVersion !== versionAtStart) return;
       const rebuilt = {};
       res.data.forEach(r => {
         const no = String(r.emp_no || '').trim().padStart(4, '0');

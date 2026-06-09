@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-09 12:21 — mRenderVacation: 4행 레이블 YYYY년 1월 1일 소멸 예정으로 변경
+  수정: 2026-06-09 15:45 — mSyncFromGas: _vacDirtyVersion 가드 + key padding, mOpenVacModal: prefillDate 파라미터 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -501,21 +501,26 @@ async function mSyncFromGas() {
     mRenderAnnual();
     mRenderEmpList();
     fetchHolidayCache().catch(() => {}); // 공휴일 캐시 갱신 (fire-and-forget)
-    // 유급휴가 데이터 동기화
+    // 유급휴가 데이터 동기화 — 페치 중 로컬 변경이 있으면 덮어쓰지 않음
     try {
+      const _vVerAtStart = typeof _vacDirtyVersion !== 'undefined' ? _vacDirtyVersion : 0;
       const vRes = await gasRequest({ action: 'getVacation' }, 15000);
       if (vRes && vRes.ok && Array.isArray(vRes.data)) {
-        const rebuilt = {};
-        vRes.data.forEach(r => {
-          const no = String(r.emp_no || '').trim();
-          if (!no) return;
-          if (!rebuilt[no]) rebuilt[no] = [];
-          const { emp_no, ...rest } = r;
-          rebuilt[no].push(rest);
-        });
-        vacationData = rebuilt;
-        localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
-        mRenderVacation();
+        if (typeof _vacDirtyVersion !== 'undefined' && _vacDirtyVersion !== _vVerAtStart) {
+          // 로컬 변경 감지 → 덮어쓰기 skip
+        } else {
+          const rebuilt = {};
+          vRes.data.forEach(r => {
+            const no = String(r.emp_no || '').trim().padStart(4, '0'); // 4자리 패딩
+            if (!no || no === '0000') return;
+            if (!rebuilt[no]) rebuilt[no] = [];
+            const { emp_no, ...rest } = r;
+            rebuilt[no].push(rest);
+          });
+          vacationData = rebuilt;
+          localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+          mRenderVacation();
+        }
       }
     } catch(e) { console.log('[WisePay mobile] vacation fetch skipped:', e.message); }
   } catch(err) {
@@ -1197,11 +1202,11 @@ function mRenderVacation() {
   }).join('');
 }
 
-function mOpenVacModal(empNo) {
+function mOpenVacModal(empNo, prefillDate) {
   _mVacModalEmpNo = empNo;
   const today = jstToday();
   const dateEl = document.getElementById('m-vac-date');
-  if (dateEl) dateEl.value = today;
+  if (dateEl) dateEl.value = prefillDate || today;
   const r1 = document.getElementById('m-vac-r1');
   if (r1) r1.checked = true;
   const reasonEl = document.getElementById('m-vac-reason');

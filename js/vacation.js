@@ -1,5 +1,8 @@
-// 수정: 2026-06-09 15:18 — 상세 헤더 4개 항목 가로 나열(jan1Remaining/usedSinceJan1/remaining/expiringNextYear)
+// 수정: 2026-06-09 15:45 — Bug1 _vacDirtyVersion 가드, Bug2 expiringNextYear 스냅샷 계산, 캘린더 날짜 클릭 등록 팝업
 'use strict';
+
+// fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
+let _vacDirtyVersion = 0;
 
 // 입사월 → 초기 발생일수
 function calcInitialDays(joinMonth) {
@@ -161,9 +164,9 @@ function calcVacationSummary(empNo) {
   // 남은 연차
   const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
 
-  // 소멸 예정 = grant_year(올해-1)의 잔여일 (FIFO 차감 후 실시간 반영)
-  const expGYData = map[thisYear - 1] || { granted: 0, used: 0 };
-  const expiringNextYear = parseFloat(Math.max(0, expGYData.granted - expGYData.used).toFixed(1));
+  // 소멸 예정 = prevYearEndRemaining에서 올해 사용분을 FIFO 차감한 잔여
+  // grant_year 필드에 의존하지 않아 구버전 레코드에도 정확함
+  const expiringNextYear = parseFloat(Math.max(0, prevYearEndRemaining - usedSinceJan1).toFixed(1));
 
   // 3개월 이내 소멸 예정 (grant_year 기반, 유효기간 grant_year+1년 12/31)
   let expiringInfo = null;
@@ -221,6 +224,7 @@ function addVacationUsage(empNo, date, used, reason) {
   const grantYear = _resolveGrantYear(empNo);
   vacationData[key].push({ date, used, reason, grant_year: grantYear });
   _rebuildRemainingForEmp(empNo);
+  _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
@@ -232,6 +236,7 @@ function addVacationGrant(empNo, days, grantYear, reason) {
   const today = jstToday();
   vacationData[key].push({ date: today, used: 0, reason, grant_year: grantYear, days });
   _rebuildRemainingForEmp(empNo);
+  _vacDirtyVersion++;
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
@@ -242,6 +247,7 @@ function deleteVacationUsage(empNo, index) {
   if (!vacationData[key] || vacationData[key][index] === undefined) return;
   vacationData[key].splice(index, 1);
   _rebuildRemainingForEmp(empNo);
+  _vacDirtyVersion++;
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
 }
@@ -556,10 +562,10 @@ function _renderVacCalendar() {
     if (isToday) cls += ' today-mark';
     let spanCls = '';
     if (info) spanCls = info.used < 1 ? 'vac-day-half' : 'vac-day-used';
-    const clickAttr = info ? ` onclick="_highlightVacCalDate('${dateStr}')"` : '';
     const numSpan = spanCls ? `<span class="${spanCls}">${d}</span>` : `<span class="vac-day-num">${d}</span>`;
     const todayBar = isToday ? '<div class="vac-today-bar"></div>' : '';
-    cells += `<div class="${cls}"${clickAttr}>${numSpan}${todayBar}</div>`;
+    // 모든 날짜 클릭 시 해당 날짜로 등록 팝업 열기
+    cells += `<div class="${cls}" style="cursor:pointer;" onclick="showVacationModal('${no}','${dateStr}')">${numSpan}${todayBar}</div>`;
   }
 
   cal.innerHTML = `
@@ -702,12 +708,12 @@ function deleteVacUsage(empNo, idx) {
   renderVacationDetail();
 }
 
-function showVacationModal(empNo) {
+function showVacationModal(empNo, prefillDate) {
   _vacModalEmpNo = empNo;
   const jp  = LANG === 'JP';
   const today = jstToday();
   const dateEl = document.getElementById('vac-modal-date');
-  if (dateEl) dateEl.value = today;
+  if (dateEl) dateEl.value = prefillDate || today;
   const r1 = document.getElementById('vac-modal-r1');
   if (r1) r1.checked = true;
   const reasonEl = document.getElementById('vac-modal-reason');
