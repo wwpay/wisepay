@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 12:33 — 소멸 예정 계산 prevYearEndRemaining(전년말 잔여 스냅샷)으로 수정
+// 수정: 2026-06-09 14:50 — 버그수정: 소멸 예정 → map[올해-1] 기반 실시간 계산, 휴가 등록 후 카드 항상 갱신
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -161,8 +161,9 @@ function calcVacationSummary(empNo) {
   // 남은 연차
   const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
 
-  // 소멸 예정 = 전년도 12/31 시점 잔여 스냅샷 (그 잔여분이 내년 1/1에 소멸)
-  const expiringNextYear = parseFloat(prevYearEndRemaining.toFixed(1));
+  // 소멸 예정 = grant_year(올해-1)의 잔여일 (FIFO 차감 후 실시간 반영)
+  const expGYData = map[thisYear - 1] || { granted: 0, used: 0 };
+  const expiringNextYear = parseFloat(Math.max(0, expGYData.granted - expGYData.used).toFixed(1));
 
   // 3개월 이내 소멸 예정 (grant_year 기반, 유효기간 grant_year+1년 12/31)
   let expiringInfo = null;
@@ -722,7 +723,7 @@ function saveVacationUsage() {
   addVacationUsage(_vacModalEmpNo, date, used, reason);
   closeVacationModal();
   if (_vacTab === 'detail' && _vacDetailEmpNo === _vacModalEmpNo) renderVacationDetail();
-  else renderVacationCards();
+  renderVacationCards(); // 항상 카드 갱신 (숨겨진 카드도 최신화)
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
 }
 
