@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 18:24 — calcVacationSummary 코드 규칙 기반 재작성(FIFO), 발생 기록 localStorage 제거, GAS 전송 필터, saveVacationUsage rAF 수정
+// 수정: 2026-06-10 00:11 — _purgeGrantRecords() 완전 제거 (GAS 시트의 used=0 발생 기록 보존)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -157,27 +157,6 @@ function _migrateVacationRemaining() {
     if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
   }
   localStorage.setItem('vacMigrated', 'v2');
-}
-
-// 발생 기록(used === 0)을 vacationData·localStorage·GAS 시트에서 제거 (1회 마이그레이션)
-// calcVacationSummary がコード規則ベースに移行したため発生記録は不要
-function _purgeGrantRecords() {
-  if (localStorage.getItem('vacGrantsPurged') === '1') return;
-  const LS_KEY = typeof LS !== 'undefined' ? LS.vacation : 'kyuyo_vacation';
-  let changed = false;
-  Object.keys(vacationData).forEach(empNo => {
-    const original = vacationData[empNo] || [];
-    const purged   = original.filter(r => (r.used || 0) > 0);
-    if (purged.length !== original.length) {
-      vacationData[empNo] = purged;
-      changed = true;
-    }
-  });
-  if (changed) {
-    localStorage.setItem(LS_KEY, JSON.stringify(vacationData));
-    if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
-  }
-  localStorage.setItem('vacGrantsPurged', '1');
 }
 
 // 사원의 현재 유급휴가 현황 계산
@@ -451,7 +430,6 @@ function vacSelectNone() {
 function renderVacationPage() {
   _normalizeVacationKeys();
   _migrateVacationRemaining();
-  _purgeGrantRecords(); // 발생 기록(used=0) 1회 제거
   if (_vacTab === 'detail') {
     renderVacationDetail();
     return;
