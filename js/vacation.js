@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 16:11 — 미래 날짜 등록 시 통계 반영 (usedSinceJan1 당년 12/31까지), 등록하기 버튼·사유 자동포커스
+// 수정: 2026-06-09 16:11 — 이미 등록된 날짜 클릭 시 모달 차단(toast), 버튼 기본 날짜 중복 자동 클리어, 등록하기·사유 포커스
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -152,11 +152,10 @@ function calcVacationSummary(empNo) {
     jan1Remaining = parseFloat((prevYearEndRemaining + jan1Grants).toFixed(1));
   }
 
-  // 올해 1월 1일 이후 당해 12월 31일까지 사용 (미래 예약 포함)
-  const yearEndStr = `${thisYear}-12-31`;
+  // 올해 1월 1일 이후 오늘까지 사용 (미래 예약일 제외)
   let usedSinceJan1 = 0;
   records.forEach(r => {
-    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= yearEndStr) {
+    if (r.used > 0 && r.date && r.date >= jan1Str && r.date <= today) {
       usedSinceJan1 += r.used;
     }
   });
@@ -713,8 +712,23 @@ function showVacationModal(empNo, prefillDate) {
   _vacModalEmpNo = empNo;
   const jp  = LANG === 'JP';
   const today = jstToday();
+  const key = _vacKey(empNo);
   const dateEl = document.getElementById('vac-modal-date');
-  if (dateEl) dateEl.value = prefillDate || today;
+
+  if (prefillDate) {
+    // 캘린더 날짜 클릭: 이미 등록된 날짜면 모달 열지 않고 toast
+    const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === prefillDate);
+    if (dup) {
+      showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
+      return;
+    }
+    if (dateEl) dateEl.value = prefillDate;
+  } else {
+    // 버튼 클릭: 오늘 날짜가 이미 등록돼 있으면 날짜 비움 (재등록 유도)
+    const todayDup = (vacationData[key] || []).find(r => r.used > 0 && r.date === today);
+    if (dateEl) dateEl.value = todayDup ? '' : today;
+  }
+
   const r1 = document.getElementById('vac-modal-r1');
   if (r1) r1.checked = true;
   const reasonEl = document.getElementById('vac-modal-reason');

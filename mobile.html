@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-09 16:11 — 미래 날짜 등록 시 올해 사용 즉시 반영, 등록하기 버튼·사유 자동포커스
+  수정: 2026-06-09 16:11 — 이미 등록된 날짜 클릭 시 모달 차단(toast), 버튼 기본 날짜 중복 자동 클리어
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1204,9 +1204,23 @@ function mRenderVacation() {
 
 function mOpenVacModal(empNo, prefillDate) {
   _mVacModalEmpNo = empNo;
+  const jp = LANG === 'JP';
   const today = jstToday();
+  const key = typeof _vacKey === 'function' ? _vacKey(empNo) : String(empNo).padStart(4, '0');
   const dateEl = document.getElementById('m-vac-date');
-  if (dateEl) dateEl.value = prefillDate || today;
+
+  if (prefillDate) {
+    const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === prefillDate);
+    if (dup) {
+      showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
+      return;
+    }
+    if (dateEl) dateEl.value = prefillDate;
+  } else {
+    const todayDup = (vacationData[key] || []).find(r => r.used > 0 && r.date === today);
+    if (dateEl) dateEl.value = todayDup ? '' : today;
+  }
+
   const r1 = document.getElementById('m-vac-r1');
   if (r1) r1.checked = true;
   const reasonEl = document.getElementById('m-vac-reason');
