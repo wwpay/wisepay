@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-09 09:14 — mRenderVacation: expiringNextYear 적용, 4행 레이블 소멸 예정(이월)으로 변경
+  수정: 2026-06-09 12:21 — mRenderVacation: 4행 레이블 YYYY년 1월 1일 소멸 예정으로 변경
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1183,7 +1183,7 @@ function mRenderVacation() {
           <span style="font-size:14px;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div style="${lastRowStyle}margin-bottom:8px;">
-          <span style="font-size:11px;color:var(--text2);">${jp ? '失効予定（繰越）' : '소멸 예정 (이월)'}</span>
+          <span style="font-size:11px;color:var(--text2);">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
           <span style="font-size:14px;${expCls}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
         </div>
         <div style="display:flex;justify-content:flex-end;">

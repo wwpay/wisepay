@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 09:14 — remaining 필드 스냅샷 방식 도입 + 마이그레이션 함수 추가
+// 수정: 2026-06-09 12:21 — 소멸 예정 grant_year(올해-1) 기반으로 수정, FIFO 유효 범위 fix, 마이그레이션 v2
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -94,22 +94,22 @@ function _rebuildRemainingForEmp(empNo) {
   });
 }
 
-// remaining 없는 기존 레코드를 일괄 보정 (앱 첫 진입 시 1회)
+// 기존 레코드 remaining 일괄 재계산 (플래그 v2 미만이면 재실행)
 function _migrateVacationRemaining() {
   const LS_KEY = typeof LS !== 'undefined' ? LS.vacation : 'kyuyo_vacation';
-  if (localStorage.getItem('vacMigrated') === 'true') return;
+  if (localStorage.getItem('vacMigrated') === 'v2') return;
   let changed = false;
   Object.keys(vacationData).forEach(empNo => {
     const records = vacationData[empNo];
-    if (!records || !records.length || records.every(r => r.remaining != null)) return;
-    _rebuildRemainingForEmp(empNo);
+    if (!records || !records.length) return;
+    _rebuildRemainingForEmp(empNo); // 전체 재계산 (FIFO 수정 반영)
     changed = true;
   });
   if (changed) {
     localStorage.setItem(LS_KEY, JSON.stringify(vacationData));
     if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
   }
-  localStorage.setItem('vacMigrated', 'true');
+  localStorage.setItem('vacMigrated', 'v2');
 }
 
 // 사원의 현재 유급휴가 현황 계산 (하이브리드: remaining 스냅샷 우선, 없으면 전체 재계산)
@@ -161,15 +161,17 @@ function calcVacationSummary(empNo) {
   // 남은 연차
   const remaining = parseFloat(Math.max(0, jan1Remaining - usedSinceJan1).toFixed(1));
 
-  // 소멸 예정 = 전년도 말 잔여 (이월된 구잔여, 올해 말 소멸)
-  const expiringNextYear = parseFloat(prevYearEndRemaining.toFixed(1));
+  // 소멸 예정 = grant_year(올해-1) 잔여 (내년 1월 1일 소멸)
+  const expGYData = map[thisYear - 1] || { granted: 0, used: 0 };
+  const expiringNextYear = parseFloat(Math.max(0, expGYData.granted - expGYData.used).toFixed(1));
 
-  // 3개월 이내 소멸 예정 (grant_year 기반)
+  // 3개월 이내 소멸 예정 (grant_year 기반, 유효기간 grant_year+1년 12/31)
   let expiringInfo = null;
   Object.keys(map).forEach(gy => {
     const gyNum = parseInt(gy);
+    if (gyNum < thisYear - 1) return; // 소멸된 grant_year 제외
     const { granted, used } = map[gyNum];
-    const expireDate = (gyNum + 2) + '-12-31';
+    const expireDate = (gyNum + 1) + '-12-31';
     if (expireDate < today) return;
     const rem = Math.max(0, granted - used);
     if (rem > 0) {
@@ -193,21 +195,23 @@ function calcVacationSummary(empNo) {
   };
 }
 
-// 사용 시 차감할 grant_year 자동 결정 (오래된 것부터)
+// 사용 시 차감할 grant_year 자동 결정 (오래된 것부터, FIFO)
+// 유효 범위: grant_year >= 올해-1 (2년 전 이전은 소멸)
 function _resolveGrantYear(empNo) {
   const today = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
   const map = _buildGrantMap(empNo);
 
   const sortedYears = Object.keys(map)
     .map(gy => parseInt(gy))
-    .filter(gyNum => (gyNum + 2) + '-12-31' >= today)
+    .filter(gyNum => gyNum >= thisYear - 1)
     .sort((a, b) => a - b);
 
   for (const gyNum of sortedYears) {
     const { granted, used } = map[gyNum];
     if (granted - used > 0) return gyNum;
   }
-  return new Date().getFullYear(); // fallback
+  return thisYear; // fallback
 }
 
 // 유급휴가 사용 추가
@@ -427,7 +431,7 @@ function renderVacationCards() {
           <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '失効予定（繰越）' : '소멸 예정 (이월)'}</span>
+          <span class="vac-card-row-label">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
           <span class="vac-card-row-val ${expClass}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-foot">
