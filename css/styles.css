@@ -1,4 +1,4 @@
-/* 수정: 2026-06-09 07:29 — .vac-list-badge.half 반차 배지 색상 노란→녹색(#BBF7D0/#166534)으로 변경 */
+/* 수정: 2026-06-09 15:18 — 유급휴가 상세 헤더 4개 항목 가로 나열 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -361,6 +361,12 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-stat-label{font-size:10px;color:var(--text3);margin-bottom:2px;}
 .vac-stat-val{font-size:16px;font-weight:700;}
 .vac-stat-val.red{color:var(--red);}
+.vac-detail-stats{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.vac-detail-stat{padding:4px 12px;border-right:0.5px solid var(--border2);}
+.vac-detail-stat:first-child{padding-left:0;}
+.vac-detail-stat:last-child{border-right:none;}
+.vac-detail-stat-label{font-size:11px;color:var(--text3);line-height:1.3;margin-bottom:4px;}
+.vac-detail-stat-val{font-size:20px;font-weight:500;}
 .vac-expiry-warn{font-size:11px;color:var(--orange);background:var(--orange2);border:1px solid #fde68a;border-radius:var(--r2);padding:5px 9px;margin-bottom:9px;}
 .vac-detail-layout{display:flex;gap:16px;align-items:flex-start;}
 .vac-list-panel{flex:1;min-width:0;}

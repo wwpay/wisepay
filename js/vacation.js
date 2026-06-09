@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 14:50 — 버그수정: 소멸 예정 → map[올해-1] 기반 실시간 계산, 휴가 등록 후 카드 항상 갱신
+// 수정: 2026-06-09 15:18 — 상세 헤더 4개 항목 가로 나열(jan1Remaining/usedSinceJan1/remaining/expiringNextYear)
 'use strict';
 
 // 입사월 → 초기 발생일수
@@ -476,22 +476,37 @@ function renderVacationDetail() {
 
   const headEl = document.getElementById('vacDetailHead');
   if (headEl) {
-    const remClass = sum.remaining <= 5.0 ? 'color:var(--red)' : '';
+    const todayStr = jstToday();
+    const thisYear = parseInt(todayStr.substring(0, 4));
+    const unitStr  = jp ? '日' : '일';
+    const remStyle = sum.remaining       <= 5.0 ? 'color:var(--red)' : '';
+    const expStyle = sum.expiringNextYear >  0   ? 'color:var(--red)' : '';
+    const jan1Lbl  = jp ? `${thisYear}年1月1日<br>時点残日数`       : `${thisYear}년 1월 1일<br>기준 잔여`;
+    const usedLbl  = jp ? `現在までの<br>使用`                      : `현재까지<br>사용`;
+    const remLbl   = jp ? `残<br>年次`                              : `남은<br>연차`;
+    const expLbl   = jp ? `${thisYear+1}年1月1日<br>消滅予定`       : `${thisYear+1}년 1월 1일<br>소멸 예정`;
     headEl.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <div style="font-size:15px;font-weight:700;">${emp.name}
-          ${emp.kana ? `<span style="font-size:12px;color:var(--text3);margin-left:5px;font-weight:400;">（${emp.kana}）</span>` : ''}
-          <span style="font-size:12px;color:var(--text3);margin-left:5px;">No.${no}</span>
-        </div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:700;">${emp.name}</span>
+        ${emp.kana ? `<span style="font-size:12px;color:var(--text3);font-weight:400;">（${emp.kana}）</span>` : ''}
+        <span style="font-size:12px;color:var(--text3);">No.${no}</span>
       </div>
-      <div class="vac-stats-row" style="max-width:240px;margin-bottom:10px;">
-        <div class="vac-stat">
-          <div class="vac-stat-label">${jp ? '使用合計' : '총 사용'}</div>
-          <div class="vac-stat-val">${sum.totalUsed.toFixed(1)}</div>
+      <div class="vac-detail-stats">
+        <div class="vac-detail-stat">
+          <div class="vac-detail-stat-label">${jan1Lbl}</div>
+          <div class="vac-detail-stat-val">${sum.jan1Remaining.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
         </div>
-        <div class="vac-stat">
-          <div class="vac-stat-label">${jp ? '残日数' : '잔여'}</div>
-          <div class="vac-stat-val" style="${remClass}">${sum.remaining.toFixed(1)}</div>
+        <div class="vac-detail-stat">
+          <div class="vac-detail-stat-label">${usedLbl}</div>
+          <div class="vac-detail-stat-val">${sum.usedSinceJan1.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
+        </div>
+        <div class="vac-detail-stat">
+          <div class="vac-detail-stat-label">${remLbl}</div>
+          <div class="vac-detail-stat-val" style="${remStyle}">${sum.remaining.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
+        </div>
+        <div class="vac-detail-stat">
+          <div class="vac-detail-stat-label">${expLbl}</div>
+          <div class="vac-detail-stat-val" style="${expStyle}">${sum.expiringNextYear.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
         </div>
       </div>
       ${sum.expiringInfo ? `<div class="vac-expiry-warn">⚠️ ${sum.expiringInfo.days}${jp?'日':'일'} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効予定':'개월 이내 소멸 예정'} (${sum.expiringInfo.expireDate})</div>` : ''}`;
