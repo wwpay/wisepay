@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-08 09:35 — SHEET_VACATION 상수 추가 + 유급휴가 CRUD 함수 및 doGet/doPost 케이스 추가
+// 수정: 2026-06-09 16:11 — sortVacationSheet() 추가 (1회 수동 실행: emp_no→date 순 정렬)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -1054,4 +1054,49 @@ function createAnnualVacationTrigger() {
     .atHour(9)
     .create();
   Logger.log('✅ 매월 1일 오전 9시 유급휴가 트리거 설정 완료 (1월에만 실제 발생)');
+}
+
+// ── 유급휴가 시트 1회 재정렬 (GAS 편집기에서 수동 실행) ──────────────
+// emp_no 오름차순 → 같은 emp_no 내에서 date 오름차순으로 정렬. 헤더 행 유지.
+function sortVacationSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_VACATION);
+  if (!sheet) { Logger.log('❌ 유급휴가 시트 없음'); return; }
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) { Logger.log('정렬할 데이터 없음'); return; }
+
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var noCol   = headers.indexOf('emp_no');
+  var dateCol = headers.indexOf('date');
+  if (noCol < 0 || dateCol < 0) {
+    Logger.log('❌ emp_no 또는 date 컬럼을 찾을 수 없음. 헤더: ' + headers.join(', '));
+    return;
+  }
+
+  // 데이터 행만 추출 (헤더 제외)
+  var dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
+  var data = dataRange.getValues();
+
+  // date 셀이 Date 객체인 경우 문자열로 변환 후 정렬
+  data.sort(function(a, b) {
+    var noA = String(a[noCol] || '').trim();
+    var noB = String(b[noCol] || '').trim();
+    if (noA < noB) return -1;
+    if (noA > noB) return  1;
+    // emp_no 동일: date 비교
+    var dA = a[dateCol] instanceof Date
+      ? Utilities.formatDate(a[dateCol], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(a[dateCol] || '').trim();
+    var dB = b[dateCol] instanceof Date
+      ? Utilities.formatDate(b[dateCol], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(b[dateCol] || '').trim();
+    if (dA < dB) return -1;
+    if (dA > dB) return  1;
+    return 0;
+  });
+
+  dataRange.setValues(data);
+  Logger.log('✅ 유급휴가 시트 정렬 완료: ' + (lastRow - 1) + '행 처리');
 }

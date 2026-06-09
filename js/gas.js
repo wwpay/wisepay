@@ -1,4 +1,4 @@
-// 수정: 2026-06-09 15:45 — fetchVacationData: _vacDirtyVersion 가드로 로컬 변경분 보호
+// 수정: 2026-06-09 16:11 — saveVacationToGas: emp_no→date 오름차순 정렬 후 전송
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -660,11 +660,13 @@ async function fetchVacationData() {
 }
 
 // 유급휴가 데이터 전체를 GAS에 저장 (fire-and-forget)
+// emp_no 오름차순 → date 오름차순으로 정렬 후 전송해 시트 순서를 항상 유지
 async function saveVacationToGas(vData) {
   if (!gasUrl) return;
   const flat = [];
-  Object.keys(vData || {}).forEach(empNo => {
-    (vData[empNo] || []).forEach(r => {
+  Object.keys(vData || {}).sort().forEach(empNo => {
+    const sorted = (vData[empNo] || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    sorted.forEach(r => {
       flat.push({ emp_no: empNo, ...r });
     });
   });
