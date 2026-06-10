@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 12:37 — calcVacationSummary 발생 cutoff를 today로 복원 — 미래 발생 기록 과다 포함 버그 수정
+// 수정: 2026-06-10 13:32 — calcVacationSummary remaining 음수 허용 + 카드·상세 색상 조건 분리(음수=빨강, 0~5=주황)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -192,7 +192,7 @@ function calcVacationSummary(empNo) {
   const TG_valid_today = _grants(today, thisYear - 1);
   const TG_exp_today   = TG_all_today - TG_valid_today;
   const remaining      = parseFloat(
-    Math.max(0, TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
+    (TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
 
   // 내년 1/1 소멸 예정 (prevYear 그랜트 잔여 - 올해 사용)
   const expiringNextYear = parseFloat(Math.max(0, prevYearEndRemaining - usedSinceJan1).toFixed(1));
@@ -441,7 +441,7 @@ function renderVacationCards() {
     }
     const sum = calcVacationSummary(no);
     const unitStr = jp ? '日' : '일';
-    const remClass  = sum.remaining        <= 5.0 ? 'red' : '';
+    const remStyle  = sum.remaining < 0 ? 'color:var(--red)' : sum.remaining <= 5.0 ? 'color:var(--orange,#e67e22)' : '';
     const expClass  = sum.expiringNextYear  > 0   ? 'red' : '';
     const jan1Label = jp ? `${thisYear}年1月1日時点残日数` : `${thisYear}년 1월 1일 기준 잔여`;
     return `<div class="vac-card">
@@ -460,7 +460,7 @@ function renderVacationCards() {
         </div>
         <div class="vac-card-row">
           <span class="vac-card-row-label">${jp ? '残年次' : '남은 연차'}</span>
-          <span class="vac-card-row-val ${remClass}">${sum.remaining.toFixed(1)}${unitStr}</span>
+          <span class="vac-card-row-val" style="${remStyle}">${sum.remaining.toFixed(1)}${unitStr}</span>
         </div>
         <div class="vac-card-row">
           <span class="vac-card-row-label">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
@@ -511,7 +511,7 @@ function renderVacationDetail() {
     const todayStr = jstToday();
     const thisYear = parseInt(todayStr.substring(0, 4));
     const unitStr  = jp ? '日' : '일';
-    const remStyle = sum.remaining       <= 5.0 ? 'color:var(--red)' : '';
+    const remStyle = sum.remaining < 0 ? 'color:var(--red)' : sum.remaining <= 5.0 ? 'color:var(--orange,#e67e22)' : '';
     const expStyle = sum.expiringNextYear >  0   ? 'color:var(--red)' : '';
     const jan1Lbl  = jp ? `${thisYear}年1月1日<br>時点残日数`       : `${thisYear}년 1월 1일<br>기준 잔여`;
     const usedLbl  = jp ? `今年<br>使用`                             : `올해<br>사용`;
