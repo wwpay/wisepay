@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 17:28 — mSaveVacUsage 중복 날짜 체크 추가 + saveVacationToGas 명시적 호출
+  수정: 2026-06-10 17:56 — mSaveVacUsage _running 가드 추가(중복 호출 방지) + 모달 닫힘 확인
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1236,15 +1236,23 @@ function mCloseVacModal() {
 }
 
 function mSaveVacUsage() {
+  if (mSaveVacUsage._running) return;
+  mSaveVacUsage._running = true;
+
   const jp   = LANG === 'JP';
   const date = document.getElementById('m-vac-date')?.value || '';
-  if (!date) { showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e'); return; }
+  if (!date) {
+    showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e');
+    mSaveVacUsage._running = false;
+    return;
+  }
 
   // 중복 날짜 체크
   const key = String(_mVacModalEmpNo).padStart(4, '0');
   const dup = (vacationData[key] || []).find(r => parseFloat(r.used) > 0 && r.date === date);
   if (dup) {
     showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
+    mSaveVacUsage._running = false;
     return;
   }
 
@@ -1255,12 +1263,14 @@ function mSaveVacUsage() {
     addVacationUsage(_mVacModalEmpNo, date, used, reason);
   } catch(e) {
     showToast(jp ? 'エラーが発生しました' : '오류가 발생했습니다', 'e');
+    mSaveVacUsage._running = false;
     return;
   }
   if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
   mCloseVacModal();
   mRenderVacation();
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
+  mSaveVacUsage._running = false;
 }
 
 // mobile 전용 stub: saveVacationToGas는 gas.js 없으므로 fire-and-forget POST 직접 구현
