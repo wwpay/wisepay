@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 13:32 — calcVacationSummary remaining 음수 허용 + 카드·상세 색상 조건 분리(음수=빨강, 0~5=주황)
+// 수정: 2026-06-10 13:49 — _renderVacNavBar 유급 사용 달 월 탭 배경색 표시
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -677,9 +677,18 @@ function _renderVacNavBar() {
   const year  = _vacDetailYear;
   const month = _vacDetailMonth;
   const u = jp ? '月' : '월';
+  const records = vacationData[_vacDetailEmpNo] || [];
+  const usedMonths = new Set(
+    records
+      .filter(r => r.date && r.date.startsWith(`${year}-`) && parseFloat(r.used) > 0)
+      .map(r => parseInt(r.date.substring(5, 7)))
+  );
   const monthTabs = Array.from({length:12},(_,i)=>{
     const m = i+1;
-    return `<button class="month-tab${m===month?' active':''}" onclick="vacSetMonth(${m})">${m}${u}</button>`;
+    const isActive = m === month;
+    const hasUsage = usedMonths.has(m);
+    const style = !isActive && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
+    return `<button class="month-tab${isActive?' active':''}"${style} onclick="vacSetMonth(${m})">${m}${u}</button>`;
   }).join('');
   bar.innerHTML = `
     <div class="month-nav">
