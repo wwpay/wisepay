@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 21:59 — mobile.html: 유급휴가 상세 화면 추가 (상세 내역 버튼, 월간/연간 리스트, 하단 네비바, 월 선택 바텀시트)
+  수정: 2026-06-10 22:07 — PC 사원 선택 버튼 좌측 정렬 통일 (annual/vacation/history 컨테이너에 padding-left:13px 추가 → payroll month-nav 기준에 맞춤)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -269,7 +269,7 @@
 
 <!-- ══ PAGE: ANNUAL ══ -->
 <div class="page" id="page-annual">
-  <div class="no-print" style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+  <div class="no-print" style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;gap:10px;flex-wrap:wrap;padding-left:13px;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <!-- 인라인 드롭다운 사원 선택 -->
       <div style="position:relative;" id="annualEmpDropWrap">
@@ -317,7 +317,7 @@
 <div class="page" id="page-vacation">
   <!-- 메인 뷰 -->
   <div id="vacMainArea">
-    <div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;padding-left:13px;">
       <div style="position:relative;" id="vacEmpDropWrap">
         <button class="btn emp-sel-btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -360,7 +360,7 @@
 
 <!-- ══ PAGE: HISTORY ══ -->
 <div class="page" id="page-history">
-  <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;">
+  <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;padding-left:13px;">
     <div style="display:flex;gap:7px;">
       <select id="histEmpSel" class="emp-sel-btn" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:4px 7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
       <select id="histYearSel" onchange="renderHistory()" style="border:1px solid var(--border);border-radius:var(--r2);padding:4px 7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);">
