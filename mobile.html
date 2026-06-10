@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 21:59 — 유급휴가 상세 화면 추가 (상세 내역 버튼, 월간/연간 리스트, 하단 네비바, 월 선택 바텀시트)
+  수정: 2026-06-10 23:34 — 급여명세/임금대장/유급휴가 연도 이동 시 데이터 없는 연도 방지 가드 추가 (mChangeYear, mAnnualYear, mVacDetailYearNav)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -840,9 +840,35 @@ function mPickEmp(idx) {
   mCloseEmpPicker();
 }
 
+/* ── 연도별 데이터 존재 체크 ── */
+function mHasPayrollDataForYear(year) {
+  if (mViewerPayrolls !== null) {
+    return mViewerPayrolls.some(p => Number(p.year) === year);
+  }
+  return employees.some(emp => {
+    const no = String(emp.no).padStart(4, '0');
+    for (let m = 1; m <= 12; m++) {
+      if (localStorage.getItem(`kyuyo_p_${no}_${year}_${m}`)) return true;
+    }
+    return false;
+  });
+}
+
+function mHasVacDataForYear(year) {
+  return Object.values(vacationData).some(records =>
+    Array.isArray(records) && records.some(r => r.date && r.date.startsWith(String(year)))
+  );
+}
+
 /* ── 월/년 선택 ── */
 function mChangeYear(d) {
-  mY += d; mM = d < 0 ? 12 : 1;
+  const nextY = mY + d;
+  if (d < 0 && !mHasPayrollDataForYear(nextY)) {
+    const jp = LANG === 'JP';
+    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    return;
+  }
+  mY = nextY; mM = d < 0 ? 12 : 1;
   localStorage.setItem(M_YEAR_K, mY); localStorage.setItem(M_MON_K, mM);
   mRenderMonthSel(); mRenderPayroll();
 }
@@ -1034,7 +1060,13 @@ function mRenderPayroll() {
 
 /* ── 임금대장 ── */
 function mAnnualYear(d) {
-  mAY += d; localStorage.setItem(M_AY_K, mAY);
+  const nextY = mAY + d;
+  if (d < 0 && !mHasPayrollDataForYear(nextY)) {
+    const jp = LANG === 'JP';
+    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    return;
+  }
+  mAY = nextY; localStorage.setItem(M_AY_K, mAY);
   document.getElementById('m-annual-year-txt').textContent = mAY + (LANG==='JP'?'年':'년');
   mRenderAnnual();
 }
@@ -1332,7 +1364,13 @@ function mCloseVacDetail() {
 }
 
 function mVacDetailYearNav(d) {
-  mVacDetailYear += d;
+  const nextY = mVacDetailYear + d;
+  if (d < 0 && !mHasVacDataForYear(nextY)) {
+    const jp = LANG === 'JP';
+    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    return;
+  }
+  mVacDetailYear = nextY;
   mRenderVacDetail();
 }
 
