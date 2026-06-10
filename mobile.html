@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 17:14 — mRenderVacation() 미적용 사원(vacationApplied===false) 카드 숨김 처리
+  수정: 2026-06-10 17:28 — mSaveVacUsage 중복 날짜 체크 추가 + saveVacationToGas 명시적 호출
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1239,6 +1239,15 @@ function mSaveVacUsage() {
   const jp   = LANG === 'JP';
   const date = document.getElementById('m-vac-date')?.value || '';
   if (!date) { showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e'); return; }
+
+  // 중복 날짜 체크
+  const key = String(_mVacModalEmpNo).padStart(4, '0');
+  const dup = (vacationData[key] || []).find(r => parseFloat(r.used) > 0 && r.date === date);
+  if (dup) {
+    showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
+    return;
+  }
+
   const r1   = document.getElementById('m-vac-r1');
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const reason = (document.getElementById('m-vac-reason')?.value || '').slice(0, 50);
@@ -1248,6 +1257,7 @@ function mSaveVacUsage() {
     showToast(jp ? 'エラーが発生しました' : '오류가 발생했습니다', 'e');
     return;
   }
+  if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
   mCloseVacModal();
   mRenderVacation();
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
