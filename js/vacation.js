@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 11:12 — calcVacationSummary remaining·usedSinceJan1 cutoff를 FAR_FUTURE로 변경 — 미래 날짜 사용 기록 반영
+// 수정: 2026-06-10 12:37 — calcVacationSummary 발생 cutoff를 today로 복원 — 미래 발생 기록 과다 포함 버그 수정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -186,10 +186,10 @@ function calcVacationSummary(empNo) {
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 잔여 — FIFO (미래 등록 사용분 포함)
+  // 잔여 — FIFO (발생은 오늘까지, 사용은 미래 예정 포함)
   const TU_total       = _usedUpTo('9999-12-31');
-  const TG_all_today   = _grants('9999-12-31', -Infinity);
-  const TG_valid_today = _grants('9999-12-31', thisYear - 1);
+  const TG_all_today   = _grants(today, -Infinity);
+  const TG_valid_today = _grants(today, thisYear - 1);
   const TG_exp_today   = TG_all_today - TG_valid_today;
   const remaining      = parseFloat(
     Math.max(0, TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
