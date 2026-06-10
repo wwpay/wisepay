@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-09 16:11 — 이미 등록된 날짜 클릭 시 모달 차단(toast), 버튼 기본 날짜 중복 자동 클리어
+  수정: 2026-06-10 17:14 — mRenderVacation() 미적용 사원(vacationApplied===false) 카드 숨김 처리
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1139,7 +1139,7 @@ function mRenderVacation() {
   const out = document.getElementById('m-vac-out');
   if (!out) return;
 
-  const activeEmps = employees.filter(e => e && e.no != null && !e.leave);
+  const activeEmps = employees.filter(e => e && e.no != null && !e.leave && e.vacationApplied !== false);
   if (!activeEmps.length) {
     out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🌴</div>${jp ? '従業員が登録されていません' : '사원이 없습니다'}</div>`;
     return;
