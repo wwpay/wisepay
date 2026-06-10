@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 17:56 — mSaveVacUsage _running 가드 추가(중복 호출 방지) + 모달 닫힘 확인
+  수정: 2026-06-10 18:03 — mSaveVacUsage 명시적 saveVacationToGas 중복 호출 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1266,7 +1266,6 @@ function mSaveVacUsage() {
     mSaveVacUsage._running = false;
     return;
   }
-  if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
   mCloseVacModal();
   mRenderVacation();
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
