@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 18:09 — gas.js 로드 추가 + 인라인 saveVacationToGas stub 제거
+  수정: 2026-06-10 21:59 — 유급휴가 상세 화면 추가 (상세 내역 버튼, 월간/연간 리스트, 하단 네비바, 월 선택 바텀시트)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -215,6 +215,29 @@
 .m-vac-expiry { font-size:11px;color:var(--orange);background:var(--orange2);border:1px solid #fde68a;border-radius:6px;padding:5px 9px;margin-bottom:9px; }
 .m-vac-modal-ov { display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.45);align-items:flex-end; }
 .m-vac-modal-sheet { background:var(--surface);border-radius:14px 14px 0 0;width:100%;padding:18px 16px 32px; }
+
+/* Vacation detail */
+.m-vac-detail-bar {
+  position:fixed;
+  bottom:calc(56px + env(safe-area-inset-bottom,0px));
+  left:0;right:0;z-index:90;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:8px 10px;display:flex;align-items:center;gap:5px;
+}
+.m-vac-detail-bar.hidden { display:none; }
+.m-vac-dbar-btn {
+  min-height:36px;padding:0 10px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--text2);font-size:12px;
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;
+}
+.m-vac-dbar-btn:active { background:var(--bg); }
+.m-vac-detail-row {
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border:1px solid var(--border);
+  border-radius:8px;margin-bottom:6px;background:var(--surface);
+}
 </style>
 </head>
 <body>
@@ -312,6 +335,7 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     <!-- ── 유급휴가 ── -->
     <div class="m-page" id="m-page-vacation">
       <div id="m-vac-out"></div>
+      <div id="m-vac-detail" style="display:none;"></div>
     </div>
 
   </div><!-- /m-content -->
@@ -645,6 +669,12 @@ let mAY        = new Date().getFullYear();
 let _mPickerPage = 'payroll';
 let mTab = 'payroll';
 
+/* 유급휴가 상세 상태 */
+let mVacDetailEmpNo  = null;
+let mVacDetailYear   = new Date().getFullYear();
+let mVacDetailMonth  = new Date().getMonth() + 1;
+let mVacListMode     = 'month';
+
 /* ── 초기화 ── */
 function mInitApp() {
   try { const s = localStorage.getItem(LS.emp); if (s) {
@@ -719,6 +749,7 @@ function mToggleLang() {
   mRenderAnnual();
   mRenderEmpList();
   mRenderVacation();
+  if (mVacDetailEmpNo && document.getElementById('m-vac-detail')?.style.display !== 'none') mRenderVacDetail();
   showToast(LANG === 'JP' ? '日本語に切り替えました' : '한국어로 전환했습니다', 's');
 }
 
@@ -738,7 +769,13 @@ function mGotoTab(id, el) {
   if (sbA) sbA.classList.toggle('hidden', id !== 'annual');
   if (id === 'employees') { mShowEmpList(); mRenderEmpList(); }
   if (id === 'annual')    mRenderAnnual();
-  if (id === 'vacation')  mRenderVacation();
+  if (id === 'vacation') {
+    document.getElementById('m-vac-detail').style.display = 'none';
+    document.getElementById('m-vac-out').style.display = '';
+    mRenderVacation();
+  }
+  const vdb = document.getElementById('m-vac-detail-bar');
+  if (vdb) vdb.classList.add('hidden');
 }
 
 /* ── 사원 셀렉터 (급여 명세 / 임금대장 공통) ── */
@@ -1192,9 +1229,13 @@ function mRenderVacation() {
           <span style="font-size:11px;color:var(--text2);">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
           <span style="font-size:14px;${expCls}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
         </div>
-        <div style="display:flex;justify-content:flex-end;">
+        <div style="display:flex;gap:8px;">
+          <button onclick="mOpenVacDetail('${no}')"
+            style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">
+            ${jp ? '詳細内訳' : '상세 내역'}
+          </button>
           <button onclick="mOpenVacModal('${no}')"
-            style="padding:10px 22px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;">
+            style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:8px;background:var(--accent2);color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;">
             ${jp ? '休暇登録' : '휴가 등록'}
           </button>
         </div>
@@ -1273,6 +1314,150 @@ function mSaveVacUsage() {
   mSaveVacUsage._running = false;
 }
 
+/* ── 유급휴가 상세 ── */
+function mOpenVacDetail(empNo) {
+  mVacDetailEmpNo = empNo;
+  document.getElementById('m-vac-out').style.display = 'none';
+  document.getElementById('m-vac-detail').style.display = 'block';
+  const bar = document.getElementById('m-vac-detail-bar');
+  if (bar) bar.classList.remove('hidden');
+  mRenderVacDetail();
+}
+
+function mCloseVacDetail() {
+  document.getElementById('m-vac-detail').style.display = 'none';
+  document.getElementById('m-vac-out').style.display = '';
+  const bar = document.getElementById('m-vac-detail-bar');
+  if (bar) bar.classList.add('hidden');
+}
+
+function mVacDetailYearNav(d) {
+  mVacDetailYear += d;
+  mRenderVacDetail();
+}
+
+function mToggleVacListMode() {
+  mVacListMode = mVacListMode === 'month' ? 'year' : 'month';
+  mRenderVacDetail();
+}
+
+function mVacGotoThisMonth() {
+  const today = jstToday();
+  mVacDetailYear  = parseInt(today.substring(0, 4));
+  mVacDetailMonth = parseInt(today.substring(5, 7));
+  mVacListMode = 'month';
+  mRenderVacDetail();
+}
+
+function mOpenVacMonthPicker() {
+  const jp = LANG === 'JP';
+  const ov   = document.getElementById('m-vac-month-picker-ov');
+  const grid = document.getElementById('m-vac-month-grid');
+  const ttl  = document.getElementById('m-vac-month-picker-ttl');
+  if (ttl)  ttl.textContent = jp ? '月を選択' : '월 선택';
+  if (grid) {
+    grid.innerHTML = Array.from({length: 12}, (_, i) => {
+      const m = i + 1;
+      const active = m === mVacDetailMonth;
+      return `<button class="m-month-btn${active ? ' active' : ''}" onclick="mPickVacMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
+    }).join('');
+  }
+  if (ov) { ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+
+function mCloseVacMonthPicker() {
+  const ov = document.getElementById('m-vac-month-picker-ov');
+  if (ov) { ov.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+function mPickVacMonth(m) {
+  mVacDetailMonth = m;
+  mVacListMode = 'month';
+  mCloseVacMonthPicker();
+  mRenderVacDetail();
+}
+
+function mRenderVacDetail() {
+  const jp = LANG === 'JP';
+  const no = mVacDetailEmpNo;
+  if (!no) return;
+  const emp = employees.find(e => String(e.no).padStart(4, '0') === no);
+  if (!emp) return;
+  const detail = document.getElementById('m-vac-detail');
+  if (!detail) return;
+
+  let sum = { jan1Remaining: 0, usedSinceJan1: 0, remaining: 0 };
+  try { sum = calcVacationSummary(no); } catch(e) {}
+  const unitStr = jp ? '日' : '일';
+
+  const allRecords = (vacationData[no] || []).filter(r => parseFloat(r.used) > 0);
+  let filtered;
+  if (mVacListMode === 'month') {
+    filtered = allRecords.filter(r => {
+      if (!r.date) return false;
+      const [y, m] = r.date.split('-').map(Number);
+      return y === mVacDetailYear && m === mVacDetailMonth;
+    });
+  } else {
+    filtered = allRecords.filter(r => r.date && parseInt(r.date.substring(0, 4)) === mVacDetailYear);
+  }
+  filtered.sort((a, b) => a.date > b.date ? 1 : -1);
+
+  const rowsHtml = filtered.length === 0
+    ? `<div class="m-placeholder" style="padding:24px 16px;"><div class="m-placeholder-icon">📋</div>${jp ? 'この期間のデータはありません' : '이 기간의 데이터가 없습니다'}</div>`
+    : filtered.map(r => {
+        const usedVal = parseFloat(r.used || 0);
+        const badge = usedVal >= 1
+          ? `<span style="background:var(--accent2);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '1日' : '1일'}</span>`
+          : `<span style="background:var(--orange2);color:#92400e;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '半日' : '반차'}</span>`;
+        const reason = r.reason ? `<span style="font-size:12px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.reason}</span>` : '';
+        return `<div class="m-vac-detail-row">
+          <span style="font-size:13px;font-weight:600;white-space:nowrap;">${r.date}</span>
+          ${badge}
+          ${reason}
+        </div>`;
+      }).join('');
+
+  let headerHtml = '';
+  if (mVacListMode === 'year') {
+    const total = filtered.reduce((s, r) => s + parseFloat(r.used || 0), 0);
+    headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px;margin-bottom:10px;">
+      <span style="font-size:14px;font-weight:700;">${jp ? `${mVacDetailYear}年 年間履歴` : `${mVacDetailYear}년 연간 내역`}</span>
+      <span style="background:var(--accent2);color:var(--accent);font-size:12px;padding:3px 10px;border-radius:10px;font-weight:700;border:1px solid var(--accent3);">${jp ? `計 ${total.toFixed(1)}日` : `합계 ${total.toFixed(1)}일`}</span>
+    </div>`;
+  }
+
+  // 네비바 텍스트 갱신
+  const yearTxt  = document.getElementById('m-vac-detail-year-txt');
+  const monthBtn = document.getElementById('m-vac-detail-month-btn');
+  const modeBtn  = document.getElementById('m-vac-detail-mode-btn');
+  const todayBtn = document.getElementById('m-vac-detail-today-btn');
+  if (yearTxt)  yearTxt.textContent  = mVacDetailYear + (jp ? '年' : '년');
+  if (monthBtn) monthBtn.textContent = mVacDetailMonth + (jp ? '月' : '월');
+  if (modeBtn)  modeBtn.textContent  = mVacListMode === 'month' ? (jp ? '年間履歴' : '연간내역') : (jp ? '月間履歴' : '월간내역');
+  if (todayBtn) todayBtn.textContent = jp ? '今月' : '이번달';
+
+  detail.innerHTML = `
+    <button class="m-back-btn" onclick="mCloseVacDetail()">◀ <span>${jp ? '一覧へ' : '목록으로'}</span></button>
+    <div style="font-size:17px;font-weight:700;margin-bottom:12px;">${emp.name}${emp.kana ? `<span style="font-size:12px;color:var(--text3);margin-left:5px;font-weight:400;">（${emp.kana}）</span>` : ''}</div>
+    <div class="m-vac-stats" style="margin-bottom:14px;">
+      <div class="m-vac-stat">
+        <div class="m-vac-stat-lbl">${jp ? '1/1残' : '1/1 잔여'}</div>
+        <div class="m-vac-stat-val">${sum.jan1Remaining.toFixed(1)}${unitStr}</div>
+      </div>
+      <div class="m-vac-stat">
+        <div class="m-vac-stat-lbl">${jp ? '今年使用' : '올해 사용'}</div>
+        <div class="m-vac-stat-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</div>
+      </div>
+      <div class="m-vac-stat">
+        <div class="m-vac-stat-lbl">${jp ? '残年次' : '남은 연차'}</div>
+        <div class="m-vac-stat-val${sum.remaining <= 5 ? ' red' : ''}">${sum.remaining.toFixed(1)}${unitStr}</div>
+      </div>
+    </div>
+    ${headerHtml}
+    ${rowsHtml}`;
+}
+
 /* ── DOMContentLoaded ── */
 window.addEventListener('DOMContentLoaded', () => {
   LANG = localStorage.getItem(LS.lang) || 'JP';
@@ -1284,8 +1469,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
-  const ov = document.getElementById('m-vac-modal-ov');
-  if (ov && ov.style.display === 'flex') mCloseVacModal();
+  const ov  = document.getElementById('m-vac-modal-ov');
+  const mpo = document.getElementById('m-vac-month-picker-ov');
+  if (mpo && mpo.style.display === 'flex') { mCloseVacMonthPicker(); return; }
+  if (ov  && ov.style.display  === 'flex') mCloseVacModal();
 });
 </script>
 
@@ -1316,6 +1503,29 @@ document.addEventListener('keydown', function(e) {
       <span class="m-year-txt" id="m-annual-year-txt"></span>
       <button class="m-year-btn" onclick="mAnnualYear(1)">›</button>
     </div>
+  </div>
+</div>
+
+<!-- 유급휴가 상세 하단 네비바 -->
+<div id="m-vac-detail-bar" class="m-vac-detail-bar hidden">
+  <div class="m-year-nav" style="flex-shrink:0;">
+    <button class="m-year-btn" onclick="mVacDetailYearNav(-1)">‹</button>
+    <span id="m-vac-detail-year-txt" class="m-year-txt"></span>
+    <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
+  </div>
+  <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
+  <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()" style="flex:1;"></button>
+  <button id="m-vac-detail-today-btn" class="m-vac-dbar-btn" onclick="mVacGotoThisMonth()"></button>
+</div>
+
+<!-- 유급휴가 월 선택 바텀시트 -->
+<div id="m-vac-month-picker-ov" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.45);align-items:flex-end;" onclick="if(event.target===this)mCloseVacMonthPicker()">
+  <div style="background:var(--surface);border-radius:14px 14px 0 0;width:100%;padding:16px 14px 32px;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-weight:600;font-size:14px;" id="m-vac-month-picker-ttl">月選択</span>
+      <button onclick="mCloseVacMonthPicker()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);padding:0;line-height:1;">✕</button>
+    </div>
+    <div class="m-month-grid" id="m-vac-month-grid"></div>
   </div>
 </div>
 
