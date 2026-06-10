@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 22:28 — vacEmpDrop 검색창 추가 + 체크박스 버튼 줄 통합, 사원 목록 이름+번호 순서로 통일
+  수정: 2026-06-10 22:38 — annual/vac 드롭다운 버튼 3열 그리드+스타일 통일, 토글 버튼(퇴사자 포함/미대상 포함) 교체, 사이드바 유급 휴가 띄어쓰기 수정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -272,7 +272,7 @@
   <div class="no-print emp-nav" style="gap:8px;">
       <!-- 인라인 드롭다운 사원 선택 -->
       <div style="position:relative;" id="annualEmpDropWrap">
-        <button class="btn emp-sel-btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:13px;">
+        <button class="btn emp-sel-btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 10px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span id="annualEmpSelLabel">사원 선택</span>
           <span id="annualEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
@@ -282,10 +282,10 @@
           <input type="text" id="annualEmpSearch" placeholder="이름 또는 사번 검색..." autocomplete="off"
             style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--r2);padding:7px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none;"
             oninput="filterAnnualEmpList()">
-          <div style="display:flex;gap:5px;margin-bottom:8px;">
-            <button class="btn btn-sm" onclick="selectAllAnnualEmps()"><span id="t-annual-sel-all">全選択</span></button>
-            <button class="btn btn-sm" onclick="clearAllAnnualEmps()"><span id="t-annual-sel-clear">全解除</span></button>
-            <button class="btn btn-sm" onclick="selectActiveOnlyAnnual()"><span id="t-annual-sel-active">在職者のみ</span></button>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px;">
+            <button class="btn btn-sm" id="t-annual-sel-all"  onclick="selectAllAnnualEmps()" style="justify-content:center;background:var(--accent2);color:var(--accent);border-color:var(--accent3);">全選択</button>
+            <button class="btn btn-sm" id="t-annual-sel-clear" onclick="clearAllAnnualEmps()" style="justify-content:center;background:var(--accent2);color:var(--accent);border-color:var(--accent3);">全解除</button>
+            <button class="btn btn-sm" id="annualInclLeftBtn"  onclick="toggleAnnualInclLeft()" style="justify-content:center;background:transparent;border-color:var(--border);color:var(--text2);">퇴사자 포함</button>
           </div>
           <div id="annualEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
           <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
@@ -317,7 +317,7 @@
   <div id="vacMainArea">
     <div class="no-print emp-nav">
       <div style="position:relative;" id="vacEmpDropWrap">
-        <button class="btn emp-sel-btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:13px;">
+        <button class="btn emp-sel-btn" id="vacEmpDropBtn" onclick="toggleVacEmpDrop(event)" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 10px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span id="vacEmpSelLabel" id="t-vac-sel-label">従業員選択</span>
           <span id="vacEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
@@ -327,13 +327,10 @@
           <input type="text" id="vacEmpSearch" placeholder="이름 또는 사번 검색..." autocomplete="off"
             style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--r2);padding:7px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none;"
             oninput="filterVacEmpList()">
-          <div style="display:flex;gap:5px;margin-bottom:8px;align-items:center;">
-            <button class="btn btn-sm" onclick="vacSelectAll()" id="t-vac-sel-all">全選択</button>
-            <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--text2);padding-left:4px;white-space:nowrap;">
-              <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
-              <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
-            </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px;">
+            <button class="btn btn-sm" id="t-vac-sel-all"        onclick="vacSelectAll()"             style="justify-content:center;background:var(--accent2);color:var(--accent);border-color:var(--accent3);">全選択</button>
+            <button class="btn btn-sm" id="t-vac-sel-none"       onclick="vacSelectNone()"            style="justify-content:center;background:var(--accent2);color:var(--accent);border-color:var(--accent3);">全解除</button>
+            <button class="btn btn-sm" id="vacInclNotAppliedBtn"  onclick="toggleVacInclNotApplied()" style="justify-content:center;background:transparent;border-color:var(--border);color:var(--text2);">미대상 포함</button>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
           <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">

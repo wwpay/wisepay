@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 22:28 — vacEmpDrop 검색창+필터 추가, buildVacationEmpList annual 스타일(이름+번호) 통일
+// 수정: 2026-06-10 22:38 — toggleVacInclNotApplied 추가 (미대상 포함 토글 버튼 대응)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -386,6 +386,18 @@ function filterVacEmpList() {
 
 function toggleVacHideNotApplied() {
   _vacHideNotApplied = document.getElementById('vacHideNotApplied')?.checked !== false;
+  buildVacationEmpList();
+}
+
+function toggleVacInclNotApplied() {
+  _vacHideNotApplied = !_vacHideNotApplied;
+  const btn = document.getElementById('vacInclNotAppliedBtn');
+  if (btn) {
+    const active = !_vacHideNotApplied;
+    btn.style.background  = active ? 'var(--accent2)' : 'transparent';
+    btn.style.color       = active ? 'var(--accent)'  : 'var(--text2)';
+    btn.style.borderColor = active ? 'var(--accent)'  : 'var(--border)';
+  }
   buildVacationEmpList();
 }
 

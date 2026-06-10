@@ -1,6 +1,7 @@
-// 수정: 2026-06-05 14:50 — 월 표시를 N월 → N월분(N月分) 형식으로 변경
+// 수정: 2026-06-10 22:38 — annualInclLeft 토글 추가 (퇴사자 포함/숨김), buildAnnualEmpSel 필터 연동
 'use strict';
-let _histEmpSelCache = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
+let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
+let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
 
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -40,8 +41,10 @@ function buildAnnualEmpSel() {
   const isFirstBuild = list.children.length === 0;
   const prevNos = new Set(getSelectedAnnualNos().map(String));
   list.innerHTML = '';
+  const today = new Date().toISOString().slice(0, 10);
   employees.forEach(e => {
     if (!e || e.no == null) return;
+    if (!_annualInclLeft && e.leave && e.leave < today) return;
     const noStr = String(e.no);
     // 최초 진입 시 아무도 선택하지 않음 (이전 선택 상태 유지)
     const checked = isFirstBuild ? false : prevNos.has(noStr);
@@ -150,6 +153,17 @@ function selectActiveOnlyAnnual() {
     if (cb) cb.checked = !!emp && (!emp.leave || emp.leave >= today);
   });
   updateAnnualSelSummary();
+}
+
+function toggleAnnualInclLeft() {
+  _annualInclLeft = !_annualInclLeft;
+  const btn = document.getElementById('annualInclLeftBtn');
+  if (btn) {
+    btn.style.background  = _annualInclLeft ? 'var(--accent2)' : 'transparent';
+    btn.style.color       = _annualInclLeft ? 'var(--accent)'  : 'var(--text2)';
+    btn.style.borderColor = _annualInclLeft ? 'var(--accent)'  : 'var(--border)';
+  }
+  buildAnnualEmpSel();
 }
 
 // 외부 클릭 시 드롭다운 닫기

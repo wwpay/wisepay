@@ -63,13 +63,14 @@ function applyLang() {
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
   setTxt('t-nav-rates', '保険料率設定', '보험료율 설정');
   setTxt('t-nav-gas', 'データ管理', '데이터 관리');
-  setTxt('t-nav-vacation', '有給休暇', '유급휴가');
+  setTxt('t-nav-vacation', '有給休暇', '유급 휴가');
 
   // vacation page
-  setTxt('t-vac-sel-label', '従業員選択', '사원 선택');
-  setTxt('t-vac-sel-all', '全選択', '전체 선택');
-  setTxt('t-vac-sel-none', '全解除', '전체 해제');
-  setTxt('t-vac-confirm', '確認', '확인');
+  setTxt('t-vac-sel-label',     '従業員選択', '사원 선택');
+  setTxt('t-vac-sel-all',      '全選択',     '전체 선택');
+  setTxt('t-vac-sel-none',     '全解除',     '전체 해제');
+  setTxt('vacInclNotAppliedBtn','非対象含む', '미대상 포함');
+  setTxt('t-vac-confirm',      '確認',       '확인');
   setTxt('t-vac-back', '一覧へ戻る', '목록으로 돌아가기');
   setTxt('t-vac-modal-title', '有給取得入力', '유급휴가 사용 입력');
   setTxt('t-vac-date-label', '取得日', '사용 날짜');
@@ -180,7 +181,7 @@ function applyLang() {
 
   setTxt('t-annual-sel-all',    '全選択',      '전체 선택');
   setTxt('t-annual-sel-clear',  '全解除',      '전체 해제');
-  setTxt('t-annual-sel-active', '在職者のみ',  '재직자만');
+  setTxt('annualInclLeftBtn',   '退職者含む',  '퇴사자 포함');
   setTxt('t-annual-confirm',    '確認',        '확인');
 
   // 지급이력 테이블 헤더는 renderHistory()가 LANG을 직접 참조해 동적으로 생성
