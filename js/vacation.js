@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 22:38 — toggleVacInclNotApplied 추가 (미대상 포함 토글 버튼 대응)
+// 수정: 2026-06-10 23:34 — _renderVacNavBar 월 탭/이번달/연간토글 버튼 크기 통일 + 토글 버튼 accent 스타일
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -649,7 +649,7 @@ function _renderVacCalendar() {
       ${cells}
     </div>
     <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
-      <button class="btn" onclick="toggleVacListMode()">${_vacListMode === 'year' ? (jp ? '月間リスト' : '월간 리스트') : (jp ? '年間リスト' : '연간 리스트')}</button>
+      <button class="btn" style="padding:4px 9px;background:var(--accent2);color:var(--accent);border-color:var(--accent3);" onclick="toggleVacListMode()">${_vacListMode === 'year' ? (jp ? '月間リスト' : '월간 리스트') : (jp ? '年間リスト' : '연간 리스트')}</button>
       <button class="btn btn-primary" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
     </div>`;
 }
