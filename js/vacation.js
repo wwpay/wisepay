@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 14:07 — 연간 리스트 토글 기능 추가(_vacListMode, toggleVacListMode) + 달력 버튼 좌우 배치
+// 수정: 2026-06-10 14:59 — 연간 리스트 헤더 LANG 단일 표기 + 총 사용일수 배지 추가
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -636,7 +636,11 @@ function _renderVacList() {
       .map((r, idx) => ({ ...r, _idx: idx }))
       .filter(r => parseFloat(r.used) > 0 && r.date && r.date.startsWith(`${year}-`))
       .sort((a, b) => a.date.localeCompare(b.date));
-    const hdr = `<div class="vac-panel-hdr">${jp ? `${year}年 年間履歴 / ${year}년 연간 내역` : `${year}년 연간 내역 / ${year}年 年間履歴`}</div>`;
+    const yearTotal = parseFloat(yearRecords.reduce((s, r) => s + (parseFloat(r.used) || 0), 0).toFixed(1));
+    const hdr = `<div class="vac-panel-hdr" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>${jp ? `${year}年 年間履歴` : `${year}년 연간 내역`}</span>
+      <span style="background:#dbeafe;color:#1e40af;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600;">${jp ? `合計 ${yearTotal}日` : `합계 ${yearTotal}일`}</span>
+    </div>`;
     if (!yearRecords.length) {
       panel.innerHTML = hdr + `<div style="padding:30px 10px;text-align:center;color:var(--text3);font-size:13px;">${jp ? '取得記録なし' : '사용 기록 없음'}</div>`;
       return;
