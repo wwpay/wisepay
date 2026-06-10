@@ -1,4 +1,4 @@
-/* 수정: 2026-06-09 15:18 — 유급휴가 상세 헤더 4개 항목 가로 나열 스타일 추가 */
+/* 수정: 2026-06-10 22:15 — .emp-nav 추가 (지급이력·임금대장·유급휴가 셀렉터 바 month-nav 동일 박스 스타일) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -93,6 +93,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 
 /* MONTH NAV */
 .month-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);}
+.emp-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;box-shadow:var(--sh);}
 .year-ctrl{display:flex;align-items:center;gap:6px;}
 .year-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 7px;cursor:pointer;color:var(--text2);font-size:calc(11px + var(--fs-delta));}
 .year-btn:hover{background:var(--bg);}
@@ -275,7 +276,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 /* @page margin으로 모든 페이지에 여백 적용 (margin:0 + content padding은 첫/마지막만 적용되어 잘림 발생) */
 @page{margin:8mm 10mm;}
 @media print{
-  .sidebar,.topbar,.no-print,.month-nav{display:none!important;}
+  .sidebar,.topbar,.no-print,.month-nav,.emp-nav{display:none!important;}
   /* @page margin이 여백을 담당하므로 content 패딩 제거 */
   .content{padding:0;overflow:visible !important;height:auto !important;}
   body{background:#fff;padding:0;}
@@ -344,7 +345,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .btn-logout{color:var(--red)!important;}
 .btn-logout:hover{background:var(--red2)!important;}
 
-@media print{.sidebar,.topbar,.rates-wrap,.calc-info,.btn,.banner,.showToast,.month-nav{display:none!important;}}
+@media print{.sidebar,.topbar,.rates-wrap,.calc-info,.btn,.banner,.showToast,.month-nav,.emp-nav{display:none!important;}}
 
 /* VACATION */
 .vac-emp-drop{display:none;position:absolute;top:calc(100% + 5px);left:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.13);z-index:300;padding:10px;}
