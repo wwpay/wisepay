@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 09:55 — calcVacationSummary _grants() 직접 스캔으로 교체 — used 문자열 "0" 오판 버그 수정
+// 수정: 2026-06-10 11:12 — calcVacationSummary remaining·usedSinceJan1 cutoff를 FAR_FUTURE로 변경 — 미래 날짜 사용 기록 반영
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -179,17 +179,17 @@ function calcVacationSummary(empNo) {
   const jan1Remaining  = parseFloat(
     Math.max(0, TG_valid_jan1 - Math.max(0, TU_prev - TG_exp_jan1)).toFixed(1));
 
-  // 올해 1/1 이후 오늘까지 사용
+  // 올해 1/1 이후 사용 (미래 예정 포함)
   let usedSinceJan1 = 0;
   usages.forEach(r => {
-    if (r.date && r.date >= jan1Str && r.date <= today) usedSinceJan1 += parseFloat(r.used) || 0;
+    if (r.date && r.date >= jan1Str) usedSinceJan1 += parseFloat(r.used) || 0;
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 오늘 기준 잔여 — FIFO
-  const TU_total       = _usedUpTo(today);
-  const TG_all_today   = _grants(today, -Infinity);
-  const TG_valid_today = _grants(today, thisYear - 1);
+  // 잔여 — FIFO (미래 등록 사용분 포함)
+  const TU_total       = _usedUpTo('9999-12-31');
+  const TG_all_today   = _grants('9999-12-31', -Infinity);
+  const TG_valid_today = _grants('9999-12-31', thisYear - 1);
   const TG_exp_today   = TG_all_today - TG_valid_today;
   const remaining      = parseFloat(
     Math.max(0, TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
