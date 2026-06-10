@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 13:49 — _renderVacNavBar 유급 사용 달 월 탭 배경색 표시
+// 수정: 2026-06-10 14:07 — 연간 리스트 토글 기능 추가(_vacListMode, toggleVacListMode) + 달력 버튼 좌우 배치
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -299,6 +299,7 @@ let _vacDetailYear  = new Date().getFullYear();
 let _vacDetailMonth = new Date().getMonth() + 1;
 let _vacModalEmpNo  = null;
 let _vacHideNotApplied = true;
+let _vacListMode = 'month'; // 'month' | 'year'
 
 function _jstDateFmt(dateStr) {
   if (!dateStr) return '';
@@ -600,7 +601,8 @@ function _renderVacCalendar() {
       ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
       ${cells}
     </div>
-    <div style="margin-top:12px;text-align:center;">
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <button class="btn" onclick="toggleVacListMode()">${_vacListMode === 'year' ? (jp ? '月間リスト' : '월간 리스트') : (jp ? '年間リスト' : '연간 리스트')}</button>
       <button class="btn btn-primary" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
     </div>`;
 }
@@ -614,8 +616,37 @@ function _renderVacList() {
 
   const year  = _vacDetailYear;
   const month = _vacDetailMonth;
-  const monthStr = `${year}-${String(month).padStart(2,'0')}`;
   const records = vacationData[no] || [];
+
+  const _itemHtml = (r, no, jp) => {
+    const usedVal  = parseFloat(r.used);
+    const badgeCls = usedVal < 1 ? 'half' : 'full';
+    const badgeTxt = usedVal < 1 ? (jp ? '半日' : '반차') : (jp ? '1日' : '1일');
+    return `<div class="vac-list-item" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
+        <span class="vac-list-date">${_jstDateFmt(r.date)}</span>
+        <span class="vac-list-badge ${badgeCls}">${badgeTxt}</span>
+        <span class="vac-list-reason">${r.reason || ''}</span>
+        <button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>
+      </div>`;
+  };
+
+  // ─ 연간 모드 ─
+  if (_vacListMode === 'year') {
+    const yearRecords = records
+      .map((r, idx) => ({ ...r, _idx: idx }))
+      .filter(r => parseFloat(r.used) > 0 && r.date && r.date.startsWith(`${year}-`))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const hdr = `<div class="vac-panel-hdr">${jp ? `${year}年 年間履歴 / ${year}년 연간 내역` : `${year}년 연간 내역 / ${year}年 年間履歴`}</div>`;
+    if (!yearRecords.length) {
+      panel.innerHTML = hdr + `<div style="padding:30px 10px;text-align:center;color:var(--text3);font-size:13px;">${jp ? '取得記録なし' : '사용 기록 없음'}</div>`;
+      return;
+    }
+    panel.innerHTML = hdr + yearRecords.map(r => _itemHtml(r, no, jp)).join('');
+    return;
+  }
+
+  // ─ 월간 모드 ─
+  const monthStr = `${year}-${String(month).padStart(2,'0')}`;
   const monthRecords = records
     .map((r, idx) => ({ ...r, _idx: idx }))
     .filter(r => r.used > 0 && r.date && r.date.startsWith(monthStr))
@@ -628,17 +659,7 @@ function _renderVacList() {
     return;
   }
 
-  panel.innerHTML = hdr +
-    monthRecords.map(r => {
-      const badgeCls = r.used < 1 ? 'half' : 'full';
-      const badgeTxt = r.used < 1 ? (jp ? '半日' : '반차') : (jp ? '1日' : '1일');
-      return `<div class="vac-list-item" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
-        <span class="vac-list-date">${_jstDateFmt(r.date)}</span>
-        <span class="vac-list-badge ${badgeCls}">${badgeTxt}</span>
-        <span class="vac-list-reason">${r.reason || ''}</span>
-        <button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>
-      </div>`;
-    }).join('');
+  panel.innerHTML = hdr + monthRecords.map(r => _itemHtml(r, no, jp)).join('');
 }
 
 function _highlightVacCalDate(dateStr) {
@@ -721,7 +742,16 @@ function vacYearPrev(btn) {
   _vacDetailYear = prevYear; _vacDetailMonth = 12; _renderVacNavBar(); _renderVacCalendar(); _renderVacList();
 }
 function vacYearNext(btn) { _vacDetailYear++; _vacDetailMonth = 1;  _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
-function vacSetMonth(m) { _vacDetailMonth = m; _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
+function toggleVacListMode() {
+  _vacListMode = _vacListMode === 'year' ? 'month' : 'year';
+  _renderVacCalendar();
+  _renderVacList();
+}
+function vacSetMonth(m) {
+  if (_vacListMode === 'year') _vacListMode = 'month';
+  _vacDetailMonth = m;
+  _renderVacNavBar(); _renderVacCalendar(); _renderVacList();
+}
 function vacGotoToday() {
   const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
   _vacDetailYear  = now.getFullYear();
