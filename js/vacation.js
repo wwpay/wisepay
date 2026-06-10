@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 03:31 — calcVacationSummary 시트 발생 기록 기반으로 전환, calcInitialDays 규칙 수정, _buildGrantMap·_rebuildRemainingForEmp 저장 데이터 기반으로 전환
+// 수정: 2026-06-10 09:55 — calcVacationSummary _grants() 직접 스캔으로 교체 — used 문자열 "0" 오판 버그 수정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -138,17 +138,20 @@ function calcVacationSummary(empNo) {
   const prevYearEnd = `${prevYear}-12-31`;
 
   const key    = _vacKey(empNo);
-  const grants = (vacationData[key] || []).filter(r => (r.used || 0) === 0 && (r.days || 0) > 0);
-  const usages = (vacationData[key] || []).filter(r => (r.used || 0) > 0);
+  const usages = (vacationData[key] || []).filter(r => parseFloat(r.used) > 0);
 
-  // cutoffDate 시점까지 minGrantYear 이상인 부여 합계 (시트 발생 기록 사용)
+  // cutoffDate 시점까지 minGrantYear 이상인 발생 합계
+  // vacationData[key]를 직접 스캔: used 문자열 "0" 오판 방지를 위해 parseFloat 사용
   function _grants(cutoffDate, minGrantYear) {
     let total = 0;
-    grants.forEach(r => {
+    (vacationData[key] || []).forEach(r => {
+      const usedVal = parseFloat(r.used) || 0;
+      const daysVal = parseFloat(r.days) || 0;
+      if (usedVal !== 0 || daysVal <= 0) return;
       const gy = parseInt(r.grant_year);
       if (isNaN(gy) || gy < minGrantYear) return;
       if (!r.date || r.date > cutoffDate) return;
-      total += (r.days || 0);
+      total += daysVal;
     });
     return parseFloat(total.toFixed(1));
   }
@@ -156,7 +159,7 @@ function calcVacationSummary(empNo) {
   // cutoffDate까지 사용 합계
   function _usedUpTo(cutoffDate) {
     let total = 0;
-    usages.forEach(r => { if (r.date && r.date <= cutoffDate) total += (r.used || 0); });
+    usages.forEach(r => { if (r.date && r.date <= cutoffDate) total += parseFloat(r.used) || 0; });
     return parseFloat(total.toFixed(1));
   }
 
@@ -179,7 +182,7 @@ function calcVacationSummary(empNo) {
   // 올해 1/1 이후 오늘까지 사용
   let usedSinceJan1 = 0;
   usages.forEach(r => {
-    if (r.date && r.date >= jan1Str && r.date <= today) usedSinceJan1 += (r.used || 0);
+    if (r.date && r.date >= jan1Str && r.date <= today) usedSinceJan1 += parseFloat(r.used) || 0;
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
