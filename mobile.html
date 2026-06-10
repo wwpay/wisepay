@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 18:03 — mSaveVacUsage 명시적 saveVacationToGas 중복 호출 제거
+  수정: 2026-06-10 18:09 — gas.js 로드 추가 + 인라인 saveVacationToGas stub 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -617,6 +617,7 @@ function applyRatesForYM(year, month) {
 <script src="js/utils.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/vacation.js"></script>
+<script src="js/gas.js"></script>
 <script>
 /* auth.js의 renderNavForRole을 모바일용으로 덮어씀:
    viewer는 사원 관리 탭 자체를 숨김 (잠금 아이콘 표시 대신) */
@@ -1270,23 +1271,6 @@ function mSaveVacUsage() {
   mRenderVacation();
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
   mSaveVacUsage._running = false;
-}
-
-// mobile 전용 stub: saveVacationToGas는 gas.js 없으므로 fire-and-forget POST 직접 구현
-async function saveVacationToGas(vData) {
-  const url = (typeof gasUrl !== 'undefined') ? gasUrl : '';
-  if (!url) return;
-  const flat = [];
-  Object.keys(vData || {}).forEach(empNo => {
-    (vData[empNo] || []).forEach(r => { flat.push({ emp_no: empNo, ...r }); });
-  });
-  try {
-    await fetch(url, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'saveVacation', data: flat })
-    });
-  } catch(e) {}
 }
 
 /* ── DOMContentLoaded ── */
