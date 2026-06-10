@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 15:09 — 연간 리스트 헤더 합계 배지를 제목 텍스트 바로 뒤 인라인 배치로 변경
+// 수정: 2026-06-10 15:53 — 월간 리스트 헤더 단일 언어 표기 + 월 사용일수 배지 추가
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -653,7 +653,8 @@ function _renderVacList() {
     .filter(r => r.used > 0 && r.date && r.date.startsWith(monthStr))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const hdr = `<div class="vac-panel-hdr">${jp ? '使用履歴 / 사용 내역' : '사용 내역 / 使用履歴'}</div>`;
+  const monthTotal = parseFloat(monthRecords.reduce((s, r) => s + (parseFloat(r.used) || 0), 0).toFixed(1));
+  const hdr = `<div class="vac-panel-hdr">${jp ? '使用履歴' : '사용 내역'}<span style="margin-left:8px;background:#dbeafe;color:#1e40af;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600;">${jp ? `合計 ${monthTotal}日` : `합계 ${monthTotal}일`}</span></div>`;
 
   if (!monthRecords.length) {
     panel.innerHTML = hdr + `<div style="padding:30px 10px;text-align:center;color:var(--text3);font-size:13px;">${jp ? '取得記録なし' : '사용 기록 없음'}</div>`;
