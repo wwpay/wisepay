@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 15:53 — 월간 리스트 헤더 단일 언어 표기 + 월 사용일수 배지 추가
+// 수정: 2026-06-10 22:28 — vacEmpDrop 검색창+필터 추가, buildVacationEmpList annual 스타일(이름+번호) 통일
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -312,9 +312,14 @@ function toggleVacEmpDrop(e) {
   e.stopPropagation();
   const drop = document.getElementById('vacEmpDrop');
   if (!drop) return;
-  const open = drop.style.display !== 'none';
-  drop.style.display = open ? 'none' : 'block';
-  if (!open) buildVacationEmpList();
+  const opening = drop.style.display === 'none' || drop.style.display === '';
+  drop.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    buildVacationEmpList();
+    const inp = document.getElementById('vacEmpSearch');
+    if (inp) { inp.value = ''; inp.focus(); }
+    filterVacEmpList();
+  }
 }
 
 function closeVacEmpDrop() {
@@ -334,19 +339,49 @@ function buildVacationEmpList() {
     return true;
   });
 
-  list.innerHTML = empList.map(emp => {
-    const no  = String(emp.no).padStart(4, '0');
-    const key = `vac_emp_${no}`;
-    const chk = selected.has(no);
-    return `<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:13px;">
-      <input type="checkbox" id="${key}" value="${no}" ${chk ? 'checked' : ''}
-        style="accent-color:var(--accent);width:14px;height:14px;"
-        onchange="updateVacSelSummary()">
-      <span style="flex:1;min-width:0;">${no} ${emp.name}${emp.kana?`<span style="font-size:11px;color:var(--text3);margin-left:4px;">（${emp.kana}）</span>`:''}</span>
-    </label>`;
-  }).join('');
+  list.innerHTML = '';
+  empList.forEach(emp => {
+    const no    = String(emp.no).padStart(4, '0');
+    const noStr = String(emp.no);
+    const chk   = selected.has(no);
+
+    const label = document.createElement('label');
+    label.dataset.no = noStr;
+    label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 6px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;user-select:none;';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = no;
+    cb.checked = chk;
+    cb.style.cssText = 'width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:var(--accent);';
+    cb.addEventListener('change', updateVacSelSummary);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    nameSpan.textContent = (jp && emp.kana) ? `${emp.name}（${emp.kana}）` : emp.name;
+
+    const noSpan = document.createElement('span');
+    noSpan.style.cssText = 'color:var(--text3);font-size:12px;font-variant-numeric:tabular-nums;';
+    noSpan.textContent = no;
+
+    label.appendChild(cb);
+    label.appendChild(nameSpan);
+    label.appendChild(noSpan);
+    list.appendChild(label);
+  });
 
   updateVacSelSummary();
+}
+
+function filterVacEmpList() {
+  const q = (document.getElementById('vacEmpSearch')?.value || '').toLowerCase().trim();
+  document.querySelectorAll('#vacEmpCheckList label').forEach(label => {
+    const no  = label.dataset.no || '';
+    const emp = employees.find(e => String(e.no) === no);
+    if (!emp) { label.style.display = 'none'; return; }
+    const match = !q || emp.name.toLowerCase().includes(q) || String(emp.no).padStart(4, '0').includes(q);
+    label.style.display = match ? 'flex' : 'none';
+  });
 }
 
 function toggleVacHideNotApplied() {

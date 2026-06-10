@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 22:15 — 지급이력·임금대장·유급휴가 셀렉터 바에 month-nav 동일 박스 스타일(.emp-nav) 적용
+  수정: 2026-06-10 22:28 — vacEmpDrop 검색창 추가 + 체크박스 버튼 줄 통합, 사원 목록 이름+번호 순서로 통일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -324,12 +324,15 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div id="vacEmpDrop" class="vac-emp-drop">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+          <input type="text" id="vacEmpSearch" placeholder="이름 또는 사번 검색..." autocomplete="off"
+            style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--r2);padding:7px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none;"
+            oninput="filterVacEmpList()">
+          <div style="display:flex;gap:5px;margin-bottom:8px;align-items:center;">
             <button class="btn btn-sm" onclick="vacSelectAll()" id="t-vac-sel-all">全選択</button>
             <button class="btn btn-sm" onclick="vacSelectNone()" id="t-vac-sel-none">全解除</button>
-            <label class="vac-hide-filter" style="border-top:none;margin:0;padding:0 0 0 6px;">
-              <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--text2);padding-left:4px;white-space:nowrap;">
               <input type="checkbox" id="vacHideNotApplied" checked style="accent-color:var(--accent);width:13px;height:13px;" onchange="toggleVacHideNotApplied()">
+              <span id="t-vac-hide-not-applied">미적용 사원 숨김</span>
             </label>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
