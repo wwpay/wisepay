@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 23:34 — _renderVacNavBar 월 탭/이번달/연간토글 버튼 크기 통일 + 토글 버튼 accent 스타일
+// 수정: 2026-06-11 10:18 — _renderVacNavBar 연간토글 버튼 추가 + 월 탭 균등 배치 + 유급 사용 월 파란 배경
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -760,6 +760,9 @@ function _renderVacNavBar() {
     const style = !isActive && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
     return `<button class="month-tab${isActive?' active':''}"${style} onclick="vacSetMonth(${m})">${m}${u}</button>`;
   }).join('');
+  const toggleLbl = _vacListMode === 'year'
+    ? (jp ? '月間' : '월간')
+    : (jp ? '年間' : '연간');
   bar.innerHTML = `
     <div class="month-nav">
       <div class="year-ctrl">
@@ -768,7 +771,10 @@ function _renderVacNavBar() {
         <button class="year-btn" onclick="vacYearNext()">▶</button>
       </div>
       <div class="month-nav-sep"></div>
-      <button class="btn-today" onclick="vacGotoToday()">${jp?'今月':'이번 달'}</button>
+      <div class="vac-nav-btns">
+        <button class="btn-today" onclick="toggleVacListMode()">${toggleLbl}</button>
+        <button class="btn-today" onclick="vacGotoToday()">${jp?'今月':'이번달'}</button>
+      </div>
       <div class="month-nav-sep"></div>
       <div class="month-tabs">${monthTabs}</div>
     </div>`;
@@ -793,6 +799,7 @@ function vacYearPrev(btn) {
 function vacYearNext(btn) { _vacDetailYear++; _vacDetailMonth = 1;  _renderVacNavBar(); _renderVacCalendar(); _renderVacList(); }
 function toggleVacListMode() {
   _vacListMode = _vacListMode === 'year' ? 'month' : 'year';
+  _renderVacNavBar();
   _renderVacCalendar();
   _renderVacList();
 }
