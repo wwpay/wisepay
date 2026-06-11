@@ -1,4 +1,4 @@
-// 수정: 2026-06-11 16:20 — vacYearPrev: 현재 연도 이상이면 데이터 체크 없이 이동 허용
+// 수정: 2026-06-11 16:34 — vacYearPrev: 2023년 이하 이동 차단 (데이터 유무 체크 제거)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -782,8 +782,7 @@ function _hasVacDataForYear(year) {
 
 function vacYearPrev(btn) {
   const prevYear = _vacDetailYear - 1;
-  const thisYear = parseInt(jstToday().substring(0, 4));
-  if (prevYear < thisYear && !_hasVacDataForYear(prevYear)) {
+  if (prevYear <= 2023) {
     const jp = LANG === 'JP';
     const msg = jp ? `${prevYear}年のデータは存在しません` : `${prevYear}년은 데이터가 존재하지 않습니다`;
     if (btn) showAnchorToast(btn, msg, 3000);
