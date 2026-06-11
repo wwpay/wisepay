@@ -305,6 +305,17 @@ async function _sendPayConfirmReminderViaGas(year, month) {
   } catch(e) {}
 }
 
+// ── DEV ONLY: 제거 예정 ──────────────────────────────────────
+window._testAlert = function(day) {
+  const el = document.getElementById('payroll-balloon');
+  if (el) el.remove();
+  const _orig = window._jstNow;
+  window._jstNow = function() { const d = _orig(); d.setDate(day); return d; };
+  checkAndShowPayrollAlerts([...paidYMs]);
+  window._jstNow = _orig;
+};
+// ─────────────────────────────────────────────────────────────
+
 function _renderTrashPage() {
   const jp = LANG === 'JP';
   const container = document.getElementById('notif-list');
