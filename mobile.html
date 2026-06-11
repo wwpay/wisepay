@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 23:34 — 급여명세/임금대장/유급휴가 연도 이동 시 데이터 없는 연도 방지 가드 추가 (mChangeYear, mAnnualYear, mVacDetailYearNav)
+  수정: 2026-06-11 12:01 — 유급휴가 네비바 버튼 3개 균등 배치 + 월 선택 바텀시트 유급 사용 달 파란 배경
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -231,6 +231,7 @@
   background:var(--surface2);color:var(--text2);font-size:12px;
   cursor:pointer;font-family:inherit;white-space:nowrap;
   display:flex;align-items:center;justify-content:center;
+  flex:1;overflow:hidden;text-overflow:ellipsis;
 }
 .m-vac-dbar-btn:active { background:var(--bg); }
 .m-vac-detail-row {
@@ -1394,10 +1395,19 @@ function mOpenVacMonthPicker() {
   const ttl  = document.getElementById('m-vac-month-picker-ttl');
   if (ttl)  ttl.textContent = jp ? '月を選択' : '월 선택';
   if (grid) {
+    const year = mVacDetailYear;
+    const records = vacationData[mVacDetailEmpNo] || [];
+    const usedMonths = new Set(
+      records
+        .filter(r => r.date && r.date.startsWith(`${year}-`) && parseFloat(r.used) > 0)
+        .map(r => parseInt(r.date.substring(5, 7)))
+    );
     grid.innerHTML = Array.from({length: 12}, (_, i) => {
       const m = i + 1;
       const active = m === mVacDetailMonth;
-      return `<button class="m-month-btn${active ? ' active' : ''}" onclick="mPickVacMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
+      const hasUsage = usedMonths.has(m);
+      const styleAttr = !active && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
+      return `<button class="m-month-btn${active ? ' active' : ''}"${styleAttr} onclick="mPickVacMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
     }).join('');
   }
   if (ov) { ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
@@ -1552,7 +1562,7 @@ document.addEventListener('keydown', function(e) {
     <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
   </div>
   <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
-  <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()" style="flex:1;"></button>
+  <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()"></button>
   <button id="m-vac-detail-today-btn" class="m-vac-dbar-btn" onclick="mVacGotoThisMonth()"></button>
 </div>
 
