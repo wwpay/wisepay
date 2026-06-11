@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 13:58 — 유급휴가 월간 리스트 헤더에 합계일 배지 추가
+  수정: 2026-06-11 14:47 — 연도 이동 버튼 박스 제거, 화살표 굵게 통일 (세 페이지 공통)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -93,12 +93,12 @@
 /* Year nav */
 .m-year-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .m-year-btn {
-  min-width: 36px; min-height: 44px; border: 1px solid var(--border); border-radius: 8px;
-  background: var(--surface2); cursor: pointer; font-size: 20px; color: var(--text2);
-  display: flex; align-items: center; justify-content: center; transition: background .15s;
-  font-family: inherit;
+  min-width: 32px; min-height: 36px; border: none; border-radius: 0;
+  background: none; box-shadow: none; cursor: pointer; font-size: 18px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; justify-content: center; padding: 0 6px;
+  font-family: inherit; transition: opacity .15s;
 }
-.m-year-btn:active { background: var(--bg); }
+.m-year-btn:active { opacity: .5; }
 .m-year-txt { font-size: 14px; font-weight: 600; white-space: nowrap; }
 
 /* Month grid */
