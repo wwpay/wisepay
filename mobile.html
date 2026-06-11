@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-10 23:34 — 급여명세/임금대장/유급휴가 연도 이동 시 데이터 없는 연도 방지 가드 추가 (mChangeYear, mAnnualYear, mVacDetailYearNav)
+  수정: 2026-06-11 11:40 — 유급휴가 상세 네비바 인라인 월 탭 12개 + 유급 사용 월 파란 배경 + 균등 배치
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -223,16 +223,25 @@
   left:0;right:0;z-index:90;
   background:var(--surface);border-top:1px solid var(--border);
   padding:8px 10px;display:flex;align-items:center;gap:5px;
+  overflow-x:auto;
 }
 .m-vac-detail-bar.hidden { display:none; }
 .m-vac-dbar-btn {
   min-height:36px;padding:0 10px;
   border:1px solid var(--border);border-radius:8px;
   background:var(--surface2);color:var(--text2);font-size:12px;
-  cursor:pointer;font-family:inherit;white-space:nowrap;
+  cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
 }
 .m-vac-dbar-btn:active { background:var(--bg); }
+.m-vac-month-tabs { display:flex;gap:2px;flex:1;flex-wrap:nowrap; }
+.m-vac-month-tab {
+  flex:1;min-width:2em;white-space:nowrap;min-height:36px;padding:0 4px;
+  border:none;background:none;border-radius:20px;font-size:12px;
+  font-family:inherit;color:var(--text2);cursor:pointer;text-align:center;transition:all .15s;
+}
+.m-vac-month-tab.active { background:var(--accent);color:#fff;font-weight:600; }
+.m-vac-month-tab:active { opacity:.7; }
 .m-vac-detail-row {
   display:flex;align-items:center;gap:8px;
   padding:9px 12px;border:1px solid var(--border);
@@ -1415,6 +1424,38 @@ function mPickVacMonth(m) {
   mRenderVacDetail();
 }
 
+function mRenderVacNavBar() {
+  const jp  = LANG === 'JP';
+  const bar = document.getElementById('m-vac-detail-bar');
+  if (!bar) return;
+  const year  = mVacDetailYear;
+  const month = mVacDetailMonth;
+  const u = jp ? '月' : '월';
+  const records = vacationData[mVacDetailEmpNo] || [];
+  const usedMonths = new Set(
+    records
+      .filter(r => r.date && r.date.startsWith(`${year}-`) && parseFloat(r.used) > 0)
+      .map(r => parseInt(r.date.substring(5, 7)))
+  );
+  const monthTabs = Array.from({length:12}, (_, i) => {
+    const m = i + 1;
+    const isActive = m === month;
+    const hasUsage = usedMonths.has(m);
+    const styleAttr = !isActive && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
+    return `<button class="m-vac-month-tab${isActive ? ' active' : ''}"${styleAttr} onclick="mPickVacMonth(${m})">${m}${u}</button>`;
+  }).join('');
+  const toggleLbl = mVacListMode === 'month' ? (jp ? '年間履歴' : '연간내역') : (jp ? '月間履歴' : '월간내역');
+  bar.innerHTML = `
+    <div class="m-year-nav" style="flex-shrink:0;">
+      <button class="m-year-btn" onclick="mVacDetailYearNav(-1)">‹</button>
+      <span class="m-year-txt">${year}${jp ? '年' : '년'}</span>
+      <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
+    </div>
+    <button class="m-vac-dbar-btn" onclick="mToggleVacListMode()">${toggleLbl}</button>
+    <button class="m-vac-dbar-btn" onclick="mVacGotoThisMonth()">${jp ? '今月' : '이번달'}</button>
+    <div class="m-vac-month-tabs">${monthTabs}</div>`;
+}
+
 function mRenderVacDetail() {
   const jp = LANG === 'JP';
   const no = mVacDetailEmpNo;
@@ -1465,15 +1506,7 @@ function mRenderVacDetail() {
     </div>`;
   }
 
-  // 네비바 텍스트 갱신
-  const yearTxt  = document.getElementById('m-vac-detail-year-txt');
-  const monthBtn = document.getElementById('m-vac-detail-month-btn');
-  const modeBtn  = document.getElementById('m-vac-detail-mode-btn');
-  const todayBtn = document.getElementById('m-vac-detail-today-btn');
-  if (yearTxt)  yearTxt.textContent  = mVacDetailYear + (jp ? '年' : '년');
-  if (monthBtn) monthBtn.textContent = mVacDetailMonth + (jp ? '月' : '월');
-  if (modeBtn)  modeBtn.textContent  = mVacListMode === 'month' ? (jp ? '年間履歴' : '연간내역') : (jp ? '月間履歴' : '월간내역');
-  if (todayBtn) todayBtn.textContent = jp ? '今月' : '이번달';
+  mRenderVacNavBar();
 
   detail.innerHTML = `
     <button class="m-back-btn" onclick="mCloseVacDetail()">◀ <span>${jp ? '一覧へ' : '목록으로'}</span></button>
@@ -1544,17 +1577,8 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
-<!-- 유급휴가 상세 하단 네비바 -->
-<div id="m-vac-detail-bar" class="m-vac-detail-bar hidden">
-  <div class="m-year-nav" style="flex-shrink:0;">
-    <button class="m-year-btn" onclick="mVacDetailYearNav(-1)">‹</button>
-    <span id="m-vac-detail-year-txt" class="m-year-txt"></span>
-    <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
-  </div>
-  <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
-  <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()" style="flex:1;"></button>
-  <button id="m-vac-detail-today-btn" class="m-vac-dbar-btn" onclick="mVacGotoThisMonth()"></button>
-</div>
+<!-- 유급휴가 상세 하단 네비바 (mRenderVacNavBar로 동적 생성) -->
+<div id="m-vac-detail-bar" class="m-vac-detail-bar hidden"></div>
 
 <!-- 유급휴가 월 선택 바텀시트 -->
 <div id="m-vac-month-picker-ov" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.45);align-items:flex-end;" onclick="if(event.target===this)mCloseVacMonthPicker()">
