@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 16:34 — 연도 이동 제한: 2023년 이하 차단, 데이터 유무 체크 제거
+  수정: 2026-06-11 17:44 — 급여명세 셀렉터 바 1줄 통합 + 월 바텀시트 교체 (완료)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -900,25 +900,45 @@ function mChangeYear(d) {
 }
 
 function mOnMonthChange() {
-  const v = parseInt(document.getElementById('m-month-sel').value);
+  const v = parseInt(document.getElementById('m-month-sel')?.value);
   if (isNaN(v) || v < 1) return;
   mM = v; localStorage.setItem(M_MON_K, mM);
+  mRenderPayroll();
+}
+
+function mOpenPayrollMonthPicker() {
+  const jp   = LANG === 'JP';
+  const ov   = document.getElementById('m-payroll-month-picker-ov');
+  const grid = document.getElementById('m-payroll-month-grid');
+  const ttl  = document.getElementById('m-payroll-month-picker-ttl');
+  if (ttl)  ttl.textContent = jp ? '月を選択' : '월 선택';
+  if (grid) {
+    grid.innerHTML = Array.from({length: 12}, (_, i) => {
+      const m = i + 1;
+      const active = m === mM;
+      return `<button class="m-month-btn${active ? ' active' : ''}" onclick="mPickPayrollMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
+    }).join('');
+  }
+  if (ov) { ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+
+function mClosePayrollMonthPicker() {
+  const ov = document.getElementById('m-payroll-month-picker-ov');
+  if (ov) { ov.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+function mPickPayrollMonth(m) {
+  mM = m; localStorage.setItem(M_MON_K, mM);
+  mClosePayrollMonthPicker();
+  mRenderMonthSel();
   mRenderPayroll();
 }
 
 function mRenderMonthSel() {
   const jp  = LANG === 'JP';
   const u   = jp ? '月' : '월';
-  const ph  = jp ? '── 月選択 ──' : '── 월 선택 ──';
-  const sel = document.getElementById('m-month-sel');
-  if (!sel) return;
-  sel.innerHTML = `<option value="-1">${ph}</option>`;
-  for (let m = 1; m <= 12; m++) {
-    const o = document.createElement('option');
-    o.value = m; o.textContent = m + u;
-    if (m === mM) o.selected = true;
-    sel.appendChild(o);
-  }
+  const btn = document.getElementById('m-month-btn-label');
+  if (btn) btn.textContent = mM > 0 ? mM + u : (jp ? '── 月 ──' : '── 월 ──');
   document.getElementById('m-year-txt').textContent = mY + (jp ? '年' : '년');
 }
 
@@ -1549,26 +1569,26 @@ document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
   const ov  = document.getElementById('m-vac-modal-ov');
   const mpo = document.getElementById('m-vac-month-picker-ov');
+  const ppo = document.getElementById('m-payroll-month-picker-ov');
+  if (ppo && ppo.style.display === 'flex') { mClosePayrollMonthPicker(); return; }
   if (mpo && mpo.style.display === 'flex') { mCloseVacMonthPicker(); return; }
   if (ov  && ov.style.display  === 'flex') mCloseVacModal();
 });
 </script>
 
 <!-- 급여명세 셀렉터 바 (tabbar 위 고정) -->
-<div id="m-sel-bar-payroll" class="m-sel-bar">
-  <button id="m-emp-sel-btn" class="m-sel m-emp-btn" onclick="mOpenEmpPicker('payroll')">
+<div id="m-sel-bar-payroll" class="m-sel-bar" style="flex-direction:row;gap:6px;align-items:center;">
+  <button id="m-emp-sel-btn" class="m-sel m-emp-btn" style="flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="mOpenEmpPicker('payroll')">
     <span id="m-emp-sel-label">── 사원 선택 ──</span>
   </button>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <div class="m-year-nav">
-      <button class="m-year-btn" onclick="mChangeYear(-1)">‹</button>
-      <span class="m-year-txt" id="m-year-txt"></span>
-      <button class="m-year-btn" onclick="mChangeYear(1)">›</button>
-    </div>
-    <select id="m-month-sel" class="m-sel" onchange="mOnMonthChange()" style="flex:1;">
-      <option value="-1">── 월 선택 ──</option>
-    </select>
+  <div class="m-year-nav" style="flex:2;flex-shrink:0;">
+    <button class="m-year-btn" onclick="mChangeYear(-1)">‹</button>
+    <span class="m-year-txt" id="m-year-txt"></span>
+    <button class="m-year-btn" onclick="mChangeYear(1)">›</button>
   </div>
+  <button class="m-sel" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="mOpenPayrollMonthPicker()">
+    <span id="m-month-btn-label">── 월 ──</span>
+  </button>
 </div>
 <!-- 임금대장 셀렉터 바 (tabbar 위 고정) -->
 <div id="m-sel-bar-annual" class="m-sel-bar hidden">
@@ -1594,6 +1614,17 @@ document.addEventListener('keydown', function(e) {
   <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
   <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()"></button>
   <button id="m-vac-detail-today-btn" class="m-vac-dbar-btn" onclick="mVacGotoThisMonth()"></button>
+</div>
+
+<!-- 급여명세 월 선택 바텀시트 -->
+<div id="m-payroll-month-picker-ov" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.45);align-items:flex-end;" onclick="if(event.target===this)mClosePayrollMonthPicker()">
+  <div style="background:var(--surface);border-radius:14px 14px 0 0;width:100%;padding:16px 14px 32px;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-weight:600;font-size:14px;" id="m-payroll-month-picker-ttl">月選択</span>
+      <button onclick="mClosePayrollMonthPicker()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);padding:0;line-height:1;">✕</button>
+    </div>
+    <div class="m-month-grid" id="m-payroll-month-grid"></div>
+  </div>
 </div>
 
 <!-- 유급휴가 월 선택 바텀시트 -->
