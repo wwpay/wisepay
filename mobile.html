@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 12:01 — 유급휴가 네비바 버튼 3개 균등 배치 + 월 선택 바텀시트 유급 사용 달 파란 배경
+  수정: 2026-06-11 12:09 — 유급휴가 연도이동 토스트 앵커 방식으로 변경 + 탭 복귀 시 상세화면 복원
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -771,12 +771,18 @@ function mGotoTab(id, el) {
   if (id === 'employees') { mShowEmpList(); mRenderEmpList(); }
   if (id === 'annual')    mRenderAnnual();
   if (id === 'vacation') {
-    document.getElementById('m-vac-detail').style.display = 'none';
-    document.getElementById('m-vac-out').style.display = '';
-    mRenderVacation();
+    if (mVacDetailEmpNo) {
+      document.getElementById('m-vac-out').style.display = 'none';
+      document.getElementById('m-vac-detail').style.display = 'block';
+      mRenderVacDetail();
+    } else {
+      document.getElementById('m-vac-detail').style.display = 'none';
+      document.getElementById('m-vac-out').style.display = '';
+      mRenderVacation();
+    }
   }
   const vdb = document.getElementById('m-vac-detail-bar');
-  if (vdb) vdb.classList.add('hidden');
+  if (vdb) vdb.classList.toggle('hidden', !(id === 'vacation' && mVacDetailEmpNo));
 }
 
 /* ── 사원 셀렉터 (급여 명세 / 임금대장 공통) ── */
@@ -1364,11 +1370,12 @@ function mCloseVacDetail() {
   if (bar) bar.classList.add('hidden');
 }
 
-function mVacDetailYearNav(d) {
+function mVacDetailYearNav(d, btn) {
   const nextY = mVacDetailYear + d;
   if (d < 0 && !mHasVacDataForYear(nextY)) {
     const jp = LANG === 'JP';
-    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    const msg = jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`;
+    if (btn) showAnchorToast(btn, msg, 2600); else showToast(msg, 'w');
     return;
   }
   mVacDetailYear = nextY;
@@ -1557,9 +1564,9 @@ document.addEventListener('keydown', function(e) {
 <!-- 유급휴가 상세 하단 네비바 -->
 <div id="m-vac-detail-bar" class="m-vac-detail-bar hidden">
   <div class="m-year-nav" style="flex-shrink:0;">
-    <button class="m-year-btn" onclick="mVacDetailYearNav(-1)">‹</button>
+    <button class="m-year-btn" onclick="mVacDetailYearNav(-1,this)">‹</button>
     <span id="m-vac-detail-year-txt" class="m-year-txt"></span>
-    <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
+    <button class="m-year-btn" onclick="mVacDetailYearNav(1,this)">›</button>
   </div>
   <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
   <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()"></button>
