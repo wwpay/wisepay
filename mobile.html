@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 12:09 — 유급휴가 연도이동 토스트 앵커 방식으로 변경 + 탭 복귀 시 상세화면 복원
+  수정: 2026-06-11 12:18 — 연도 이동 불가 토스트 position:fixed 중앙 고정, 세 페이지 통일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -867,12 +867,31 @@ function mHasVacDataForYear(year) {
   );
 }
 
+function mShowYearToast(msg) {
+  const existing = document.getElementById('_m-year-toast');
+  if (existing) { clearTimeout(existing._t); existing.remove(); }
+  const el = document.createElement('div');
+  el.id = '_m-year-toast';
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
+    'background:var(--orange);color:#fff;padding:9px 16px;border-radius:8px;' +
+    'font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.22);' +
+    'z-index:9999;max-width:80vw;white-space:nowrap;pointer-events:none;' +
+    'opacity:0;transition:opacity .2s;';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  el._t = setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 220);
+  }, 2600);
+}
+
 /* ── 월/년 선택 ── */
 function mChangeYear(d) {
   const nextY = mY + d;
   if (d < 0 && !mHasPayrollDataForYear(nextY)) {
     const jp = LANG === 'JP';
-    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
   }
   mY = nextY; mM = d < 0 ? 12 : 1;
@@ -1070,7 +1089,7 @@ function mAnnualYear(d) {
   const nextY = mAY + d;
   if (d < 0 && !mHasPayrollDataForYear(nextY)) {
     const jp = LANG === 'JP';
-    showToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`, 'w');
+    mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
   }
   mAY = nextY; localStorage.setItem(M_AY_K, mAY);
@@ -1370,12 +1389,11 @@ function mCloseVacDetail() {
   if (bar) bar.classList.add('hidden');
 }
 
-function mVacDetailYearNav(d, btn) {
+function mVacDetailYearNav(d) {
   const nextY = mVacDetailYear + d;
   if (d < 0 && !mHasVacDataForYear(nextY)) {
     const jp = LANG === 'JP';
-    const msg = jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`;
-    if (btn) showAnchorToast(btn, msg, 2600); else showToast(msg, 'w');
+    mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
   }
   mVacDetailYear = nextY;
@@ -1564,9 +1582,9 @@ document.addEventListener('keydown', function(e) {
 <!-- 유급휴가 상세 하단 네비바 -->
 <div id="m-vac-detail-bar" class="m-vac-detail-bar hidden">
   <div class="m-year-nav" style="flex-shrink:0;">
-    <button class="m-year-btn" onclick="mVacDetailYearNav(-1,this)">‹</button>
+    <button class="m-year-btn" onclick="mVacDetailYearNav(-1)">‹</button>
     <span id="m-vac-detail-year-txt" class="m-year-txt"></span>
-    <button class="m-year-btn" onclick="mVacDetailYearNav(1,this)">›</button>
+    <button class="m-year-btn" onclick="mVacDetailYearNav(1)">›</button>
   </div>
   <button id="m-vac-detail-month-btn" class="m-vac-dbar-btn" onclick="mOpenVacMonthPicker()"></button>
   <button id="m-vac-detail-mode-btn"  class="m-vac-dbar-btn" onclick="mToggleVacListMode()"></button>
