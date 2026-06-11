@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-03 15:00 — 알림 1~3번 이메일 함수 추가 (미입력/송금독촉/송금완료버튼 독촉)
+// 수정: 2026-06-13 15:46 — MailApp → GmailApp 전체 교체 (권한 오류 대응)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -288,7 +288,7 @@ function sendPayrollReminderEmail(year, month) {
   var body    = year + '年' + month + '月分の給与振込期限は' + year + '年' + month + '月10日です。\n' +
                 'お早めに振込手続きをお願いします。\n\n' +
                 '--\n給与Pro by Wisewires';
-  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+  GmailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
 function sendDataInputReminderEmail(year, month) {
@@ -296,7 +296,7 @@ function sendDataInputReminderEmail(year, month) {
   var body    = month + '月分の給与データがまだ入力されていません。\n' +
                 '残業代等をご確認の上、給与Proに入力してください。\n\n' +
                 '--\n給与Pro by Wisewires';
-  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+  GmailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
 function sendPayConfirmReminderEmail(year, month) {
@@ -304,7 +304,7 @@ function sendPayConfirmReminderEmail(year, month) {
   var body    = year + '年' + month + '月分の給与振込はお済みですか？\n' +
                 '振込確認後、給与Pro上の🔒送金完了ボタンを押してください。\n\n' +
                 '--\n給与Pro by Wisewires';
-  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+  GmailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
 function sendConfirmationEmail(year, month, confirmedAt, confirmedBy) {
@@ -314,7 +314,7 @@ function sendConfirmationEmail(year, month, confirmedAt, confirmedBy) {
                 '■ 確定日時：' + confirmedAt + '（JST）\n' +
                 '■ 確定者：' + confirmedBy + '\n\n' +
                 '--\n給与Pro by Wisewires';
-  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+  GmailApp.sendEmail(ADMIN_EMAIL, subject, body);
 }
 
 function jsonResponse(data) {
