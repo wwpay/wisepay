@@ -314,6 +314,20 @@ window._testAlert = function(day) {
   checkAndShowPayrollAlerts([...paidYMs]);
   window._jstNow = _orig;
 };
+
+window._testAlert1 = function() {
+  localStorage.removeItem('lastDataInputReminderEmail');
+  const jst  = _jstNow();
+  const year = jst.getFullYear();
+  const mon  = jst.getMonth() + 1;
+  const prevY = mon === 1 ? year - 1 : year;
+  const prevM = mon === 1 ? 12 : mon - 1;
+  const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(jst.getDate()).padStart(2,'0')}`;
+  console.log(`[_testAlert1] sendDataInputReminder → ${prevY}년 ${prevM}월`);
+  _sendDataInputReminderViaGas(prevY, prevM);
+  localStorage.setItem('lastDataInputReminderEmail', todayStr);
+  console.log('[_testAlert1] 완료. lastDataInputReminderEmail =', todayStr);
+};
 // ─────────────────────────────────────────────────────────────
 
 function _renderTrashPage() {
