@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 12:25 — 연도 이동 불가 토스트 bottom 80px→130px (선택 바 겹침 방지)
+  수정: 2026-06-11 13:58 — 유급휴가 월간 리스트 헤더에 합계일 배지 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1491,12 +1491,17 @@ function mRenderVacDetail() {
         </div>`;
       }).join('');
 
+  const totalUsed = filtered.reduce((s, r) => s + parseFloat(r.used || 0), 0);
   let headerHtml = '';
   if (mVacListMode === 'year') {
-    const total = filtered.reduce((s, r) => s + parseFloat(r.used || 0), 0);
     headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px;margin-bottom:10px;">
       <span style="font-size:14px;font-weight:700;">${jp ? `${mVacDetailYear}年 年間履歴` : `${mVacDetailYear}년 연간 내역`}</span>
-      <span style="background:var(--accent2);color:var(--accent);font-size:12px;padding:3px 10px;border-radius:10px;font-weight:700;border:1px solid var(--accent3);">${jp ? `計 ${total.toFixed(1)}日` : `합계 ${total.toFixed(1)}일`}</span>
+      <span style="background:var(--accent2);color:var(--accent);font-size:12px;padding:3px 10px;border-radius:10px;font-weight:700;border:1px solid var(--accent3);">${jp ? `計 ${totalUsed.toFixed(1)}日` : `합계 ${totalUsed.toFixed(1)}일`}</span>
+    </div>`;
+  } else {
+    headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px;margin-bottom:10px;">
+      <span style="font-size:14px;font-weight:700;">${jp ? `${mVacDetailYear}年 ${mVacDetailMonth}月 使用履歴` : `${mVacDetailYear}년 ${mVacDetailMonth}월 사용 내역`}</span>
+      <span style="background:#dbeafe;color:#1e40af;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600;">${jp ? `合計 ${totalUsed.toFixed(1)}日` : `합계 ${totalUsed.toFixed(1)}일`}</span>
     </div>`;
   }
 
