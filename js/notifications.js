@@ -316,17 +316,22 @@ window._testAlert = function(day) {
 };
 
 window._testAlert1 = function() {
-  localStorage.removeItem('lastDataInputReminderEmail');
-  const jst  = _jstNow();
-  const year = jst.getFullYear();
-  const mon  = jst.getMonth() + 1;
-  const prevY = mon === 1 ? year - 1 : year;
-  const prevM = mon === 1 ? 12 : mon - 1;
-  const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(jst.getDate()).padStart(2,'0')}`;
-  console.log(`[_testAlert1] sendDataInputReminder → ${prevY}년 ${prevM}월`);
-  _sendDataInputReminderViaGas(prevY, prevM);
-  localStorage.setItem('lastDataInputReminderEmail', todayStr);
-  console.log('[_testAlert1] 완료. lastDataInputReminderEmail =', todayStr);
+  try {
+    localStorage.removeItem('lastDataInputReminderEmail');
+    const now   = new Date();
+    const jstStr = now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' });
+    const jst   = new Date(jstStr);
+    const year  = jst.getFullYear();
+    const mon   = jst.getMonth() + 1;
+    const prevY = Number(mon === 1 ? year - 1 : year);
+    const prevM = Number(mon === 1 ? 12 : mon - 1);
+    const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(jst.getDate()).padStart(2,'0')}`;
+    if (!prevY || !prevM) { console.error('[_testAlert1] year/month 계산 실패:', prevY, prevM); return; }
+    console.log(`[_testAlert1] 전송 → year=${prevY}, month=${prevM}, today=${todayStr}`);
+    _sendDataInputReminderViaGas(prevY, prevM);
+    localStorage.setItem('lastDataInputReminderEmail', todayStr);
+    console.log('[_testAlert1] 완료');
+  } catch(e) { console.error('[_testAlert1] 오류:', e); }
 };
 // ─────────────────────────────────────────────────────────────
 
