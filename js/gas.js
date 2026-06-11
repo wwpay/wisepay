@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 15:29 — autoLoadFromGas 완료 후 checkAndShowPayrollAlerts 재호출 (GAS 동기화 후 정확한 데이터로 알림 체크)
+// 수정: 2026-06-11 16:27 — paidYMs GAS 동기화를 add→replace로 수정 (시트 삭제 반영 안 되는 버그)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -291,9 +291,9 @@ async function autoLoadFromGas() {
       const needsSync = migrateRateHistory();
       if (needsSync) uploadRateHistoryToGas();
     }
-    // 지급완료 연월 동기화
-    if (Array.isArray(d.paidYMs) && d.paidYMs.length > 0) {
-      d.paidYMs.forEach(ym => paidYMs.add(ym));
+    // 지급완료 연월 동기화 — GAS가 소스 오브 트루스이므로 항상 replace
+    if (Array.isArray(d.paidYMs)) {
+      paidYMs = new Set(d.paidYMs);
       localStorage.setItem(LS.paidYMs, JSON.stringify([...paidYMs]));
     }
     renderEmpSelect();
