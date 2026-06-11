@@ -1,4 +1,4 @@
-/* 수정: 2026-06-11 10:18 — month-nav overflow-x:auto, month-tabs flex:1, month-tab 균등 배치, vac-nav-btns 추가 */
+/* 수정: 2026-06-10 22:15 — .emp-nav 추가 (지급이력·임금대장·유급휴가 셀렉터 바 month-nav 동일 박스 스타일) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -92,7 +92,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .banner-x{margin-left:auto;cursor:pointer;opacity:.5;font-size:calc(14px + var(--fs-delta));} .banner-x:hover{opacity:1;}
 
 /* MONTH NAV */
-.month-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);overflow-x:auto;}
+.month-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);}
 .emp-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;box-shadow:var(--sh);}
 .year-ctrl{display:flex;align-items:center;gap:6px;}
 .year-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 7px;cursor:pointer;color:var(--text2);font-size:calc(11px + var(--fs-delta));}
@@ -101,10 +101,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .month-nav-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 4px;}
 .btn-today{background:none;border:1.5px solid var(--accent);border-radius:4px;padding:4px 9px;cursor:pointer;color:var(--accent);font-size:calc(12px + var(--fs-delta));font-family:inherit;font-weight:600;white-space:nowrap;flex-shrink:0;transition:all .15s;}
 .btn-today:hover{background:var(--accent);color:#fff;}
-.month-tabs{display:flex;gap:2px;flex:1;flex-wrap:nowrap;}
-.month-tab{padding:4px 4px;border:none;background:none;border-radius:20px;font-size:calc(12px + var(--fs-delta));font-family:inherit;color:var(--text2);cursor:pointer;transition:all .15s;flex:1;text-align:center;white-space:nowrap;min-width:2em;}
-.vac-nav-btns{display:flex;gap:4px;flex-shrink:0;}
-.vac-nav-btns .btn-today{flex:1;}
+.month-tabs{display:flex;gap:2px;flex-wrap:wrap;}
+.month-tab{padding:4px 9px;border:none;background:none;border-radius:20px;font-size:calc(12px + var(--fs-delta));font-family:inherit;color:var(--text2);cursor:pointer;transition:all .15s;}
 .month-tab:hover{background:var(--bg);color:var(--text);}
 .month-tab.active{background:var(--accent);color:#fff;font-weight:600;}
 
