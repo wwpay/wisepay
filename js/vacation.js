@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 23:34 — _renderVacNavBar 월 탭/이번달/연간토글 버튼 크기 통일 + 토글 버튼 accent 스타일
+// 수정: 2026-06-11 16:20 — vacYearPrev: 현재 연도 이상이면 데이터 체크 없이 이동 허용
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -782,7 +782,8 @@ function _hasVacDataForYear(year) {
 
 function vacYearPrev(btn) {
   const prevYear = _vacDetailYear - 1;
-  if (!_hasVacDataForYear(prevYear)) {
+  const thisYear = parseInt(jstToday().substring(0, 4));
+  if (prevYear < thisYear && !_hasVacDataForYear(prevYear)) {
     const jp = LANG === 'JP';
     const msg = jp ? `${prevYear}年のデータは存在しません` : `${prevYear}년은 데이터가 존재하지 않습니다`;
     if (btn) showAnchorToast(btn, msg, 3000);

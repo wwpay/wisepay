@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 14:47 — 연도 이동 버튼 박스 제거, 화살표 굵게 통일 (세 페이지 공통)
+  수정: 2026-06-11 16:20 — 연도 이동 데이터 체크: 현재 연도 이상은 체크 없이 이동 허용
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -889,7 +889,8 @@ function mShowYearToast(msg) {
 /* ── 월/년 선택 ── */
 function mChangeYear(d) {
   const nextY = mY + d;
-  if (d < 0 && !mHasPayrollDataForYear(nextY)) {
+  const thisYear = parseInt(jstToday().substring(0, 4));
+  if (d < 0 && nextY < thisYear && !mHasPayrollDataForYear(nextY)) {
     const jp = LANG === 'JP';
     mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
@@ -1087,7 +1088,8 @@ function mRenderPayroll() {
 /* ── 임금대장 ── */
 function mAnnualYear(d) {
   const nextY = mAY + d;
-  if (d < 0 && !mHasPayrollDataForYear(nextY)) {
+  const thisYear = parseInt(jstToday().substring(0, 4));
+  if (d < 0 && nextY < thisYear && !mHasPayrollDataForYear(nextY)) {
     const jp = LANG === 'JP';
     mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
@@ -1391,7 +1393,8 @@ function mCloseVacDetail() {
 
 function mVacDetailYearNav(d) {
   const nextY = mVacDetailYear + d;
-  if (d < 0 && !mHasVacDataForYear(nextY)) {
+  const thisYear = parseInt(jstToday().substring(0, 4));
+  if (d < 0 && nextY < thisYear && !mHasVacDataForYear(nextY)) {
     const jp = LANG === 'JP';
     mShowYearToast(jp ? `${nextY}年のデータは存在しません` : `${nextY}년은 데이터가 존재하지 않습니다`);
     return;
