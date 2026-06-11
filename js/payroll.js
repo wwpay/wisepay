@@ -1,4 +1,4 @@
-// 수정: 2026-06-08 16:26 — 과거 연도 데이터 없을 때 이전 연도 화살표에 앵커 토스트 추가
+// 수정: 2026-06-11 16:40 — changeYear: 2023년 이하 차단, 데이터 유무 체크 제거
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -114,7 +114,7 @@ function changeYear(d, btn) {
     const msg = jp ? '保存されていない給与データがあります。このまま切り替えますか？' : '저장되지 않은 급여 데이터가 있습니다. 전환하시겠습니까?';
     if(!confirm(msg)) return;
   }
-  if (d < 0 && !hasPayrollDataForYear(currentYear + d)) {
+  if (currentYear + d <= 2023) {
     const jp = LANG === 'JP';
     const msg = jp ? `${currentYear + d}年のデータは存在しません` : `${currentYear + d}년은 데이터가 존재하지 않습니다`;
     if (btn) showAnchorToast(btn, msg, 3000);
