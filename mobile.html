@@ -556,6 +556,82 @@ async function mSyncFromGas() {
   }
 }
 
+async function mLoadEmployeeData() {
+  const jp = LANG === 'JP';
+  const out = document.getElementById('m-payroll-out');
+  if (!gasUrl || !currentUser || !_writeToken) {
+    mRenderEmpSels(); mRenderPayroll(); mRenderAnnual(); mRenderVacation(); return;
+  }
+  if (out) out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">⏳</div>${jp?'データを読み込んでいます…':'데이터 로드 중…'}</div>`;
+  try {
+    const resp = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'getEmployeeData', _uid: currentUser.id, _hash: _writeToken })
+    });
+    const result = await resp.json();
+    if (!result.ok) throw new Error(result.error || 'getEmployeeData failed');
+    const d = result.data;
+    if (d.employees && d.employees.length > 0) {
+      employees = d.employees.map(e => ({
+        ...e,
+        join:        normalizeDate(e.join || ''),
+        leave:       normalizeDate(e.leave || ''),
+        birth:       normalizeDate(e.birth || ''),
+        families:    typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
+        fuyouCount:  parseInt(e.fuyouCount) || 0,
+        commute:     parseInt(e.commute) || 0,
+        shaho_start: normalizeYM(e.shaho_start || '')
+      }));
+      localStorage.setItem(LS.emp, JSON.stringify(employees));
+    }
+    if (Array.isArray(d.payrolls)) {
+      d.payrolls.forEach(p => {
+        const key = 'kyuyo_p_' + String(p.no).padStart(4, '0') + '_' + p.year + '_' + p.month;
+        localStorage.setItem(key, JSON.stringify(p));
+      });
+    }
+    if (Array.isArray(d.vacationData)) {
+      const rebuilt = {};
+      d.vacationData.forEach(r => {
+        const no = String(r.emp_no || '').trim().padStart(4, '0');
+        if (!no || no === '0000') return;
+        if (!rebuilt[no]) rebuilt[no] = [];
+        const { emp_no, ...rest } = r;
+        rebuilt[no].push(rest);
+      });
+      vacationData = rebuilt;
+      localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+    }
+    if (Array.isArray(d.paidYMs)) {
+      paidYMs = new Set(d.paidYMs);
+      localStorage.setItem(LS.paidYMs, JSON.stringify([...paidYMs]));
+    }
+    // 본인 사원 자동 선택
+    const empId = (currentUser.employeeId || d.forcedEmpNo || '').trim();
+    if (empId) {
+      const padId = String(parseInt(empId) || 0).padStart(4, '0');
+      const idx = employees.findIndex(e => String(parseInt(e.no || 0)).padStart(4, '0') === padId);
+      if (idx >= 0) { mEmp = idx; mAnnualEmp = idx; }
+    }
+    mRenderEmpSels();
+    mRenderPayroll();
+    mRenderAnnual();
+    mRenderVacation();
+    // 사원 선택 버튼 잠금
+    [document.getElementById('m-emp-sel-btn'), document.getElementById('m-annual-emp-btn')].forEach(btn => {
+      if (!btn) return;
+      btn.style.pointerEvents = 'none';
+      btn.style.opacity = '0.85';
+      btn.style.cursor = 'default';
+    });
+  } catch(err) {
+    console.warn('mLoadEmployeeData error:', err);
+    showToast(jp ? 'データの読み込みに失敗しました' : 'GAS 데이터 로드 실패', 'e');
+    if (out) out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">❌</div>${jp?'データ取得失敗':'데이터 로드 실패'}</div>`;
+  }
+}
+
 async function mLoadViewerData() {
   const jp = LANG === 'JP';
   const out = document.getElementById('m-payroll-out');
@@ -645,11 +721,17 @@ function applyRatesForYM(year, month) {
 <script src="js/gas.js"></script>
 <script>
 /* auth.js의 renderNavForRole을 모바일용으로 덮어씀:
-   viewer는 사원 관리 탭 자체를 숨김 (잠금 아이콘 표시 대신) */
+   - 공통: 사원 관리 탭 숨김
+   - viewer: 유급휴가 탭도 숨김
+   - employee: 유급휴가 탭 노출 유지 */
 renderNavForRole = function() {
   if (!currentUser || currentUser.role === 'admin') return;
   const empTab = document.querySelector('.m-tab[data-page="employees"]');
   if (empTab) empTab.style.display = 'none';
+  if (currentUser.role !== 'employee') {
+    const vacTab = document.querySelector('.m-tab[data-page="vacation"]');
+    if (vacTab) vacTab.style.display = 'none';
+  }
 };
 </script>
 
@@ -708,6 +790,14 @@ function mInitApp() {
     mViewerPayrolls = [];
     mRenderEmpSels();
     mLoadViewerData();
+    return;
+  }
+
+  // employee: GAS에서 본인 데이터만 로드 (서버측 강제 치환)
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee') {
+    mViewerPayrolls = null;
+    mRenderEmpSels();
+    mLoadEmployeeData();
     return;
   }
 
@@ -806,6 +896,7 @@ function mRenderEmpSels() {
 }
 
 function mOpenEmpPicker(page) {
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee') return;
   _mPickerPage = page;
   const jp  = LANG === 'JP';
   const ov  = document.getElementById('m-emp-picker-ov');

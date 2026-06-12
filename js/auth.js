@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 22:52 — 일회용 도구 섹션 관련 resync-payroll-wrap 참조 제거
+// 수정: 2026-06-12 12:22 — employee 권한 지원: 메뉴 필터링·dropdown 잠금·서버측 검증 연동
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -50,10 +50,11 @@ function closeIdleLogoutModal() {
   if (modal) modal.style.display = 'none';
 }
 
-let currentUser  = null; // { id, name, role, sessionType }
-let _writeToken  = null; // admin 로그인 시만 설정, viewer는 null
+let currentUser  = null; // { id, name, role, sessionType, employeeId? }
+let _writeToken  = null; // admin·employee 로그인 시 설정 (GAS 인증용), viewer는 null
 
-const VIEWER_PAGES = new Set(['payroll', 'annual']);
+const VIEWER_PAGES   = new Set(['payroll', 'annual']);
+const EMPLOYEE_PAGES = new Set(['payroll', 'annual', 'vacation']);
 
 async function _sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -153,7 +154,7 @@ async function doLogin() {
       if (saveId) localStorage.setItem(AUTH_ID_KEY, id);
       else        localStorage.removeItem(AUTH_ID_KEY);
 
-      const wt = result.user.role === 'admin' ? hash : null;
+      const wt = (result.user.role === 'admin' || result.user.role === 'employee') ? hash : null;
       _storeSession(result.user, wt);
       currentUser = result.user;
       _writeToken = wt;
@@ -202,6 +203,7 @@ function gasWriteAuth() {
 function canAccessPage(pageId) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
+  if (currentUser.role === 'employee') return EMPLOYEE_PAGES.has(pageId);
   return VIEWER_PAGES.has(pageId);
 }
 
@@ -219,14 +221,11 @@ function closeAccessDenied() {
 
 function renderNavForRole() {
   if (!currentUser) return;
-  if (currentUser.role === 'admin') {
-    return;
-  }
-  // viewer: 접근 불가 메뉴 숨김
+  if (currentUser.role === 'admin') return;
+  const allowed = currentUser.role === 'employee' ? EMPLOYEE_PAGES : VIEWER_PAGES;
   document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-    if (!VIEWER_PAGES.has(item.dataset.page)) item.style.display = 'none';
+    if (!allowed.has(item.dataset.page)) item.style.display = 'none';
   });
-  // 설정 섹션 헤더 숨김
   const settingSec = document.getElementById('t-nav-setting');
   if (settingSec) settingSec.style.display = 'none';
 }
@@ -263,8 +262,73 @@ function applyViewerRestrictions() {
   window.saveRateHistory       = blocked;
   window.downloadBackupExcel   = blocked;
 
-  // viewer idle 자동 로그아웃: click/keydown 감지, 1시간 무조작 시 로그아웃
+  // idle 자동 로그아웃: click/keydown 감지, 1시간 무조작 시 로그아웃
   document.addEventListener('click',   _onIdleActivity);
   document.addEventListener('keydown', _onIdleActivity);
   _startIdleTimer();
+}
+
+// ── employee 전용 제한: dropdown 잠금 + 본인 사원만 표시 ──
+function applyEmployeeRestrictions() {
+  if (!currentUser || currentUser.role !== 'employee') return;
+  const empId = currentUser.employeeId;
+  if (!empId) return;
+  const padId = String(parseInt(empId) || 0).padStart(4, '0');
+
+  // 급여명세 dropdown 잠금
+  const payrollSel = document.getElementById('empSelect');
+  if (payrollSel) {
+    const idx = employees.findIndex(e => String(parseInt(e.no || 0)).padStart(4, '0') === padId);
+    if (idx >= 0) {
+      window.currentEmpIdx = idx;
+      payrollSel.value = idx;
+      if (typeof loadPayrollForm === 'function') loadPayrollForm();
+      if (typeof renderPaidBtn  === 'function') renderPaidBtn();
+    }
+    payrollSel.disabled = true;
+    payrollSel.style.opacity = '0.85';
+    payrollSel.style.cursor  = 'default';
+  }
+
+  // 임금대장 사원 드롭다운 잠금
+  const annualDropWrap = document.getElementById('annualEmpDropWrap');
+  if (annualDropWrap) {
+    annualDropWrap.style.pointerEvents = 'none';
+    annualDropWrap.style.opacity = '0.85';
+  }
+  const annualList = document.getElementById('annualEmpCheckList');
+  if (annualList) {
+    annualList.querySelectorAll('label').forEach(label => {
+      const no = label.dataset.no || '';
+      if (String(parseInt(no) || 0).padStart(4, '0') === padId) {
+        const cb = label.querySelector('input[type=checkbox]');
+        if (cb) cb.checked = true;
+      } else {
+        label.style.display = 'none';
+      }
+    });
+    if (typeof updateAnnualSelSummary === 'function') updateAnnualSelSummary();
+    if (typeof renderAnnual === 'function') renderAnnual();
+  }
+
+  // 유급휴가 사원 드롭다운 잠금
+  const vacDropWrap = document.getElementById('vacEmpDropWrap');
+  if (vacDropWrap) {
+    vacDropWrap.style.pointerEvents = 'none';
+    vacDropWrap.style.opacity = '0.85';
+  }
+  const vacList = document.getElementById('vacEmpCheckList');
+  if (vacList) {
+    vacList.querySelectorAll('label').forEach(label => {
+      const no = label.dataset.no || '';
+      if (String(parseInt(no) || 0).padStart(4, '0') === padId) {
+        const cb = label.querySelector('input[type=checkbox]');
+        if (cb) cb.checked = true;
+      } else {
+        label.style.display = 'none';
+      }
+    });
+    if (typeof updateVacSelSummary   === 'function') updateVacSelSummary();
+    if (typeof renderVacationCards   === 'function') renderVacationCards();
+  }
 }

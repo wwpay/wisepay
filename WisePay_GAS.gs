@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-09 18:24 — cleanVacationGrantRows() 추가 (1회 수동 실행: used=0 행 삭제)
+// 수정: 2026-06-12 13:38 — verifyLogin: employee employeeId 응답 추가 / getEmployeeData 엔드포인트 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -260,12 +260,17 @@ function doPost(e) {
         }
       }
       if (matched) {
-        return jsonResponse({ ok: true, user: {
+        var matchedRole = String(matched['권한'] || '').trim();
+        var userResp = {
           id:          String(matched['ID']       || '').trim(),
           name:        String(matched['이름']     || '').trim(),
-          role:        String(matched['권한']     || '').trim(),
+          role:        matchedRole,
           sessionType: String(matched['세션타입'] || '').trim(),
-        }});
+        };
+        if (matchedRole === 'employee') {
+          userResp.employeeId = String(matched['사원ID'] || '').trim();
+        }
+        return jsonResponse({ ok: true, user: userResp });
       }
       return jsonResponse({ ok: false });
     }
@@ -312,6 +317,44 @@ function doPost(e) {
         }
       }
       return jsonResponse({ ok: true });
+    }
+    if (data.type === 'getEmployeeData') {
+      var eUid  = String(data._uid  || '').trim();
+      var eHash = String(data._hash || '').toLowerCase().trim();
+      if (!eUid || !eHash) return jsonResponse({ ok: false, error: 'Missing credentials' });
+      var eUsers = sheetToObjects(getSheet(SHEET_USERS));
+      var eMatched = null;
+      for (var eidx = 0; eidx < eUsers.length; eidx++) {
+        var eu = eUsers[eidx];
+        if (String(eu['ID'] || '').trim() === eUid &&
+            String(eu['PW_HASH'] || '').toLowerCase().trim() === eHash) {
+          eMatched = eu; break;
+        }
+      }
+      if (!eMatched) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      if (String(eMatched['권한'] || '').trim() !== 'employee') {
+        return jsonResponse({ ok: false, error: 'Not an employee account' });
+      }
+      // 요청 empNo 무시 → users 시트 사원ID로 강제 치환 (보안 핵심)
+      var forcedNo = String(eMatched['사원ID'] || '').trim();
+      if (!forcedNo) return jsonResponse({ ok: false, error: '사원ID not configured' });
+      var forcedPad = String(parseInt(forcedNo) || 0).padStart(4, '0');
+      var myEmps = sheetToObjects(getSheet(SHEET_EMP)).filter(function(e) {
+        return String(parseInt(e.no || 0)).padStart(4, '0') === forcedPad;
+      });
+      var myPays = sheetToObjects(getSheet(SHEET_PAY)).filter(function(p) {
+        return String(parseInt(p.no || 0)).padStart(4, '0') === forcedPad;
+      });
+      var myVac = (getVacationData().data || []).filter(function(v) {
+        return String(parseInt(v.emp_no || 0)).padStart(4, '0') === forcedPad;
+      });
+      return jsonResponse({ ok: true, data: {
+        employees:    myEmps,
+        payrolls:     myPays,
+        vacationData: myVac,
+        paidYMs:      getPaidYMs(),
+        forcedEmpNo:  forcedPad
+      }});
     }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {

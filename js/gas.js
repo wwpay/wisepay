@@ -1,4 +1,4 @@
-// 수정: 2026-06-10 03:31 — saveVacationToGas: 발생 기록(used=0) 포함 전체 전송으로 변경
+// 수정: 2026-06-12 12:22 — employee 권한: getEmployeeData POST로 본인 데이터만 로드
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -205,9 +205,89 @@ function openGasModal() {
   if (typeof renderUserMgmt === 'function') renderUserMgmt();
 }
 
+// employee 전용: getEmployeeData POST로 본인 데이터만 로드
+async function _loadEmployeeDataFromGas() {
+  if (!gasUrl || !currentUser || !_writeToken) return;
+  const dot = document.getElementById('gasDot') || document.getElementById('gas-dot');
+  const txt = document.getElementById('gasText') || document.getElementById('gas-txt');
+  if (dot && txt) { dot.className = 'sdot sdot-wait'; txt.textContent = LANG === 'JP' ? 'データ読込中…' : '데이터 로드 중…'; }
+  try {
+    const resp = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'getEmployeeData', _uid: currentUser.id, _hash: _writeToken })
+    });
+    const result = await resp.json();
+    if (!result.ok) throw new Error(result.error || 'getEmployeeData failed');
+    const d = result.data;
+    if (d.employees && d.employees.length > 0) {
+      employees = d.employees.map(e => ({
+        ...e,
+        join:        normalizeDate(e.join || ''),
+        leave:       normalizeDate(e.leave || ''),
+        birth:       normalizeDate(e.birth || ''),
+        families:    typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
+        fuyouCount:  parseInt(e.fuyouCount) || 0,
+        commute:     parseInt(e.commute) || 0,
+        shaho_start: normalizeYM(e.shaho_start || '')
+      }));
+      localStorage.setItem(LS.emp, JSON.stringify(employees));
+      syncFuyouFromFamilies();
+    }
+    if (Array.isArray(d.payrolls)) {
+      const forcedPad = d.forcedEmpNo || '';
+      if (forcedPad) {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(`kyuyo_p_${forcedPad}_`)) localStorage.removeItem(k);
+        }
+      }
+      d.payrolls.forEach(p => {
+        const key = 'kyuyo_p_' + String(p.no).padStart(4, '0') + '_' + p.year + '_' + p.month;
+        localStorage.setItem(key, JSON.stringify(p));
+      });
+    }
+    if (Array.isArray(d.vacationData)) {
+      const rebuilt = {};
+      d.vacationData.forEach(r => {
+        const no = String(r.emp_no || '').trim().padStart(4, '0');
+        if (!no || no === '0000') return;
+        if (!rebuilt[no]) rebuilt[no] = [];
+        const { emp_no, ...rest } = r;
+        rebuilt[no].push(rest);
+      });
+      vacationData = rebuilt;
+      localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+    }
+    if (Array.isArray(d.paidYMs)) {
+      paidYMs = new Set(d.paidYMs);
+      localStorage.setItem(LS.paidYMs, JSON.stringify([...paidYMs]));
+    }
+    renderEmpSelect();
+    loadPayrollForm();
+    renderPaidBtn();
+    applyRatesForYM(currentYear, currentMonth);
+    buildAnnualYearSel();
+    buildAnnualEmpSel();
+    renderAnnual();
+    buildHistEmpSel();
+    if (typeof renderVacationPage === 'function') renderVacationPage();
+    updateGasStatus();
+    applyEmployeeRestrictions();
+  } catch(err) {
+    console.warn('_loadEmployeeDataFromGas failed:', err);
+    updateGasStatus();
+  }
+}
+
 // 로그인 후 GAS에서 조용히 최신 데이터 가져오기 (confirm 없음)
 async function autoLoadFromGas() {
   if (!gasUrl) return;
+  // employee 권한: POST 전용 엔드포인트로 본인 데이터만 로드
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee') {
+    await _loadEmployeeDataFromGas();
+    return;
+  }
   // GAS 콜드 스타트(~15초) 대응: 로딩 중 안내 표시
   const dot = document.getElementById('gasDot') || document.getElementById('gas-dot');
   const txt = document.getElementById('gasText') || document.getElementById('gas-txt');
