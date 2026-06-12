@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 17:31 — 유급휴가 관리 체크박스를 form-input 박스 스타일로 통일
+﻿// 수정: 2026-06-12 12:22 — 유급휴가 관리 "관리 대상으로 설정" → "적용 대상으로 설정" 문구 변경
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -352,7 +352,7 @@ function renderEmpFormFields(emp, readOnly = false) {
       </div>
       <label class="form-input" style="display:flex;align-items:center;gap:8px;cursor:${readOnly?'default':'pointer'};">
         <input type="checkbox" id="f-vacation-applied" ${emp?.vacationApplied !== false?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;"${readOnly?' disabled':' onchange="markDirty()"'}>
-        <span style="font-size:calc(12.5px + var(--fs-delta));">${jp?'有給管理対象にする':'관리 대상으로 설정'}</span>
+        <span style="font-size:calc(12.5px + var(--fs-delta));">${jp?'有給管理対象にする':'적용 대상으로 설정'}</span>
       </label>
     </div>
   </div>
