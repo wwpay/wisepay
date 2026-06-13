@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-03 12:58 — wiseadmin 로그인 시 알림 초기화 + 송금 독촉 알림 호출 추가
+﻿// 수정: 2026-06-13 15:32 — checkAndShowPayrollAlerts 조기 호출 제거 (autoLoadFromGas 완료 후로 이동)
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -119,7 +119,7 @@ function initApp() {
   if (typeof applyViewerRestrictions === 'function') applyViewerRestrictions();
   if (currentUser && currentUser.id === 'wiseadmin') {
     if (typeof initNotifications === 'function') initNotifications();
-    if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
+    // checkAndShowPayrollAlerts は autoLoadFromGas() 완료 후 호출됨 (gas.js)
   }
 }
 

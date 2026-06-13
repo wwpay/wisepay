@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 15:00 — 알림 1~3번 전체 구현 (미입력 이메일/송금독촉/송금완료버튼 독촉)
+// 수정: 2026-06-13 15:32 — 알림 2/3번 말풍선 색상 구분 (type 파라미터), 타이밍 주석 정리
 'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
@@ -199,7 +199,7 @@ function checkAndShowPayrollAlerts(paidMonths) {
       showPayrollReminderBanner(
         `💸 ${uy}년 ${um}월분 급여 송금 기한은 10일까지입니다.`,
         `💸 ${uy}年${um}月分の給与振込期限は10日です。`,
-        jp
+        jp, 2
       );
       if (localStorage.getItem('lastSendReminderEmail') !== todayStr) {
         _sendReminderEmailViaGas(uy, um);
@@ -212,7 +212,7 @@ function checkAndShowPayrollAlerts(paidMonths) {
       showPayrollReminderBanner(
         `✅ ${uy}년 ${um}월분 급여 송금이 완료되셨나요? 🔒 송금 완료 버튼을 눌러주세요.`,
         `✅ ${uy}年${um}月分の給与振込はお済みですか？ 🔒 送金完了ボタンを押してください。`,
-        jp
+        jp, 3
       );
       console.log('[알림] showPayrollReminderBanner 호출 완료');
       if (localStorage.getItem('lastPayConfirmReminderEmail') !== todayStr) {
@@ -250,17 +250,22 @@ function _getLatestUnpaidSavedMonth(paidArr) {
   return null;
 }
 
-function showPayrollReminderBanner(msgKR, msgJP, jp) {
+function showPayrollReminderBanner(msgKR, msgJP, jp, type) {
   if (document.getElementById('payroll-balloon')) return;
   const center = document.getElementById('topbar-center');
   if (!center) return;
 
+  const c = type === 3
+    ? { bg: '#EFF6FF', border: '#93C5FD', text: '#1E40AF', btn: '#3B82F6' }
+    : { bg: '#FFFBEB', border: '#FCD34D', text: '#92400E', btn: '#F59E0B' };
+
   const balloon = document.createElement('div');
   balloon.id        = 'payroll-balloon';
   balloon.className = 'payroll-balloon';
+  balloon.style.cssText += `background:${c.bg};border:1px solid ${c.border};color:${c.text};`;
   balloon.innerHTML =
     `<span class="payroll-balloon-text">${jp ? msgJP : msgKR}</span>` +
-    `<button class="payroll-balloon-confirm">${jp ? '確認' : '확인'}</button>`;
+    `<button class="payroll-balloon-confirm" style="background:${c.btn}">${jp ? '確認' : '확인'}</button>`;
 
   center.appendChild(balloon);
 
