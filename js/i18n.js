@@ -244,6 +244,15 @@ function applyLang() {
   setTxt('t-ps-jiku-to-label',    '至',                            '까지');
   setTxt('ps-half1-label',        '1月〜6月',                      '1월~6월');
   setTxt('ps-half2-label',        '7月〜12月',                     '7월~12월');
+  setTxt('t-ps-doujou',           '同上の支払確定年月日',          '상기 지급확정 연월일');
+  setTxt('t-ps-zeiri-note',
+    '税理士や弁護士等、専門家への報酬を支払った場合は源泉徴収の対象であり、別途「税理士等の報酬」欄への記載と、合計欄等への加算が必要になります。',
+    '세무사·변호사 등 전문가에게 보수를 지급한 경우 원천징수 대상이 됩니다. 별도로 「税理士等の報酬」 란에 기재하고 합계란에 가산이 필요합니다.'
+  );
+  setTxt('t-ps-notice',
+    '※ 本集計はWisePay給与データ基準です。年末調整・税理士報酬の反映方式によりfreee/税務署申告額と差異が生じる場合があります。',
+    '※ 본 집계는 WisePay 급여 데이터 기준이며, 연말조정 반영 방식에 따라 freee/세무서 신고액과 차이가 있을 수 있습니다.'
+  );
   try { if (typeof buildPsYearSel === 'function') buildPsYearSel(); } catch(e) {}
 
   updateGasStatus();

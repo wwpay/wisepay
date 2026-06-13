@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-13 18:43 — 원천세 납부서 집계 기능 추가 (메뉴·페이지·JS·CSS·i18n)
+  수정: 2026-06-13 18:58 — 원천세 납부서 레이아웃 freee 서식과 동일하게 재구성 (同上の支払確定年月日 rowspan 합셀)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -337,18 +337,20 @@
     </button>
   </div>
 
-  <!-- 안내 문구 -->
-  <div class="ps-notice-bar">
-    <span id="t-ps-notice">※ 본 집계는 WisePay 급여 데이터 기준이며, 税理士報酬 및 연말조정 반영 방식에 따라 freee/세무서 신고액과 차이가 있을 수 있습니다.</span>
-  </div>
-
   <!-- 표 + 우측 납기 구분 박스 -->
   <div class="ps-layout">
     <div class="ps-table-wrap">
       <table class="ps-table">
+        <colgroup>
+          <col style="width:150px">
+          <col style="width:210px">
+          <col style="width:60px">
+          <col style="width:120px">
+          <col style="width:110px">
+        </colgroup>
         <thead>
           <tr>
-            <th id="t-ps-col-kubun" style="text-align:left;">区分</th>
+            <th id="t-ps-col-kubun">区分</th>
             <th id="t-ps-col-date">支払年月日</th>
             <th id="t-ps-col-ninzuu">人員</th>
             <th id="t-ps-col-shiharai">支払額</th>
@@ -358,15 +360,15 @@
         <tbody>
           <!-- 俸給・給与等 (자동계산) -->
           <tr>
-            <td id="t-ps-kyuyo">俸給・給与等</td>
-            <td id="ps-shiharai-date" class="ps-auto-cell" style="white-space:nowrap;text-align:center;">-</td>
-            <td id="ps-kyuyo-ninzuu" class="ps-auto-cell ps-num">0</td>
-            <td id="ps-kyuyo-shiharai" class="ps-auto-cell ps-num">0</td>
-            <td id="ps-kyuyo-zei" class="ps-auto-cell ps-num">0</td>
+            <td class="ps-kubun" id="t-ps-kyuyo">俸給・給与等</td>
+            <td id="ps-shiharai-date" class="ps-center" style="white-space:nowrap;">-</td>
+            <td id="ps-kyuyo-ninzuu" class="ps-num">0</td>
+            <td id="ps-kyuyo-shiharai" class="ps-num">0</td>
+            <td id="ps-kyuyo-zei" class="ps-num">0</td>
           </tr>
           <!-- 賞与（役員賞与を除く） -->
           <tr>
-            <td id="t-ps-shoyo">賞与（役員賞与を除く）</td>
+            <td class="ps-kubun" id="t-ps-shoyo">賞与（役員賞与を除く）</td>
             <td></td>
             <td><input class="ps-input" id="ps-shoyo-ninzuu" value="0" oninput="calcPsTotals()"></td>
             <td><input class="ps-input" id="ps-shoyo-shiharai" value="0" oninput="calcPsTotals()"></td>
@@ -374,67 +376,58 @@
           </tr>
           <!-- 日雇い労働者の賃金 -->
           <tr>
-            <td id="t-ps-hiyatoi">日雇い労働者の賃金</td>
+            <td class="ps-kubun" id="t-ps-hiyatoi">日雇い労働者の賃金</td>
             <td></td>
-            <td><input class="ps-input" id="ps-hiyatoi-ninzuu" placeholder=""></td>
-            <td><input class="ps-input" id="ps-hiyatoi-shiharai" placeholder=""></td>
-            <td><input class="ps-input" id="ps-hiyatoi-zei" placeholder="" oninput="calcPsTotals()"></td>
+            <td><input class="ps-input" id="ps-hiyatoi-ninzuu"></td>
+            <td><input class="ps-input" id="ps-hiyatoi-shiharai"></td>
+            <td><input class="ps-input" id="ps-hiyatoi-zei" oninput="calcPsTotals()"></td>
           </tr>
           <!-- 退職手当等 -->
           <tr>
-            <td id="t-ps-taisyoku">退職手当等</td>
+            <td class="ps-kubun" id="t-ps-taisyoku">退職手当等</td>
             <td></td>
-            <td><input class="ps-input" id="ps-taisyoku-ninzuu" placeholder=""></td>
-            <td><input class="ps-input" id="ps-taisyoku-shiharai" placeholder=""></td>
-            <td><input class="ps-input" id="ps-taisyoku-zei" placeholder="" oninput="calcPsTotals()"></td>
+            <td><input class="ps-input" id="ps-taisyoku-ninzuu"></td>
+            <td><input class="ps-input" id="ps-taisyoku-shiharai"></td>
+            <td><input class="ps-input" id="ps-taisyoku-zei" oninput="calcPsTotals()"></td>
           </tr>
-          <!-- 税理士等の報酬 (참고용, 본세 합산 제외) -->
+          <!-- 税理士等の報酬 (참고용) -->
           <tr>
-            <td id="t-ps-zeiri">税理士等の報酬</td>
+            <td class="ps-kubun" id="t-ps-zeiri">税理士等の報酬</td>
             <td></td>
-            <td><input class="ps-input" id="ps-zeiri-ninzuu" placeholder=""></td>
-            <td><input class="ps-input" id="ps-zeiri-shiharai" placeholder=""></td>
-            <td><input class="ps-input" id="ps-zeiri-zei" placeholder=""></td>
+            <td><input class="ps-input" id="ps-zeiri-ninzuu"></td>
+            <td><input class="ps-input" id="ps-zeiri-shiharai"></td>
+            <td><input class="ps-input" id="ps-zeiri-zei"></td>
           </tr>
           <!-- 役員賞与 -->
           <tr>
-            <td id="t-ps-yakuin">役員賞与</td>
+            <td class="ps-kubun" id="t-ps-yakuin">役員賞与</td>
             <td></td>
             <td><input class="ps-input" id="ps-yakuin-ninzuu" value="0" oninput="calcPsTotals()"></td>
             <td><input class="ps-input" id="ps-yakuin-shiharai" value="0" oninput="calcPsTotals()"></td>
             <td><input class="ps-input" id="ps-yakuin-zei" value="0" oninput="calcPsTotals()"></td>
           </tr>
-          <!-- 구분선 -->
-          <tr class="ps-separator-row"><td colspan="5"></td></tr>
-          <!-- 年末調整による不足税額 -->
+          <!-- ── 하단 합셀 구역 ── -->
+          <!-- 同上の支払確定年月日 : colspan=3, rowspan=5 -->
           <tr>
-            <td id="t-ps-nencho-fusoku">年末調整による不足税額</td>
-            <td colspan="3"></td>
+            <td rowspan="5" colspan="3" class="ps-doujou-cell" id="t-ps-doujou">同上の支払確定年月日</td>
+            <td class="ps-sublabel" id="t-ps-nencho-fusoku">年末調整による不足税額</td>
             <td><input class="ps-input" id="ps-nencho-fusoku" value="0" oninput="calcPsTotals()"></td>
           </tr>
-          <!-- 年末調整による超過税額 -->
           <tr>
-            <td id="t-ps-nencho-choka">年末調整による超過税額</td>
-            <td colspan="3"></td>
+            <td class="ps-sublabel" id="t-ps-nencho-choka">年末調整による超過税額</td>
             <td><input class="ps-input" id="ps-nencho-choka" value="0" oninput="calcPsTotals()"></td>
           </tr>
-          <!-- 本税 (자동) -->
-          <tr class="ps-total-row">
-            <td id="t-ps-honzei">本税</td>
-            <td colspan="3"></td>
-            <td id="ps-honzei" class="ps-auto-cell ps-num ps-bold-cell">0</td>
+          <tr class="ps-honzei-row">
+            <td class="ps-sublabel ps-honzei-label" id="t-ps-honzei">本税</td>
+            <td id="ps-honzei" class="ps-num ps-bold-cell">0</td>
           </tr>
-          <!-- 延滞税 -->
           <tr>
-            <td id="t-ps-entai">延滞税</td>
-            <td colspan="3"></td>
-            <td><input class="ps-input" id="ps-entai" placeholder="" oninput="calcPsTotals()"></td>
+            <td class="ps-sublabel" id="t-ps-entai">延滞税</td>
+            <td><input class="ps-input" id="ps-entai" oninput="calcPsTotals()"></td>
           </tr>
-          <!-- 合計額 (자동) -->
           <tr class="ps-goukei-row">
-            <td id="t-ps-goukei">合計額</td>
-            <td colspan="3"></td>
-            <td id="ps-goukei" class="ps-auto-cell ps-num ps-bold-cell">0</td>
+            <td class="ps-sublabel ps-goukei-label" id="t-ps-goukei">合計額</td>
+            <td id="ps-goukei" class="ps-num ps-bold-cell">0</td>
           </tr>
         </tbody>
       </table>
@@ -454,6 +447,12 @@
         </tr>
       </table>
     </div>
+  </div>
+
+  <!-- 하단 안내 문구 -->
+  <div class="ps-footer-note">
+    <div id="t-ps-zeiri-note">税理士や弁護士等、専門家への報酬を支払った場合は源泉徴収の対象であり、別途「税理士等の報酬」欄への記載と、合計欄等への加算が必要になります。</div>
+    <div id="t-ps-notice" style="margin-top:4px;">※ 본 집계는 WisePay 급여 데이터 기준이며, 연말조정 반영 방식에 따라 freee/세무서 신고액과 차이가 있을 수 있습니다.</div>
   </div>
 </div>
 
