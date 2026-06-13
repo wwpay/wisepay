@@ -101,11 +101,27 @@ function renderPaymentStatement() {
   let shiharai = 0;
   let zeiGaku  = 0;
 
+  // [DEBUG] paidYMs 월별 포함 여부 출력
+  console.log(`[PS Debug] ${year}年 ${half === 1 ? '1~6' : '7~12'}月 집계 시작`);
+  months.forEach(m => {
+    const ym = `${year}-${String(m).padStart(2, '0')}`;
+    console.log(`[PS Debug]   paidYMs.has("${ym}") = ${paidYMs.has(ym)}`);
+  });
+
   employees.forEach(emp => {
     months.forEach(month => {
       const ym = `${year}-${String(month).padStart(2, '0')}`;
-      if (!paidYMs.has(ym)) return;
+      if (!paidYMs.has(ym)) {
+        if (String(emp.no).padStart(4, '0') === '0019') {
+          console.log(`[PS Debug] 朴修完(${emp.no}) ${ym}: paidYMs 없음 → SKIP`);
+        }
+        return;
+      }
+      const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${month}`;
       const data = calcMonthData(emp, year, month);
+      if (String(emp.no).padStart(4, '0') === '0019') {
+        console.log(`[PS Debug] 朴修完(${emp.no}) ${ym}: paidYMs=OK, localStorage="${key}" ${data ? 'OK' : 'NULL→SKIP'}`);
+      }
       if (!data) return;
       ninzuu++;
       shiharai += (data.totalPay - data.commute);
