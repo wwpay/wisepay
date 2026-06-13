@@ -1,4 +1,4 @@
-// 수정: 2026-06-03 08:01 — gasDeletedEmpIds 로드 시 padStart(4,'0') 추가 (형식 불일치 버그 수정)
+// 수정: 2026-06-13 15:29 — autoLoadFromGas 완료 후 checkAndShowPayrollAlerts 재호출 (GAS 동기화 후 정확한 데이터로 알림 체크)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -307,6 +307,10 @@ async function autoLoadFromGas() {
     renderHistory();
     updateGasStatus();
     gasAppendLog('자동동기화', '전체', '성공', `사원 ${(d.employees||[]).length}명 / 급여 ${(d.payrolls||[]).length}건`);
+    // GAS 데이터 완전 동기화 후 알림 재체크 (paidYMs·employees·payroll localStorage 갱신 완료 시점)
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.id === 'wiseadmin') {
+      if (typeof checkAndShowPayrollAlerts === 'function') checkAndShowPayrollAlerts([...paidYMs]);
+    }
   } catch (err) {
     gasAppendLog('자동동기화', '전체', '실패', err.message);
     console.warn('GAS auto-load failed:', err);
