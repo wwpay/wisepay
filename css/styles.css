@@ -1,4 +1,4 @@
-/* 수정: 2026-06-10 22:15 — .emp-nav 추가 (지급이력·임금대장·유급휴가 셀렉터 바 month-nav 동일 박스 스타일) */
+/* 수정: 2026-06-13 18:43 — 원천세 납부서 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -411,3 +411,28 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-panel{flex:0 0 300px;min-width:260px;}
 .vac-list-panel{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
 @media(max-width:700px){.vac-detail-layout{flex-direction:column;}.vac-cal-panel{flex:none;width:100%;}}
+
+/* ── PAYMENT STATEMENT ── */
+.ps-notice-bar{background:var(--orange2);border:1px solid #fde68a;border-radius:var(--r2);padding:8px 13px;font-size:calc(11.5px + var(--fs-delta));color:#92400e;margin-bottom:12px;line-height:1.6;}
+.ps-layout{display:flex;gap:16px;align-items:flex-start;}
+.ps-table-wrap{flex:1;min-width:0;overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);}
+.ps-table{width:100%;border-collapse:collapse;font-size:calc(12.5px + var(--fs-delta));min-width:580px;}
+.ps-table th{padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:calc(11px + var(--fs-delta));font-weight:600;color:var(--text2);text-align:center;white-space:nowrap;}
+.ps-table td{padding:7px 10px;border-bottom:1px solid var(--border2);}
+.ps-table tbody tr:last-child td{border-bottom:none;}
+.ps-auto-cell{background:var(--surface2);color:var(--text);}
+.ps-num{text-align:right;font-variant-numeric:tabular-nums;}
+.ps-input{width:100%;min-width:80px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:4px 7px;font-size:calc(12.5px + var(--fs-delta));font-family:inherit;color:var(--text);background:var(--surface);}
+.ps-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,91,219,.1);}
+.ps-separator-row td{padding:0!important;border-top:2px solid var(--border)!important;border-bottom:none!important;height:2px!important;}
+.ps-total-row td{background:var(--accent2);font-weight:600;color:var(--accent);}
+.ps-goukei-row td{background:var(--accent2);font-weight:700;color:var(--accent);border-top:2px solid var(--accent3)!important;}
+.ps-bold-cell{font-weight:700;font-size:calc(13px + var(--fs-delta));}
+.ps-jiku-box{width:190px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.ps-jiku-title{padding:9px 13px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:calc(11px + var(--fs-delta));font-weight:600;color:var(--text2);text-align:center;white-space:nowrap;}
+.ps-jiku-table{width:100%;border-collapse:collapse;font-size:calc(12.5px + var(--fs-delta));}
+.ps-jiku-table td{padding:11px 13px;border-bottom:1px solid var(--border2);}
+.ps-jiku-table tr:last-child td{border-bottom:none;}
+.ps-jiku-lbl{width:28px;font-weight:700;color:var(--text2);text-align:center;flex-shrink:0;}
+@media print{.ps-layout{flex-direction:column;}.ps-jiku-box{width:100%;}.ps-table{min-width:0;}.ps-notice-bar{font-size:10pt;}.no-print{display:none!important;}}
+@media(max-width:900px){.ps-layout{flex-direction:column;}.ps-jiku-box{width:100%;}}

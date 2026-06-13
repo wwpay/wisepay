@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 10:34 — vacation 페이지 연동 (gotoPage, initApp, rerenderAll)
+﻿// 수정: 2026-06-13 18:43 — 원천세 납부서 페이지 연동 (gotoPage, rerenderAll, titles)
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -236,7 +236,7 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   const isPayroll = id === 'payroll';
@@ -253,6 +253,7 @@ function gotoPage(id, el) {
   if(id==='gas') openGasModal();
   if(id==='notifications') renderNotificationsPage();
   if(id==='vacation') { try { renderVacationPage(); } catch(e) { console.error('vacation render error:', e); } }
+  if(id==='payment-statement') { try { initPaymentStatement(); } catch(e) { console.error('payment-statement render error:', e); } }
 }
 
 function resetLocalData() {
@@ -309,6 +310,7 @@ function rerenderAll() {
   try { buildHistEmpSel(); renderHistory(); } catch(e) {}
   try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) {}
   try { renderVacationPage(); } catch(e) {}
+  try { if (_psInitialized) { buildPsYearSel(); renderPaymentStatement(); } } catch(e) {}
   updateGasStatus();
   recalc();
 }

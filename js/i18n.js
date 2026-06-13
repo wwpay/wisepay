@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-08 12:25 — vacationApplied 숨김 필터 i18n 추가
+﻿// 수정: 2026-06-13 18:43 — 원천세 납부서 i18n 라벨 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -58,6 +58,7 @@ function applyLang() {
   setTxt('t-nav-history', '支給履歴', '지급 이력');
   setTxt('t-nav-annual', '賃金台帳', '임금 대장');
   setTxt('t-annual-title', '賃金台帳', '임금 대장');
+  setTxt('t-nav-payment-statement', '源泉納付書', '원천세 납부서');
   setTxt('t-nav-setting', '設定', '설정');
   setTxt('t-nav-emp', '従業員管理', '사원 관리');
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
@@ -215,6 +216,35 @@ function applyLang() {
   setHtml('t-mr-src', '※ 出典：協会けんぽ東京支部（2026年2月16日発表）<br>※ 健康保険料率は毎年3月、雇用保険料率は毎年4月改定', '※ 출처：協会けんぽ東京支部（2026년 2월 16일 발표）<br>※ 건강보험료율은 매년 3월, 고용보험료율은 매년 4월 개정');
   setTxt('t-mr-cancel', 'キャンセル', '취소');
   setTxt('t-mr-apply', 'この料率を適用する', '이 요율을 적용');
+
+  // payment-statement
+  setTxt('t-ps-print',            '印刷',                          '인쇄');
+  setTxt('t-ps-notice',
+    '※ 本集計はWisePay給与データ基準であり、税理士報酬及び年末調整の反映方式により、freee・税務署申告額と差異が生じる場合があります。',
+    '※ 본 집계는 WisePay 급여 데이터 기준이며, 税理士報酬 및 연말조정 반영 방식에 따라 freee/세무서 신고액과 차이가 있을 수 있습니다.'
+  );
+  setTxt('t-ps-col-kubun',        '区分',                          '구분');
+  setTxt('t-ps-col-date',         '支払年月日',                    '지급년월일');
+  setTxt('t-ps-col-ninzuu',       '人員',                          '인원');
+  setTxt('t-ps-col-shiharai',     '支払額',                        '지급액');
+  setTxt('t-ps-col-zei',          '税額',                          '세액');
+  setTxt('t-ps-kyuyo',            '俸給・給与等',                  '급여등');
+  setTxt('t-ps-shoyo',            '賞与（役員賞与を除く）',        '상여(임원상여 제외)');
+  setTxt('t-ps-hiyatoi',          '日雇い労働者の賃金',            '일용노무자 임금');
+  setTxt('t-ps-taisyoku',         '退職手当等',                    '퇴직금등');
+  setTxt('t-ps-zeiri',            '税理士等の報酬',                '세무사등 보수');
+  setTxt('t-ps-yakuin',           '役員賞与',                      '임원상여');
+  setTxt('t-ps-nencho-fusoku',    '年末調整による不足税額',        '연말정산 부족세액');
+  setTxt('t-ps-nencho-choka',     '年末調整による超過税額',        '연말정산 초과세액');
+  setTxt('t-ps-honzei',           '本税',                          '본세');
+  setTxt('t-ps-entai',            '延滞税',                        '연체세');
+  setTxt('t-ps-goukei',           '合計額',                        '합계액');
+  setTxt('t-ps-jiku-title',       '納期等の区分',                  '납기등의 구분');
+  setTxt('t-ps-jiku-from-label',  '自',                            '부터');
+  setTxt('t-ps-jiku-to-label',    '至',                            '까지');
+  setTxt('ps-half1-label',        '1月〜6月',                      '1월~6월');
+  setTxt('ps-half2-label',        '7月〜12月',                     '7월~12월');
+  try { if (typeof buildPsYearSel === 'function') buildPsYearSel(); } catch(e) {}
 
   updateGasStatus();
 
