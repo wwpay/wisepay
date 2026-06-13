@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 18:43 — 원천세 납부서 집계 기능 추가
+// 수정: 2026-06-13 22:34 — 원천세 납부서 집계 로직 수정 (지급일 기준 급여월 매핑, paidYMs 필터 제거)
 'use strict';
 
 let _psYear = null;
@@ -93,35 +93,22 @@ function renderPaymentStatement() {
   const half = _psHalf;
   if (!year || !half) return;
 
-  const months = half === 1 ? [1,2,3,4,5,6] : [7,8,9,10,11,12];
-  const startM  = months[0];
-  const endM    = months[months.length - 1];
+  // 지급일 기준 매핑: 1~6月(01/10~06/10) → 급여月 [전년12月, 1~5月]
+  //                   7~12月(07/10~12/10) → 급여月 [6~11月]
+  const salaryMonths = half === 1
+    ? [{y: year-1, m: 12}, {y: year, m: 1}, {y: year, m: 2}, {y: year, m: 3}, {y: year, m: 4}, {y: year, m: 5}]
+    : [{y: year, m: 6}, {y: year, m: 7}, {y: year, m: 8}, {y: year, m: 9}, {y: year, m: 10}, {y: year, m: 11}];
+
+  const startM = half === 1 ? 1 : 7;
+  const endM   = half === 1 ? 6 : 12;
 
   let ninzuu   = 0;
   let shiharai = 0;
   let zeiGaku  = 0;
 
-  // [DEBUG] paidYMs 월별 포함 여부 출력
-  console.log(`[PS Debug] ${year}年 ${half === 1 ? '1~6' : '7~12'}月 집계 시작`);
-  months.forEach(m => {
-    const ym = `${year}-${String(m).padStart(2, '0')}`;
-    console.log(`[PS Debug]   paidYMs.has("${ym}") = ${paidYMs.has(ym)}`);
-  });
-
   employees.forEach(emp => {
-    months.forEach(month => {
-      const ym = `${year}-${String(month).padStart(2, '0')}`;
-      if (!paidYMs.has(ym)) {
-        if (String(emp.no).padStart(4, '0') === '0019') {
-          console.log(`[PS Debug] 朴修完(${emp.no}) ${ym}: paidYMs 없음 → SKIP`);
-        }
-        return;
-      }
-      const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${month}`;
-      const data = calcMonthData(emp, year, month);
-      if (String(emp.no).padStart(4, '0') === '0019') {
-        console.log(`[PS Debug] 朴修完(${emp.no}) ${ym}: paidYMs=OK, localStorage="${key}" ${data ? 'OK' : 'NULL→SKIP'}`);
-      }
+    salaryMonths.forEach(({y, m}) => {
+      const data = calcMonthData(emp, y, m);
       if (!data) return;
       ninzuu++;
       shiharai += (data.totalPay - data.commute);
@@ -129,7 +116,7 @@ function renderPaymentStatement() {
     });
   });
 
-  const wr    = year - 2018; // 令和
+  const wr    = year - 2018;
   const wrStr = String(wr).padStart(2, '0');
   const smStr = String(startM).padStart(2, '0');
   const emStr = String(endM).padStart(2, '0');
