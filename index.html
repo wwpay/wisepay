@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-14 22:03 — css/styles.css+index.html: 원천세 납부서 sublabel 区分 스타일 통일, 빈 병합셀 흰색 처리
+  수정: 2026-06-14 22:03 — index.html: 원천세 납부서 同上 셀 colspan 제거, 3열 분리 (1열 스타일 유지, 2·3열 빈 흰색)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -407,10 +407,12 @@
             <td><input class="ps-input" id="ps-yakuin-zei" value="0" oninput="calcPsTotals()"></td>
           </tr>
           <!-- ── 하단 합셀 구역 ── -->
-          <!-- 同上の支払確定年月日: 1행(colspan=3) | 年末調整不足 같은 행 우측 -->
+          <!-- 同上の支払確定年月日: 3열 분리 (col1=스타일유지, col2·3=빈 흰색) | 年末調整不足 우측 -->
           <!-- 아래 4행 좌측(cols 1-3)은 빈 병합셀(rowspan=4) -->
           <tr>
-            <td colspan="3" class="ps-doujou-cell" id="t-ps-doujou">同上の支払確定年月日</td>
+            <td class="ps-doujou-cell" id="t-ps-doujou">同上の支払確定年月日</td>
+            <td></td>
+            <td></td>
             <td class="ps-sublabel" id="t-ps-nencho-fusoku">年末調整による不足税額</td>
             <td><input class="ps-input" id="ps-nencho-fusoku" value="0" oninput="calcPsTotals()"></td>
           </tr>
