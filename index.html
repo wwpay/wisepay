@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-14 22:03 — index.html: 원천세 납부서 colgroup 4열 폭 120→185px (年末調整 레이블 1줄 표시)
+  수정: 2026-06-14 22:03 — index.html: 원천세 납부서 同上 셀 1행으로 변경, 하단 빈 병합셀(rowspan=4) 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -407,13 +407,15 @@
             <td><input class="ps-input" id="ps-yakuin-zei" value="0" oninput="calcPsTotals()"></td>
           </tr>
           <!-- ── 하단 합셀 구역 ── -->
-          <!-- 同上の支払確定年月日 : colspan=3, rowspan=5 -->
+          <!-- 同上の支払確定年月日: 1행(colspan=3) | 年末調整不足 같은 행 우측 -->
+          <!-- 아래 4행 좌측(cols 1-3)은 빈 병합셀(rowspan=4) -->
           <tr>
-            <td rowspan="5" colspan="3" class="ps-doujou-cell" id="t-ps-doujou">同上の支払確定年月日</td>
+            <td colspan="3" class="ps-doujou-cell" id="t-ps-doujou">同上の支払確定年月日</td>
             <td class="ps-sublabel" id="t-ps-nencho-fusoku">年末調整による不足税額</td>
             <td><input class="ps-input" id="ps-nencho-fusoku" value="0" oninput="calcPsTotals()"></td>
           </tr>
           <tr>
+            <td rowspan="4" colspan="3" class="ps-doujou-cell" style="border-top:none;"></td>
             <td class="ps-sublabel" id="t-ps-nencho-choka">年末調整による超過税額</td>
             <td><input class="ps-input" id="ps-nencho-choka" value="0" oninput="calcPsTotals()"></td>
           </tr>
