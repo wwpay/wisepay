@@ -440,5 +440,29 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .ps-jiku-lbl{width:26px;font-weight:700;text-align:center;background:#f4f6fa;}
 /* 하단 안내 */
 .ps-footer-note{margin-top:10px;font-size:calc(11.5px + var(--fs-delta));color:var(--text2);line-height:1.7;}
-@media print{.ps-layout{flex-direction:column;}.ps-jiku-box{width:100%;}.ps-table{min-width:0;}.no-print{display:none!important;}.ps-footer-note{font-size:9pt;}}
+@media print{
+  /* 원천세 납부서: 좌(표)+우(납기구분박스) 가로 배치 유지 */
+  .ps-layout{flex-direction:row!important;gap:6px;align-items:flex-start;}
+  .ps-table-wrap{flex:1;overflow:visible;}
+  /* 폰트·패딩 축소 → A4에 맞춤 */
+  .ps-table{min-width:0;font-size:10pt;}
+  .ps-table th{font-size:10pt;padding:4px 6px;}
+  .ps-table td{font-size:10pt;padding:4px 6px;}
+  .ps-input{font-size:10pt;padding:2px 4px;}
+  .ps-kubun,.ps-sublabel,.ps-doujou-cell{font-size:10pt;}
+  /* 컬럼 % 재정의 (colgroup 인라인 px 덮어쓰기) */
+  .ps-table col:nth-child(1){width:22%!important;}
+  .ps-table col:nth-child(2){width:34%!important;}
+  .ps-table col:nth-child(3){width:8%!important;}
+  .ps-table col:nth-child(4){width:18%!important;}
+  .ps-table col:nth-child(5){width:18%!important;}
+  /* 지급년월일 줄바꿈 허용 (인라인 nowrap 덮어쓰기) */
+  #ps-shiharai-date{white-space:normal!important;}
+  /* 우측 납기구분 박스 */
+  .ps-jiku-box{width:120px;flex-shrink:0;}
+  .ps-jiku-title{font-size:10pt;padding:4px 6px;}
+  .ps-jiku-table td{font-size:10pt;padding:6px 8px;}
+  .no-print{display:none!important;}
+  .ps-footer-note{font-size:9pt;}
+}
 @media(max-width:900px){.ps-layout{flex-direction:column;}.ps-jiku-box{width:100%;}}
