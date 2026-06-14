@@ -425,7 +425,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .ps-input{width:100%;text-align:right;border:none;padding:5px 8px;font-size:calc(12.5px + var(--fs-delta));font-family:inherit;color:var(--text);background:transparent;outline:none;}
 .ps-input:focus{background:var(--accent2);border-radius:2px;}
 /* 하단 합셀 */
-.ps-doujou-cell{text-align:center;vertical-align:middle;font-size:calc(11.5px + var(--fs-delta));color:var(--text2);background:#f4f6fa;border-right:1px solid #b0b8c8;}
+.ps-doujou-cell{text-align:left;vertical-align:top;font-size:calc(11.5px + var(--fs-delta));color:var(--text2);background:#f4f6fa;border-right:1px solid #b0b8c8;}
 .ps-sublabel{text-align:center;font-size:calc(11.5px + var(--fs-delta));background:#f4f6fa;border-right:1px solid #b0b8c8;}
 .ps-honzei-row td{font-weight:600;}
 .ps-honzei-label{font-weight:600;}
