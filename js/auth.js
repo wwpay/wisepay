@@ -1,4 +1,4 @@
-// 수정: 2026-06-12 12:22 — employee 권한 지원: 메뉴 필터링·dropdown 잠금·서버측 검증 연동
+// 수정: 2026-06-14 22:03 — wisejp 계정 원천세 납부서(payment-statement) 열람 권한 추가
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -53,8 +53,9 @@ function closeIdleLogoutModal() {
 let currentUser  = null; // { id, name, role, sessionType, employeeId? }
 let _writeToken  = null; // admin·employee 로그인 시 설정 (GAS 인증용), viewer는 null
 
-const VIEWER_PAGES   = new Set(['payroll', 'annual']);
-const EMPLOYEE_PAGES = new Set(['payroll', 'annual', 'vacation']);
+const VIEWER_PAGES    = new Set(['payroll', 'annual']);
+const VIEWER_PS_IDS   = new Set(['wisejp']); // 원천세 납부서 추가 열람 허용 계정
+const EMPLOYEE_PAGES  = new Set(['payroll', 'annual', 'vacation']);
 
 async function _sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -204,6 +205,7 @@ function canAccessPage(pageId) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
   if (currentUser.role === 'employee') return EMPLOYEE_PAGES.has(pageId);
+  if (VIEWER_PS_IDS.has(currentUser.id)) return VIEWER_PAGES.has(pageId) || pageId === 'payment-statement';
   return VIEWER_PAGES.has(pageId);
 }
 
@@ -222,7 +224,10 @@ function closeAccessDenied() {
 function renderNavForRole() {
   if (!currentUser) return;
   if (currentUser.role === 'admin') return;
-  const allowed = currentUser.role === 'employee' ? EMPLOYEE_PAGES : VIEWER_PAGES;
+  const baseAllowed = currentUser.role === 'employee' ? EMPLOYEE_PAGES : VIEWER_PAGES;
+  const allowed = VIEWER_PS_IDS.has(currentUser.id)
+    ? new Set([...baseAllowed, 'payment-statement'])
+    : baseAllowed;
   document.querySelectorAll('.nav-item[data-page]').forEach(item => {
     if (!allowed.has(item.dataset.page)) item.style.display = 'none';
   });
