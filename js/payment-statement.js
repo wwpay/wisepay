@@ -113,8 +113,10 @@ function renderPaymentStatement() {
       ninzuu++;
       shiharai += (data.totalPay - data.commute);
       zeiGaku  += data.shotoku;
+      console.log(`[PS Debug] ${emp.name} ${m}月分 소득세=${data.shotoku}`);
     });
   });
+  console.log(`[PS Debug] 합계=${zeiGaku}`);
 
   const wr    = year - 2018;
   const wrStr = String(wr).padStart(2, '0');
