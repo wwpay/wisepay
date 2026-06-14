@@ -419,13 +419,13 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .ps-table th,.ps-table td{border:1px solid #b0b8c8;padding:0;}
 .ps-table th{background:#e8ecf4;font-size:calc(12px + var(--fs-delta));font-weight:600;color:var(--text);text-align:center;padding:7px 10px;white-space:nowrap;}
 .ps-table td{padding:6px 10px;vertical-align:middle;}
-.ps-kubun{text-align:center;font-size:calc(12px + var(--fs-delta));}
+.ps-kubun{text-align:center;font-size:calc(12px + var(--fs-delta));background:#e8ecf4;font-weight:600;color:var(--text);}
 .ps-center{text-align:center;}
 .ps-num{text-align:right;font-variant-numeric:tabular-nums;padding-right:12px!important;}
 .ps-input{width:100%;text-align:right;border:none;padding:5px 8px;font-size:calc(12.5px + var(--fs-delta));font-family:inherit;color:var(--text);background:transparent;outline:none;}
 .ps-input:focus{background:var(--accent2);border-radius:2px;}
 /* 하단 합셀 */
-.ps-doujou-cell{text-align:left;vertical-align:top;font-size:calc(12px + var(--fs-delta));color:var(--text);background:#f4f6fa;border-right:1px solid #b0b8c8;}
+.ps-doujou-cell{text-align:left;vertical-align:top;font-size:calc(12px + var(--fs-delta));font-weight:600;color:var(--text);background:#e8ecf4;border-right:1px solid #b0b8c8;}
 .ps-sublabel{text-align:center;font-size:calc(12px + var(--fs-delta));color:var(--text);background:#f4f6fa;border-right:1px solid #b0b8c8;}
 .ps-honzei-row td{font-weight:600;}
 .ps-honzei-label{font-weight:600;}
