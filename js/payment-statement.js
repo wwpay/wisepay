@@ -1,4 +1,4 @@
-// 수정: 2026-06-13 22:34 — 원천세 납부서 집계 로직 수정 (지급일 기준 급여월 매핑, paidYMs 필터 제거)
+// 수정: 2026-06-14 22:03 — 초기 기간 기본값: 지급일 기준 최근 완료 기간 (6/10·12/10 분기점)
 'use strict';
 
 let _psYear = null;
@@ -7,9 +7,13 @@ let _psInitialized = false;
 
 function _getDefaultPsHalf() {
   const now = new Date();
+  const y = now.getFullYear();
   const m = now.getMonth() + 1;
-  if (m <= 6) return { year: now.getFullYear() - 1, half: 2 };
-  return { year: now.getFullYear(), half: 1 };
+  const d = now.getDate();
+  // 지급일(10일) 기준: 6/10 이전 → 전년 하반기, 6/10~12/9 → 당해 상반기, 12/10~ → 당해 하반기
+  if (m < 6 || (m === 6 && d < 10)) return { year: y - 1, half: 2 };
+  if (m < 12 || (m === 12 && d < 10)) return { year: y, half: 1 };
+  return { year: y, half: 2 };
 }
 
 function initPaymentStatement() {
