@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-14 22:03 — css/styles.css: 원천세 납부서 행 높이 36px 균등 통일
+  수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (employee + viewer 계정)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,6 +88,10 @@
     <div class="nav-item" data-page="vacation" onclick="gotoPage('vacation',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
       <span id="t-nav-vacation">有給休暇</span>
+    </div>
+    <div class="nav-item" data-page="change-password" onclick="gotoPage('change-password',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span id="t-nav-changepw">パスワード変更</span>
     </div>
     <div class="nav-sec" id="t-nav-setting">設定</div>
     <div class="nav-item" data-page="employees" onclick="gotoPage('employees',this)">
@@ -505,6 +509,46 @@
   </div>
 </div>
 
+<!-- ══ PAGE: CHANGE PASSWORD ══ -->
+<div class="page" id="page-change-password">
+  <div style="max-width:400px;margin:32px auto 0;">
+    <div class="card" style="padding:24px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+        パスワード変更 / 비밀번호 변경
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">現在のパスワード / 현재 비밀번호</div>
+          <input type="password" id="cpw-current" autocomplete="current-password"
+            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')document.getElementById('cpw-new').focus()">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード / 새 비밀번호</div>
+          <input type="password" id="cpw-new" autocomplete="new-password"
+            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')document.getElementById('cpw-confirm').focus()">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード（確認） / 새 비밀번호 확인</div>
+          <input type="password" id="cpw-confirm" autocomplete="new-password"
+            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')doChangePassword()">
+        </div>
+        <div id="cpw-err" style="font-size:12px;min-height:16px;"></div>
+        <button id="cpw-btn" onclick="doChangePassword()"
+          style="align-self:flex-start;padding:9px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;"
+          onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='var(--accent)'">
+          変更する / 변경하기
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ PAGE: HISTORY ══ -->
 <div class="page" id="page-history">
   <div class="emp-nav" style="gap:7px;">
@@ -915,6 +959,7 @@
 <script src="js/notifications.js"></script>
 <script src="js/backup.js"></script>
 <script src="js/usermgmt.js"></script>
+<script src="js/change-password.js"></script>
 <script src="js/app.js"></script>
 <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>

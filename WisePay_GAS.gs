@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-12 13:38 — verifyLogin: employee employeeId 응답 추가 / getEmployeeData 엔드포인트 추가
+// 수정: 2026-06-15 10:58 — changePassword 엔드포인트 추가 (employee + viewer 전용)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -243,6 +243,33 @@ function doPost(e) {
         return jsonResponse({ ok: false, error: '현재 비밀번호가 틀렸습니다 / 現在のパスワードが違います' });
       }
       usersSheet2.getRange(targetRow + 1, hashCol + 1).setValue(newHash);
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'changePassword') {
+      var cpUid     = String(data._uid     || '').trim();
+      var cpHash    = String(data._hash    || '').toLowerCase().trim();
+      var cpNewHash = String(data.newHash  || '').toLowerCase().trim();
+      if (!cpUid || !cpHash || !cpNewHash) return jsonResponse({ ok: false, error: 'Missing parameters' });
+      var cpSheet   = getSheet(SHEET_USERS);
+      var cpVals    = cpSheet.getDataRange().getValues();
+      if (cpVals.length < 2) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
+      var cpHdrs    = cpVals[0];
+      var cpIdCol   = cpHdrs.indexOf('ID');
+      var cpHashCol = cpHdrs.indexOf('PW_HASH');
+      var cpRoleCol = cpHdrs.indexOf('권한');
+      if (cpIdCol < 0 || cpHashCol < 0) return jsonResponse({ ok: false, error: 'Invalid sheet format' });
+      var cpRow = -1, cpRole = '';
+      for (var ri = 1; ri < cpVals.length; ri++) {
+        if (String(cpVals[ri][cpIdCol] || '').trim() === cpUid) {
+          var storedHash = String(cpVals[ri][cpHashCol] || '').toLowerCase().trim();
+          if (storedHash !== cpHash) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
+          cpRole = cpRoleCol >= 0 ? String(cpVals[ri][cpRoleCol] || '').trim() : '';
+          cpRow  = ri; break;
+        }
+      }
+      if (cpRow < 0) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
+      if (cpRole !== 'employee' && cpRole !== 'viewer') return jsonResponse({ ok: false, error: '권한이 없습니다' });
+      cpSheet.getRange(cpRow + 1, cpHashCol + 1).setValue(cpNewHash);
       return jsonResponse({ ok: true });
     }
     if (data.type === 'verifyLogin') {

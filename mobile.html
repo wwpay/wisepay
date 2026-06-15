@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-11 17:44 — 급여명세 셀렉터 바 1줄 통합 + 월 바텀시트 교체 (완료)
+  수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (employee + viewer 계정)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -339,6 +339,41 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       <div id="m-vac-detail" style="display:none;"></div>
     </div>
 
+    <!-- ── 비밀번호 변경 ── -->
+    <div class="m-page" id="m-page-change-password">
+      <div class="m-card">
+        <div class="m-card-header">パスワード変更 / 비밀번호 변경</div>
+        <div style="display:flex;flex-direction:column;gap:13px;">
+          <div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">現在のパスワード / 현재 비밀번호</div>
+            <input type="password" id="cpw-current" autocomplete="current-password"
+              style="width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')document.getElementById('cpw-new').focus()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード / 새 비밀번호</div>
+            <input type="password" id="cpw-new" autocomplete="new-password"
+              style="width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')document.getElementById('cpw-confirm').focus()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード（確認） / 새 비밀번호 확인</div>
+            <input type="password" id="cpw-confirm" autocomplete="new-password"
+              style="width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')doChangePassword()">
+          </div>
+          <div id="cpw-err" style="font-size:12px;min-height:16px;"></div>
+          <button id="cpw-btn" onclick="doChangePassword()"
+            style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;">
+            変更する / 변경하기
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /m-content -->
 
   <!-- Bottom tab bar -->
@@ -375,6 +410,13 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
         <path d="M12 6v6l4 2"/>
       </svg>
       <span id="m-tab-v">유급휴가</span>
+    </button>
+    <button class="m-tab nav-item" data-page="change-password" onclick="mGotoTab('change-password',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span id="m-tab-cp">비밀번호</span>
     </button>
   </div>
 
@@ -719,13 +761,19 @@ function applyRatesForYM(year, month) {
 <script src="js/auth.js"></script>
 <script src="js/vacation.js"></script>
 <script src="js/gas.js"></script>
+<script src="js/change-password.js"></script>
 <script>
 /* auth.js의 renderNavForRole을 모바일용으로 덮어씀:
    - 공통: 사원 관리 탭 숨김
    - viewer: 유급휴가 탭도 숨김
    - employee: 유급휴가 탭 노출 유지 */
 renderNavForRole = function() {
-  if (!currentUser || currentUser.role === 'admin') return;
+  if (!currentUser) return;
+  if (currentUser.role === 'admin') {
+    const cpTab = document.querySelector('.m-tab[data-page="change-password"]');
+    if (cpTab) cpTab.style.display = 'none';
+    return;
+  }
   const empTab = document.querySelector('.m-tab[data-page="employees"]');
   if (empTab) empTab.style.display = 'none';
   if (currentUser.role !== 'employee') {
@@ -820,6 +868,7 @@ function mApplyLang() {
   setT('m-tab-a',      '賃金台帳',      '임금대장');
   setT('m-tab-e',      '従業員管理',    '사원 관리');
   setT('m-tab-v',      '有給休暇',      '유급휴가');
+  setT('m-tab-cp',     'パスワード',    '비밀번호');
   setT('m-back-txt',   '一覧へ',        '목록으로');
   setT('m-vac-modal-ttl', '有給取得入力', '유급휴가 사용 입력');
   setT('m-vac-date-lbl',  '取得日',      '사용 날짜');
@@ -860,6 +909,7 @@ function mGotoTab(id, el) {
   if (sbA) sbA.classList.toggle('hidden', id !== 'annual');
   if (id === 'employees') { mShowEmpList(); mRenderEmpList(); }
   if (id === 'annual')    mRenderAnnual();
+  if (id === 'change-password') { try { initChangePwPage(); } catch(e) {} }
   if (id === 'vacation') {
     if (mVacDetailEmpNo) {
       document.getElementById('m-vac-out').style.display = 'none';

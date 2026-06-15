@@ -1,4 +1,4 @@
-// 수정: 2026-06-14 22:03 — wisejp 계정 원천세 납부서(payment-statement) 열람 권한 추가
+// 수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (employee + viewer 계정)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -53,9 +53,9 @@ function closeIdleLogoutModal() {
 let currentUser  = null; // { id, name, role, sessionType, employeeId? }
 let _writeToken  = null; // admin·employee 로그인 시 설정 (GAS 인증용), viewer는 null
 
-const VIEWER_PAGES    = new Set(['payroll', 'annual']);
+const VIEWER_PAGES    = new Set(['payroll', 'annual', 'change-password']);
 const VIEWER_PS_IDS   = new Set(['wisejp']); // 원천세 납부서 추가 열람 허용 계정
-const EMPLOYEE_PAGES  = new Set(['payroll', 'annual', 'vacation']);
+const EMPLOYEE_PAGES  = new Set(['payroll', 'annual', 'vacation', 'change-password']);
 
 async function _sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -203,6 +203,7 @@ function gasWriteAuth() {
 
 function canAccessPage(pageId) {
   if (!currentUser) return false;
+  if (pageId === 'change-password') return currentUser.role === 'employee' || currentUser.role === 'viewer';
   if (currentUser.role === 'admin') return true;
   if (currentUser.role === 'employee') return EMPLOYEE_PAGES.has(pageId);
   if (VIEWER_PS_IDS.has(currentUser.id)) return VIEWER_PAGES.has(pageId) || pageId === 'payment-statement';
@@ -223,7 +224,11 @@ function closeAccessDenied() {
 
 function renderNavForRole() {
   if (!currentUser) return;
-  if (currentUser.role === 'admin') return;
+  if (currentUser.role === 'admin') {
+    const cpNav = document.querySelector('.nav-item[data-page="change-password"]');
+    if (cpNav) cpNav.style.display = 'none';
+    return;
+  }
   const baseAllowed = currentUser.role === 'employee' ? EMPLOYEE_PAGES : VIEWER_PAGES;
   const allowed = VIEWER_PS_IDS.has(currentUser.id)
     ? new Set([...baseAllowed, 'payment-statement'])
