@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-15 13:43 — deleteVacationEntry: employee 자격 검증 + 미래 날짜만 삭제 허용
+// 수정: 2026-06-15 14:52 — addVacationEntry 엔드포인트 추가 (employee 휴가 신청 + 과거 날짜 차단)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -372,6 +372,61 @@ function doPost(e) {
           break;
         }
       }
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'addVacationEntry') {
+      var avUid   = String(data._uid   || '').trim();
+      var avToken = String(data._token || '').toLowerCase().trim();
+      if (!avUid || !avToken) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      // employee 자격 검증
+      var avAllUsers = sheetToObjects(getSheet(SHEET_USERS));
+      var avRole = null; var avSaId = null;
+      for (var avi = 0; avi < avAllUsers.length; avi++) {
+        var avu = avAllUsers[avi];
+        if (String(avu['ID'] || '').trim() === avUid &&
+            String(avu['PW_HASH'] || '').toLowerCase().trim() === avToken) {
+          avRole = String(avu['권한'] || '').trim();
+          avSaId = String(avu['사원ID'] || '').trim();
+          break;
+        }
+      }
+      if (avRole !== 'employee') return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var avDate  = String(data.date   || '').trim();
+      var avEmpNo = String(data.emp_no || '').trim();
+      // 날짜가 오늘 이전이면 거부
+      var avToday = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+      if (avDate < avToday) {
+        return jsonResponse({ ok: false, error: '오늘 이전 날짜는 등록할 수 없습니다' });
+      }
+      // 본인 사원번호만 허용
+      var avForcedPad = String(parseInt(avSaId) || 0).padStart(4, '0');
+      var avReqPad    = String(parseInt(avEmpNo) || 0).padStart(4, '0');
+      if (avForcedPad !== avReqPad) {
+        return jsonResponse({ ok: false, error: '본인 정보만 등록할 수 있습니다' });
+      }
+      var avUsed   = parseFloat(data.used || 1);
+      var avReason = String(data.reason || '').trim().substring(0, 50);
+      var avGy     = String(data.grant_year || '').trim();
+      var avVacSheet = getSheet(SHEET_VACATION);
+      // 시트가 비어 있으면 헤더 초기화
+      if (avVacSheet.getLastRow() === 0) {
+        avVacSheet.appendRow(['emp_no', 'date', 'used', 'reason', 'grant_year', 'days']);
+      }
+      // 기존 헤더 순서에 맞춰 행 삽입 (remaining 컬럼 유무 대응)
+      var avHdrRow = avVacSheet.getRange(1, 1, 1, avVacSheet.getLastColumn()).getValues()[0];
+      var avNewRow = avHdrRow.map(function(h) {
+        switch (String(h)) {
+          case 'emp_no':     return avReqPad;
+          case 'date':       return avDate;
+          case 'used':       return avUsed;
+          case 'reason':     return avReason;
+          case 'grant_year': return avGy;
+          case 'days':       return 0;
+          case 'remaining':  return '';
+          default:           return '';
+        }
+      });
+      avVacSheet.appendRow(avNewRow);
       return jsonResponse({ ok: true });
     }
     if (data.type === 'getEmployeeData') {

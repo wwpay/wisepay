@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 13:43 — employee 계정 휴가 삭제 권한 분기 (미래 날짜만 삭제 가능)
+// 수정: 2026-06-15 14:12 — employee 계정 휴가 과거 날짜 등록 차단 + GAS addVacationEntry 연동
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -856,8 +856,20 @@ function showVacationModal(empNo, prefillDate) {
   const today = jstToday();
   const key = _vacKey(empNo);
   const dateEl = document.getElementById('vac-modal-date');
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+
+  // employee: date picker min을 오늘로 설정
+  if (dateEl) {
+    if (isEmployee) dateEl.min = today;
+    else dateEl.removeAttribute('min');
+  }
 
   if (prefillDate) {
+    // employee: 과거 날짜 클릭 시 모달 열지 않고 toast
+    if (isEmployee && prefillDate < today) {
+      showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'w');
+      return;
+    }
     // 캘린더 날짜 클릭: 이미 등록된 날짜면 모달 열지 않고 toast
     const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === prefillDate);
     if (dup) {
@@ -886,6 +898,13 @@ function saveVacationUsage() {
   const date = document.getElementById('vac-modal-date')?.value || '';
   if (!date) { showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e'); return; }
 
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  // employee: 오늘 이전 날짜 등록 차단 (이중 검증)
+  if (isEmployee && date < jstToday()) {
+    showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'e');
+    return;
+  }
+
   const key = _vacKey(_vacModalEmpNo);
   const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === date);
   if (dup) {
@@ -900,7 +919,19 @@ function saveVacationUsage() {
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
 
+  // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
+  const grantYear = isEmployee ? _resolveGrantYear(_vacModalEmpNo) : null;
   addVacationUsage(_vacModalEmpNo, date, used, reason);
+  if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
+    fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type: 'addVacationEntry', emp_no: _vacModalEmpNo,
+        date, used, reason, grant_year: grantYear,
+        _uid: currentUser.id, _token: _writeToken
+      })
+    }).catch(e => console.warn('[vac] addVacationEntry error:', e));
+  }
   console.log('[vac] saved', _vacModalEmpNo, date, used,
     '→ records:', (vacationData[key] || []).length,
     'summary:', calcVacationSummary(_vacModalEmpNo));

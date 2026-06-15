@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 14:12 — employee 휴가 삭제 권한 분기 (모바일 삭제 버튼 추가, 미래 날짜만 삭제 가능)
+  수정: 2026-06-15 14:52 — employee 휴가 과거 날짜 등록 차단 (min 속성, 이중 검증)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1469,8 +1469,20 @@ function mOpenVacModal(empNo, prefillDate) {
   const today = jstToday();
   const key = typeof _vacKey === 'function' ? _vacKey(empNo) : String(empNo).padStart(4, '0');
   const dateEl = document.getElementById('m-vac-date');
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+
+  // employee: date picker min을 오늘로 설정
+  if (dateEl) {
+    if (isEmployee) dateEl.min = today;
+    else dateEl.removeAttribute('min');
+  }
 
   if (prefillDate) {
+    // employee: 과거 날짜 클릭 시 모달 열지 않고 toast
+    if (isEmployee && prefillDate < today) {
+      showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'w');
+      return;
+    }
     const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === prefillDate);
     if (dup) {
       showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
@@ -1508,6 +1520,14 @@ function mSaveVacUsage() {
     return;
   }
 
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  // employee: 오늘 이전 날짜 등록 차단 (이중 검증)
+  if (isEmployee && date < jstToday()) {
+    showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'e');
+    mSaveVacUsage._running = false;
+    return;
+  }
+
   // 중복 날짜 체크
   const key = String(_mVacModalEmpNo).padStart(4, '0');
   const dup = (vacationData[key] || []).find(r => parseFloat(r.used) > 0 && r.date === date);
@@ -1520,12 +1540,25 @@ function mSaveVacUsage() {
   const r1   = document.getElementById('m-vac-r1');
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const reason = (document.getElementById('m-vac-reason')?.value || '').slice(0, 50);
+
+  // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
+  const grantYear = isEmployee && typeof _resolveGrantYear === 'function' ? _resolveGrantYear(_mVacModalEmpNo) : null;
   try {
     addVacationUsage(_mVacModalEmpNo, date, used, reason);
   } catch(e) {
     showToast(jp ? 'エラーが発生しました' : '오류가 발생했습니다', 'e');
     mSaveVacUsage._running = false;
     return;
+  }
+  if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
+    fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type: 'addVacationEntry', emp_no: _mVacModalEmpNo,
+        date, used, reason, grant_year: grantYear,
+        _uid: currentUser.id, _token: _writeToken
+      })
+    }).catch(e => console.warn('[vac] mobile addVacationEntry error:', e));
   }
   mCloseVacModal();
   mRenderVacation();
