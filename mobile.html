@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (employee + viewer 계정)
+  수정: 2026-06-15 11:15 — 모바일 employee 사원 선택 레이블 kana 축약 표시 버그 수정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -926,22 +926,22 @@ function mGotoTab(id, el) {
 }
 
 /* ── 사원 셀렉터 (급여 명세 / 임금대장 공통) ── */
-function _mEmpLabel(idx, jp) {
+function _mEmpLabel(idx, jp, noKana) {
   if (idx < 0 || idx >= employees.length)
     return jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
   const e  = employees[idx];
   const no = String(e.no).padStart(4,'0');
-  return e.kana
-    ? `${no} ${e.name} <span style="font-size:10px;color:var(--text3);">（${e.kana}）</span>`
-    : `${no} ${e.name}`;
+  if (noKana || !e.kana) return `${no} ${e.name}`;
+  return `${no} ${e.name} <span style="font-size:10px;color:var(--text3);">（${e.kana}）</span>`;
 }
 
 function mRenderEmpSels() {
-  const jp = LANG === 'JP';
+  const jp         = LANG === 'JP';
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
   const pl = document.getElementById('m-emp-sel-label');
   const al = document.getElementById('m-annual-emp-label');
-  if (pl) pl.innerHTML = _mEmpLabel(mEmp,       jp);
-  if (al) al.innerHTML = _mEmpLabel(mAnnualEmp, jp);
+  if (pl) pl.innerHTML = _mEmpLabel(mEmp,       jp, isEmployee);
+  if (al) al.innerHTML = _mEmpLabel(mAnnualEmp, jp, isEmployee);
   document.getElementById('m-annual-year-txt').textContent = mAY + (jp ? '年' : '년');
 }
 
