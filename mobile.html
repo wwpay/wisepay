@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 16:15 — createEmployeeAccount 사원ID 앞자리 0 보존 수정 + fixUsersSheetSaeinID 유틸 추가
+  수정: 2026-06-15 16:45 — 과거 날짜 클릭 시 달력 상단 인라인 메시지 표시 (vacation.js + mobile.html)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1506,6 +1506,8 @@ function mOpenVacModal(empNo, prefillDate) {
 function mCloseVacModal() {
   const ov = document.getElementById('m-vac-modal-ov');
   if (ov) { ov.style.display = 'none'; document.body.style.overflow = ''; }
+  const msg = document.getElementById('m-vac-inline-msg');
+  if (msg) msg.style.display = 'none';
 }
 
 function mSaveVacUsage() {
@@ -1523,7 +1525,13 @@ function mSaveVacUsage() {
   const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
   // employee: 오늘 이전 날짜 등록 차단 (이중 검증)
   if (isEmployee && date < jstToday()) {
-    showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'e');
+    const _mMsg = document.getElementById('m-vac-inline-msg');
+    if (_mMsg) {
+      _mMsg.textContent = jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다';
+      _mMsg.style.display = '';
+      clearTimeout(_mMsg._t);
+      _mMsg._t = setTimeout(() => { _mMsg.style.display = 'none'; }, 2500);
+    }
     mSaveVacUsage._running = false;
     return;
   }
@@ -1858,6 +1866,7 @@ document.addEventListener('keydown', function(e) {
       <input type="date" id="m-vac-date"
         style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <div id="m-vac-inline-msg" style="display:none;background:var(--orange2,#fff7ed);color:#9a3412;border:1px solid #fed7aa;border-radius:7px;padding:7px 10px;font-size:12px;font-weight:600;text-align:center;margin-top:8px;"></div>
     </div>
     <div style="margin-bottom:12px;">
       <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;" id="m-vac-days-lbl">取得日数</div>

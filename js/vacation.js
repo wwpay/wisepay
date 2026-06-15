@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 14:12 — employee 계정 휴가 과거 날짜 등록 차단 + GAS addVacationEntry 연동
+// 수정: 2026-06-15 16:45 — 과거 날짜 클릭 시 달력 상단 인라인 메시지 표시 (토스트 대체)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -644,6 +644,7 @@ function _renderVacCalendar() {
 
   cal.innerHTML = `
     <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
+    <div id="vac-cal-inline-msg" style="display:none;background:var(--orange2,#fff7ed);color:#9a3412;border:1px solid #fed7aa;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;text-align:center;margin-bottom:6px;"></div>
     <div class="vac-cal-grid">
       ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
       ${cells}
@@ -850,6 +851,15 @@ function deleteVacUsage(empNo, idx) {
   renderVacationDetail();
 }
 
+function _showVacCalMsg(msg) {
+  const el = document.getElementById('vac-cal-inline-msg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = '';
+  clearTimeout(_showVacCalMsg._t);
+  _showVacCalMsg._t = setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+
 function showVacationModal(empNo, prefillDate) {
   _vacModalEmpNo = empNo;
   const jp  = LANG === 'JP';
@@ -865,9 +875,9 @@ function showVacationModal(empNo, prefillDate) {
   }
 
   if (prefillDate) {
-    // employee: 과거 날짜 클릭 시 모달 열지 않고 toast
+    // employee: 과거 날짜 클릭 시 모달 열지 않고 달력 상단 인라인 메시지
     if (isEmployee && prefillDate < today) {
-      showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'w');
+      _showVacCalMsg(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다');
       return;
     }
     // 캘린더 날짜 클릭: 이미 등록된 날짜면 모달 열지 않고 toast
