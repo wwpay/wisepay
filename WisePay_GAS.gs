@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-15 15:51 — createEmployeeAccount 엔드포인트 추가 (신규 사원 등록 시 users 시트 계정 자동 생성)
+// 수정: 2026-06-15 16:15 — createEmployeeAccount: 사원ID 셀 텍스트 서식 고정으로 앞자리 0 보존 수정 + fixUsersSheetSaeinID 유틸 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -469,6 +469,13 @@ function doPost(e) {
         }
       });
       ceSheet.appendRow(ceRow);
+      // 사원ID 셀을 텍스트 서식으로 고정해 앞자리 0 보존
+      var ceSainColIdx = ceHdrs.indexOf('사원ID');
+      if (ceSainColIdx >= 0) {
+        var ceSainCell = ceSheet.getRange(ceSheet.getLastRow(), ceSainColIdx + 1);
+        ceSainCell.setNumberFormat('@');
+        ceSainCell.setValue(ceEmpNo);
+      }
       return jsonResponse({ ok: true });
     }
     if (data.type === 'getEmployeeData') {
@@ -1324,4 +1331,30 @@ function cleanVacationGrantRows() {
     }
   }
   Logger.log('✅ 발생 기록 ' + deletedCount + '행 삭제 완료');
+}
+
+// ── 1회용 유틸: users 시트의 사원ID 셀을 4자리 텍스트로 교정 ───────────────
+// GAS 편집기에서 직접 이 함수를 실행하세요 (배포 불필요)
+function fixUsersSheetSaeinID() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+  if (!sheet) { Logger.log('❌ users 시트 없음'); return; }
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) { Logger.log('데이터 없음'); return; }
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var sainCol = headers.indexOf('사원ID');
+  if (sainCol < 0) { Logger.log('❌ 사원ID 컬럼 없음'); return; }
+  var fixed = 0;
+  for (var r = 2; r <= lastRow; r++) {
+    var cell = sheet.getRange(r, sainCol + 1);
+    var raw  = String(cell.getValue()).trim();
+    if (!raw || raw === '') continue;
+    var padded = raw.padStart(4, '0');
+    if (raw !== padded || cell.getNumberFormat() !== '@') {
+      cell.setNumberFormat('@');
+      cell.setValue(padded);
+      fixed++;
+      Logger.log('수정: 행 ' + r + ' → ' + padded);
+    }
+  }
+  Logger.log('✅ 총 ' + fixed + '개 셀 교정 완료');
 }
