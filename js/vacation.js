@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 16:45 — 과거 날짜 클릭 시 달력 상단 인라인 메시지 표시 (토스트 대체)
+// 수정: 2026-06-15 16:49 — 과거 날짜 클릭 인라인 메시지 absolute 오버레이로 변경 (레이아웃 밀림 수정)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -643,8 +643,10 @@ function _renderVacCalendar() {
   }
 
   cal.innerHTML = `
-    <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
-    <div id="vac-cal-inline-msg" style="display:none;background:var(--orange2,#fff7ed);color:#9a3412;border:1px solid #fed7aa;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;text-align:center;margin-bottom:6px;"></div>
+    <div style="position:relative;">
+      <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
+      <div id="vac-cal-inline-msg" style="display:none;position:absolute;inset:0;background:rgba(255,247,237,0.96);color:#9a3412;border:1px solid #fed7aa;border-radius:7px;font-size:12px;font-weight:600;align-items:center;justify-content:center;z-index:5;pointer-events:none;"></div>
+    </div>
     <div class="vac-cal-grid">
       ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
       ${cells}
@@ -855,7 +857,7 @@ function _showVacCalMsg(msg) {
   const el = document.getElementById('vac-cal-inline-msg');
   if (!el) return;
   el.textContent = msg;
-  el.style.display = '';
+  el.style.display = 'flex';
   clearTimeout(_showVacCalMsg._t);
   _showVacCalMsg._t = setTimeout(() => { el.style.display = 'none'; }, 2500);
 }
