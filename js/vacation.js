@@ -1,4 +1,4 @@
-// 수정: 2026-06-11 16:34 — vacYearPrev: 2023년 이하 이동 차단 (데이터 유무 체크 제거)
+// 수정: 2026-06-15 13:43 — employee 계정 휴가 삭제 권한 분기 (미래 날짜만 삭제 가능)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -665,15 +665,22 @@ function _renderVacList() {
   const month = _vacDetailMonth;
   const records = vacationData[no] || [];
 
+  const _isEmpRole = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  const _today = jstToday();
   const _itemHtml = (r, no, jp) => {
     const usedVal  = parseFloat(r.used);
     const badgeCls = usedVal < 1 ? 'half' : 'full';
     const badgeTxt = usedVal < 1 ? (jp ? '半日' : '반차') : (jp ? '1日' : '1일');
+    // employee: 오늘 이전(오늘 포함) 날짜는 삭제 버튼 숨김
+    const canDel = !_isEmpRole || (r.date && r.date > _today);
+    const delBtn = canDel
+      ? `<button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>`
+      : '';
     return `<div class="vac-list-item" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
         <span class="vac-list-date">${_jstDateFmt(r.date)}</span>
         <span class="vac-list-badge ${badgeCls}">${badgeTxt}</span>
         <span class="vac-list-reason">${r.reason || ''}</span>
-        <button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>
+        ${delBtn}
       </div>`;
   };
 
@@ -814,10 +821,31 @@ function deleteVacUsage(empNo, idx) {
   const jp = LANG === 'JP';
   const r  = (vacationData[empNo] || [])[idx];
   const dStr = r ? _jstDateFmt(r.date) : '';
+
+  // employee: 오늘 이전(오늘 포함) 날짜는 삭제 불가 (이중 검증)
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  if (isEmployee && r && r.date <= jstToday()) {
+    showToast(jp ? '過去の有給取得記録は削除できません' : '오늘 이전의 휴가는 삭제할 수 없습니다', 'w');
+    return;
+  }
+
   const msg = jp
     ? `${dStr} の有給取得記録を削除しますか？`
     : `${dStr} 의 유급휴가 사용 기록을 삭제하시겠습니까?`;
   if (!confirm(msg)) return;
+
+  // employee: saveVacation은 admin-only이므로 deleteVacationEntry 직접 호출
+  if (isEmployee && r && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
+    fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type: 'deleteVacationEntry', emp_no: empNo,
+        date: r.date, reason: r.reason || '',
+        _uid: currentUser.id, _token: _writeToken
+      })
+    }).catch(e => console.warn('[vac] deleteVacationEntry error:', e));
+  }
+
   deleteVacationUsage(empNo, idx);
   renderVacationDetail();
 }

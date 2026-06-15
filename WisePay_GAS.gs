@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-15 10:58 — changePassword 엔드포인트 추가 (employee + viewer 전용)
+// 수정: 2026-06-15 13:43 — deleteVacationEntry: employee 자격 검증 + 미래 날짜만 삭제 허용
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -323,17 +323,46 @@ function doPost(e) {
       return jsonResponse({ ok: true });
     }
     if (data.type === 'deleteVacationEntry') {
-      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var dvUid   = String(data._uid   || '').trim();
+      var dvToken = String(data._token || '').toLowerCase().trim();
+      if (!dvUid || !dvToken) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      // admin 또는 employee 자격 검증
+      var dvAllUsers = sheetToObjects(getSheet(SHEET_USERS));
+      var dvRole = null; var dvSaId = null;
+      for (var dvi = 0; dvi < dvAllUsers.length; dvi++) {
+        var dvu = dvAllUsers[dvi];
+        if (String(dvu['ID'] || '').trim() === dvUid &&
+            String(dvu['PW_HASH'] || '').toLowerCase().trim() === dvToken) {
+          dvRole = String(dvu['권한'] || '').trim();
+          dvSaId = String(dvu['사원ID'] || '').trim();
+          break;
+        }
+      }
+      if (dvRole !== 'admin' && dvRole !== 'employee') {
+        return jsonResponse({ ok: false, error: 'Unauthorized' });
+      }
+      var dEmpNo = String(data.emp_no || '').trim();
+      var dDate  = String(data.date   || '').trim();
+      // employee: 날짜가 오늘 이전(오늘 포함)이면 거부 + 본인 사원번호만 허용
+      if (dvRole === 'employee') {
+        var dvToday = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+        if (dDate <= dvToday) {
+          return jsonResponse({ ok: false, error: '오늘 이전 날짜의 휴가는 삭제할 수 없습니다' });
+        }
+        var dvForcedPad = String(parseInt(dvSaId) || 0).padStart(4, '0');
+        var dvReqPad    = String(parseInt(dEmpNo) || 0).padStart(4, '0');
+        if (dvForcedPad !== dvReqPad) {
+          return jsonResponse({ ok: false, error: '본인 휴가만 삭제할 수 있습니다' });
+        }
+      }
       var vacSheet = getSheet(SHEET_VACATION);
       if (vacSheet.getLastRow() < 2) return jsonResponse({ ok: true });
       var vacVals = vacSheet.getDataRange().getValues();
       var vacHdrs = vacVals[0];
-      var vNoCol    = vacHdrs.indexOf('emp_no');
-      var vDateCol  = vacHdrs.indexOf('date');
-      var vRsnCol   = vacHdrs.indexOf('reason');
-      var dEmpNo   = String(data.emp_no  || '').trim();
-      var dDate    = String(data.date    || '').trim();
-      var dReason  = String(data.reason  || '').trim();
+      var vNoCol   = vacHdrs.indexOf('emp_no');
+      var vDateCol = vacHdrs.indexOf('date');
+      var vRsnCol  = vacHdrs.indexOf('reason');
+      var dReason  = String(data.reason || '').trim();
       for (var vi = vacVals.length - 1; vi >= 1; vi--) {
         var vRow = vacVals[vi];
         if (vNoCol >= 0 && String(vRow[vNoCol]).trim() === dEmpNo &&

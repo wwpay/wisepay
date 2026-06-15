@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 13:43 — 모바일 사원 선택 버튼 min-width:0 추가 — 컨테이너 확장으로 연/월 버튼 밀림 수정
+  수정: 2026-06-15 14:12 — employee 휴가 삭제 권한 분기 (모바일 삭제 버튼 추가, 미래 날짜만 삭제 가능)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1550,6 +1550,31 @@ function mCloseVacDetail() {
   if (bar) bar.classList.add('hidden');
 }
 
+function mDeleteVacUsage(empNo, idx) {
+  const jp = LANG === 'JP';
+  const r  = (vacationData[empNo] || [])[idx];
+  const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  if (isEmployee && r && r.date <= jstToday()) {
+    showToast(jp ? '過去の有給取得記録は削除できません' : '오늘 이전의 휴가는 삭제할 수 없습니다', 'w');
+    return;
+  }
+  const dStr = r ? r.date : '';
+  const msg = jp ? `${dStr} の有給取得記録を削除しますか？` : `${dStr} 의 유급휴가 사용 기록을 삭제하시겠습니까?`;
+  if (!confirm(msg)) return;
+  if (isEmployee && r && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
+    fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type: 'deleteVacationEntry', emp_no: empNo,
+        date: r.date, reason: r.reason || '',
+        _uid: currentUser.id, _token: _writeToken
+      })
+    }).catch(e => console.warn('[vac] mobile deleteVacationEntry error:', e));
+  }
+  deleteVacationUsage(empNo, idx);
+  mRenderVacDetail();
+}
+
 function mVacDetailYearNav(d) {
   const nextY = mVacDetailYear + d;
   if (nextY <= 2023) {
@@ -1624,7 +1649,11 @@ function mRenderVacDetail() {
   try { sum = calcVacationSummary(no); } catch(e) {}
   const unitStr = jp ? '日' : '일';
 
-  const allRecords = (vacationData[no] || []).filter(r => parseFloat(r.used) > 0);
+  const _mIsEmpRole = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  const _mToday = jstToday();
+  const allRecords = (vacationData[no] || [])
+    .map((r, i) => ({ ...r, _origIdx: i }))
+    .filter(r => parseFloat(r.used) > 0);
   let filtered;
   if (mVacListMode === 'month') {
     filtered = allRecords.filter(r => {
@@ -1645,10 +1674,15 @@ function mRenderVacDetail() {
           ? `<span style="background:var(--accent2);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '1日' : '1일'}</span>`
           : `<span style="background:var(--orange2);color:#92400e;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '半日' : '반차'}</span>`;
         const reason = r.reason ? `<span style="font-size:12px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.reason}</span>` : '';
-        return `<div class="m-vac-detail-row">
+        const canDel = !_mIsEmpRole || (r.date && r.date > _mToday);
+        const delBtn = canDel
+          ? `<button onclick="event.stopPropagation();mDeleteVacUsage('${no}',${r._origIdx})" style="flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;padding:4px 6px;cursor:pointer;line-height:1;" title="${jp ? '削除' : '삭제'}">✕</button>`
+          : '';
+        return `<div class="m-vac-detail-row" style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:13px;font-weight:600;white-space:nowrap;">${r.date}</span>
           ${badge}
           ${reason}
+          ${delBtn}
         </div>`;
       }).join('');
 
