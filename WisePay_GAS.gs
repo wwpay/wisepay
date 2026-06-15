@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-15 14:52 — addVacationEntry 엔드포인트 추가 (employee 휴가 신청 + 과거 날짜 차단)
+// 수정: 2026-06-15 15:51 — createEmployeeAccount 엔드포인트 추가 (신규 사원 등록 시 users 시트 계정 자동 생성)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -427,6 +427,48 @@ function doPost(e) {
         }
       });
       avVacSheet.appendRow(avNewRow);
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'createEmployeeAccount') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var ceEmpNo = String(parseInt(data.emp_no || '') || 0).padStart(4, '0');
+      var ceName  = String(data.emp_name || '').trim();
+      if (!ceEmpNo || ceEmpNo === '0000' || !ceName) {
+        return jsonResponse({ ok: false, error: 'Missing parameters' });
+      }
+      var ceId = 'wise' + ceEmpNo;
+      var ceSheet = getSheet(SHEET_USERS);
+      // 중복 체크: 동일 ID 또는 동일 사원ID가 이미 있으면 skip
+      var ceExisting = sheetToObjects(ceSheet);
+      for (var cei = 0; cei < ceExisting.length; cei++) {
+        if (String(ceExisting[cei]['ID']    || '').trim() === ceId ||
+            String(ceExisting[cei]['사원ID'] || '').trim() === ceEmpNo) {
+          return jsonResponse({ ok: true, skipped: true });
+        }
+      }
+      // SHA-256("1234") 계산 (GAS 내장 함수)
+      var ceDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, '1234');
+      var cePwHash = ceDigest.map(function(b) {
+        var h = (b < 0 ? b + 256 : b).toString(16);
+        return h.length === 1 ? '0' + h : h;
+      }).join('');
+      // 헤더 없으면 초기화
+      if (ceSheet.getLastRow() === 0) {
+        ceSheet.appendRow(['ID', 'PW_HASH', '권한', '세션타입', '이름', '사원ID']);
+      }
+      var ceHdrs = ceSheet.getRange(1, 1, 1, ceSheet.getLastColumn()).getValues()[0];
+      var ceRow = ceHdrs.map(function(h) {
+        switch (String(h)) {
+          case 'ID':       return ceId;
+          case 'PW_HASH':  return cePwHash;
+          case '권한':     return 'employee';
+          case '세션타입': return 'session';
+          case '이름':     return ceName;
+          case '사원ID':   return ceEmpNo;
+          default:         return '';
+        }
+      });
+      ceSheet.appendRow(ceRow);
       return jsonResponse({ ok: true });
     }
     if (data.type === 'getEmployeeData') {

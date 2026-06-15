@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-12 12:22 — 유급휴가 관리 "관리 대상으로 설정" → "적용 대상으로 설정" 문구 변경
+﻿// 수정: 2026-06-15 15:51 — 신규 사원 등록 시 users 시트 계정 자동 생성 (createEmployeeAccount GAS 호출)
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -908,6 +908,16 @@ function saveEmployee() {
 
   if(gasUrl) {
     fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees,...(typeof gasWriteAuth==='function'?gasWriteAuth():{})}),mode:'no-cors'}).catch(()=>{});
+  }
+  // 신규 사원 등록 시 users 시트에 계정 자동 생성
+  if (isNewEmp && gasUrl) {
+    const _ceAuth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
+    if (_ceAuth._uid) {
+      fetch(gasUrl, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ type: 'createEmployeeAccount', emp_no: no, emp_name: name, ..._ceAuth })
+      }).catch(() => {});
+    }
   }
   gasAppendLog(isNewEmp ? '사원추가' : (leaveVal ? '퇴사처리' : '사원수정'), `${name} (${no})`, '성공', leaveVal ? `퇴사일: ${leaveVal}` : '');
 
