@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 16:49 — 과거 날짜 클릭 인라인 메시지 absolute 오버레이로 변경 (레이아웃 밀림 수정)
+  수정: 2026-06-15 17:55 — 과거 날짜 클릭 인라인 메시지 스타일을 토스트(.w)와 동일하게 통일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1866,7 +1866,7 @@ document.addEventListener('keydown', function(e) {
       <input type="date" id="m-vac-date"
         style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      <div id="m-vac-inline-msg" style="display:none;position:absolute;inset:0;background:rgba(255,247,237,0.96);color:#9a3412;border:1px solid #fed7aa;border-radius:8px;font-size:12px;font-weight:600;align-items:center;justify-content:center;z-index:5;pointer-events:none;"></div>
+      <div id="m-vac-inline-msg" style="display:none;position:absolute;inset:0;background:var(--orange);color:#fff;padding:9px 14px;border-radius:var(--r,10px);font-size:calc(13px + var(--fs-delta,0px));font-weight:600;box-shadow:var(--sh2);align-items:center;justify-content:center;z-index:5;pointer-events:none;"></div>
     </div>
     <div style="margin-bottom:12px;">
       <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;" id="m-vac-days-lbl">取得日数</div>

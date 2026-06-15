@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 16:49 — 과거 날짜 클릭 인라인 메시지 absolute 오버레이로 변경 (레이아웃 밀림 수정)
+// 수정: 2026-06-15 17:55 — 과거 날짜 클릭 인라인 메시지 스타일을 토스트(.w)와 동일하게 통일
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -645,7 +645,7 @@ function _renderVacCalendar() {
   cal.innerHTML = `
     <div style="position:relative;">
       <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
-      <div id="vac-cal-inline-msg" style="display:none;position:absolute;inset:0;background:rgba(255,247,237,0.96);color:#9a3412;border:1px solid #fed7aa;border-radius:7px;font-size:12px;font-weight:600;align-items:center;justify-content:center;z-index:5;pointer-events:none;"></div>
+      <div id="vac-cal-inline-msg" style="display:none;position:absolute;inset:0;background:var(--orange);color:#fff;padding:9px 14px;border-radius:var(--r);font-size:calc(13px + var(--fs-delta));font-weight:600;box-shadow:var(--sh2);align-items:center;justify-content:center;z-index:5;pointer-events:none;"></div>
     </div>
     <div class="vac-cal-grid">
       ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
