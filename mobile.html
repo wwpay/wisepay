@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-15 17:55 — 과거 날짜 클릭 인라인 메시지 스타일을 토스트(.w)와 동일하게 통일
+  수정: 2026-06-16 09:10 — 모바일 유급휴가 상세 화면에 休暇登録 버튼 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1768,6 +1768,10 @@ function mRenderVacDetail() {
         <div class="m-vac-stat-val${sum.remaining <= 5 ? ' red' : ''}">${sum.remaining.toFixed(1)}${unitStr}</div>
       </div>
     </div>
+    <button onclick="mOpenVacModal('${no}')"
+      style="width:100%;padding:11px;border:1px solid var(--accent);border-radius:9px;background:var(--accent2);color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;">
+      ${jp ? '休暇登録' : '휴가 등록'}
+    </button>
     ${headerHtml}
     ${rowsHtml}`;
 }
