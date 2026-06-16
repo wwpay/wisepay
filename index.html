@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-16 11:28 — vacation.js: addVacationGrant에서 saveVacationToGas 제거 → appendRow 방식(addVacationGrantEntry)으로 교체, GAS: saveVacationSheet 추가 + 헤더 고정
+  수정: 2026-06-16 12:13 — 유급휴가·연간발생 사원 선택 드롭다운 마지막 항목 구분선 중복 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -296,7 +296,7 @@
             <button class="btn btn-sm" id="annualInclLeftBtn"  onclick="toggleAnnualInclLeft()" style="justify-content:center;background:transparent;border-color:var(--border);color:var(--text2);">퇴사자 포함</button>
           </div>
           <div id="annualEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
-          <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
+          <div style="padding-top:8px;margin-top:8px;text-align:center;">
             <button class="btn btn-primary" onclick="closeAnnualEmpDrop()" style="font-size:12px;padding:5px 28px;" id="t-annual-confirm">확인</button>
           </div>
         </div>
@@ -486,7 +486,7 @@
             <button class="btn btn-sm" id="vacInclNotAppliedBtn"  onclick="toggleVacInclNotApplied()" style="justify-content:center;background:transparent;border-color:var(--border);color:var(--text2);">미대상 포함</button>
           </div>
           <div id="vacEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
-          <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
+          <div style="padding-top:8px;margin-top:8px;text-align:center;">
             <button class="btn btn-primary" onclick="confirmVacEmpSel()" style="font-size:12px;padding:5px 28px;" id="t-vac-confirm">확인</button>
           </div>
         </div>
