@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-16 10:18 — 유급휴가 등록 모달 날짜 기본값 항상 오늘로 고정
+  수정: 2026-06-16 16:53 — mRenderVacDetail: 메모 없는 항목 X 버튼 위치 깨짐 수정 (reason 스팬 항상 렌더링)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1729,7 +1729,7 @@ function mRenderVacDetail() {
         const badge = usedVal >= 1
           ? `<span style="background:var(--accent2);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '1日' : '1일'}</span>`
           : `<span style="background:var(--orange2);color:#92400e;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;">${jp ? '半日' : '반차'}</span>`;
-        const reason = r.reason ? `<span style="font-size:12px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.reason}</span>` : '';
+        const reason = `<span style="font-size:12px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.reason || ''}</span>`;
         const canDel = !_mIsEmpRole || (r.date && r.date > _mToday);
         const delBtn = canDel
           ? `<button onclick="event.stopPropagation();mDeleteVacUsage('${no}',${r._origIdx})" style="flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;padding:4px 6px;cursor:pointer;line-height:1;" title="${jp ? '削除' : '삭제'}">✕</button>`
