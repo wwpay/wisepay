@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-16 10:58 — addVacationGrantEntry 핸들러 추가(appendRow 방식) + saveVacationSheet 고정 헤더 + 신규 사원 추가 시 기존 데이터 보호
+// 수정: 2026-06-16 15:10 — deleteVacationEntry 행 검색 버그 수정: date(Date객체)·emp_no(숫자) 정규화 비교
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -363,8 +363,17 @@ function doPost(e) {
       var dReason  = String(data.reason || '').trim();
       for (var vi = vacVals.length - 1; vi >= 1; vi--) {
         var vRow = vacVals[vi];
-        if (vNoCol >= 0 && String(vRow[vNoCol]).trim() === dEmpNo &&
-            vDateCol >= 0 && String(vRow[vDateCol]).trim() === dDate &&
+        // emp_no: 숫자로 저장된 경우(20) → 4자리 문자열(0020)로 정규화
+        var rawNo = vRow[vNoCol];
+        var rowEmpNo = (typeof rawNo === 'number')
+          ? String(rawNo).padStart(4, '0')
+          : (/^\d+$/.test(String(rawNo || '').trim()) ? String(rawNo || '').trim().padStart(4, '0') : String(rawNo || '').trim());
+        // date: Date 객체로 저장된 경우 → 'yyyy-MM-dd' 문자열로 변환
+        var rowDate = (vRow[vDateCol] instanceof Date)
+          ? Utilities.formatDate(vRow[vDateCol], 'Asia/Tokyo', 'yyyy-MM-dd')
+          : String(vRow[vDateCol] || '').trim();
+        if (vNoCol >= 0 && rowEmpNo === dEmpNo &&
+            vDateCol >= 0 && rowDate === dDate &&
             (vRsnCol < 0 || !dReason || String(vRow[vRsnCol]).trim() === dReason)) {
           vacSheet.deleteRow(vi + 1);
           break;

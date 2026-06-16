@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 12:56 — 달력 인라인 메시지 수직 중앙 정렬 (top:50% + translate(-50%,-50%))
+// 수정: 2026-06-16 15:10 — employee 유급휴가 삭제 GAS 미반영 버그 수정 (no-cors→cors, 응답 확인 후 로컬 삭제)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -833,7 +833,7 @@ function vacGotoToday() {
   _renderVacList();
 }
 
-function deleteVacUsage(empNo, idx) {
+async function deleteVacUsage(empNo, idx) {
   const jp = LANG === 'JP';
   const r  = (vacationData[empNo] || [])[idx];
   const dStr = r ? _jstDateFmt(r.date) : '';
@@ -850,16 +850,27 @@ function deleteVacUsage(empNo, idx) {
     : `${dStr} 의 유급휴가 사용 기록을 삭제하시겠습니까?`;
   if (!confirm(msg)) return;
 
-  // employee: saveVacation은 admin-only이므로 deleteVacationEntry 직접 호출
+  // employee: GAS 응답 확인 후 로컬 삭제 (no-cors → cors, 낙관적 갱신 금지)
   if (isEmployee && r && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
-    fetch(gasUrl, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        type: 'deleteVacationEntry', emp_no: empNo,
-        date: r.date, reason: r.reason || '',
-        _uid: currentUser.id, _token: _writeToken
-      })
-    }).catch(e => console.warn('[vac] deleteVacationEntry error:', e));
+    try {
+      const resp = await fetch(gasUrl, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          type: 'deleteVacationEntry', emp_no: empNo,
+          date: r.date, reason: r.reason || '',
+          _uid: currentUser.id, _token: _writeToken
+        })
+      });
+      const result = await resp.json();
+      if (!result.ok) {
+        showToast(result.error || (jp ? '削除に失敗しました' : '삭제에 실패했습니다'), 'e');
+        return;
+      }
+    } catch(e) {
+      showToast(jp ? 'サーバーエラーが発生しました' : '서버 오류가 발생했습니다', 'e');
+      console.warn('[vac] deleteVacationEntry error:', e);
+      return;
+    }
   }
 
   deleteVacationUsage(empNo, idx);

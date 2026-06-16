@@ -1594,7 +1594,7 @@ function mCloseVacDetail() {
   if (bar) bar.classList.add('hidden');
 }
 
-function mDeleteVacUsage(empNo, idx) {
+async function mDeleteVacUsage(empNo, idx) {
   const jp = LANG === 'JP';
   const r  = (vacationData[empNo] || [])[idx];
   const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
@@ -1605,15 +1605,27 @@ function mDeleteVacUsage(empNo, idx) {
   const dStr = r ? r.date : '';
   const msg = jp ? `${dStr} の有給取得記録を削除しますか？` : `${dStr} 의 유급휴가 사용 기록을 삭제하시겠습니까?`;
   if (!confirm(msg)) return;
+  // employee: GAS 응답 확인 후 로컬 삭제 (no-cors → cors, 낙관적 갱신 금지)
   if (isEmployee && r && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
-    fetch(gasUrl, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        type: 'deleteVacationEntry', emp_no: empNo,
-        date: r.date, reason: r.reason || '',
-        _uid: currentUser.id, _token: _writeToken
-      })
-    }).catch(e => console.warn('[vac] mobile deleteVacationEntry error:', e));
+    try {
+      const resp = await fetch(gasUrl, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          type: 'deleteVacationEntry', emp_no: empNo,
+          date: r.date, reason: r.reason || '',
+          _uid: currentUser.id, _token: _writeToken
+        })
+      });
+      const result = await resp.json();
+      if (!result.ok) {
+        showToast(result.error || (jp ? '削除に失敗しました' : '삭제에 실패했습니다'), 'e');
+        return;
+      }
+    } catch(e) {
+      showToast(jp ? 'サーバーエラーが発生しました' : '서버 오류가 발생했습니다', 'e');
+      console.warn('[vac] mobile deleteVacationEntry error:', e);
+      return;
+    }
   }
   deleteVacationUsage(empNo, idx);
   mRenderVacDetail();
