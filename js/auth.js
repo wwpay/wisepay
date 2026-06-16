@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (employee + viewer 계정)
+// 수정: 2026-06-16 12:13 — 로그인 ID 입력란 엔터키 → PW 입력란으로 포커스 이동
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -181,7 +181,12 @@ async function doLogin() {
 }
 
 function loginOnEnter(e) {
-  if (e.key === 'Enter') doLogin();
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'login-id') {
+    document.getElementById('login-pw')?.focus();
+  } else {
+    doLogin();
+  }
 }
 
 function doLogout() {
