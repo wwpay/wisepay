@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-15 15:51 — 신규 사원 등록 시 users 시트 계정 자동 생성 (createEmployeeAccount GAS 호출)
+﻿// 수정: 2026-06-16 14:53 — 신규 사원 등록 하단 저장/취소 버튼 추가 + 저장 버튼 색상 btn-primary로 통일
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -152,7 +152,7 @@ function openEmpForm(idx) {
   if(idx===-1) {
     tempFamilies=[];
     title.textContent=jp?'新規従業員登録':'신규 사원 등록';
-    btns.innerHTML=`<button class="btn btn-success btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+    btns.innerHTML=`<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
     renderEmpFormFields(null, false);
   } else {
     const emp=employees[idx];
@@ -390,7 +390,11 @@ function renderEmpFormFields(emp, readOnly = false) {
       <thead><tr><th>${jp?'氏名':'이름'}</th><th>${jp?'生年月日':'생년월일'}</th><th>${jp?'扶養対象':'부양 대상'}</th>${readOnly?'':'<th></th>'}</tr></thead>
       <tbody id="famTableBody"></tbody>
     </table>
-  </div>`;
+  </div>
+  ${!readOnly ? `<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+    <button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button>
+    <button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>
+  </div>` : ''}`;
 
   document.getElementById('empFormBody').innerHTML = html;
   renderFamTable();
