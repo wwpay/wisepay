@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-16 15:38 — 유급휴가 시트 정렬 유지: addVacationEntry·addVacationGrantEntry·연간발생 appendRow 후 sortVacationSheet() 호출
+// 수정: 2026-06-16 17:23 — checkAndGrantAnnualVacation appendRow 컬럼 수 수정(days 누락→7열) + fixVacationRecords() 보정 함수 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -1304,7 +1304,7 @@ function checkAndGrantAnnualVacation() {
     if (leaveVal) return; // 퇴사자 제외
     var empNo = String(emp.no || '').trim().padStart ? String(parseInt(emp.no || '0')).padStart(4, '0') : String(emp.no || '');
     if (!empNo || empNo === '0000') return;
-    vacSheet.appendRow([empNo, today, 0, '연간발생', grantYear, 15]);
+    vacSheet.appendRow([empNo, today, 0, '연간발생', grantYear, '', 15]);
   });
   sortVacationSheet();
 
@@ -1322,6 +1322,67 @@ function createAnnualVacationTrigger() {
     .atHour(9)
     .create();
   Logger.log('✅ 매월 1일 오전 9시 유급휴가 트리거 설정 완료 (1월에만 실제 발생)');
+}
+
+// ── 0020·0021 유급휴가 기록 보정 (GAS 편집기에서 한 번만 실행) ──────────
+// 0020: 초기발생 15일(2025-01-01) 누락 시 추가
+// 0021: 연간발생 2025년 행의 days 컬럼이 비어있으면 15로 수정
+function fixVacationRecords() {
+  var vacSheet = getSheet(SHEET_VACATION);
+  if (vacSheet.getLastRow() === 0) {
+    vacSheet.getRange(1, 1, 1, 7).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']]);
+  }
+  var lastRow = vacSheet.getLastRow();
+  var hdrRow = vacSheet.getRange(1, 1, 1, 7).getValues()[0];
+  var idxEmpNo    = hdrRow.indexOf('emp_no');
+  var idxUsed     = hdrRow.indexOf('used');
+  var idxGrantYear = hdrRow.indexOf('grant_year');
+  var idxReason   = hdrRow.indexOf('reason');
+  var idxDays     = hdrRow.indexOf('days');
+  var allRows = lastRow < 2 ? [] : vacSheet.getRange(2, 1, lastRow - 1, 7).getValues();
+
+  // ── 0020: 초기발생 15일 (2025-01-01, grant_year=2025) 없으면 추가
+  var has0020 = allRows.some(function(row) {
+    var no   = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
+    var gy   = String(row[idxGrantYear] || '').trim();
+    var used = parseFloat(row[idxUsed]   || 0);
+    var days = parseFloat(row[idxDays]   || 0);
+    var rsn  = String(row[idxReason]     || '').trim();
+    return no === '0020' && gy === '2025' && used === 0 && days > 0 && rsn === '초기발생';
+  });
+  if (!has0020) {
+    vacSheet.appendRow(['0020', '2025-01-01', 0, '초기발생', '2025', '', 15]);
+    Logger.log('✅ 0020 초기발생 15일 추가');
+  } else {
+    Logger.log('ℹ️ 0020 초기발생 이미 정상');
+  }
+
+  // ── 0021: 연간발생 2025 (grant_year=2025) — days 비어있으면 15로 수정, 없으면 추가
+  var fixed0021 = false;
+  for (var i = 0; i < allRows.length; i++) {
+    var row = allRows[i];
+    var no  = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
+    var gy  = String(row[idxGrantYear] || '').trim();
+    var rsn = String(row[idxReason]    || '').trim();
+    if (no === '0021' && gy === '2025' && rsn === '연간발생') {
+      var currDays = parseFloat(row[idxDays] || 0);
+      if (currDays <= 0) {
+        vacSheet.getRange(i + 2, idxDays + 1).setValue(15); // i+2: 1-indexed + header row offset
+        Logger.log('✅ 0021 연간발생 days 컬럼 → 15로 수정');
+      } else {
+        Logger.log('ℹ️ 0021 연간발생 이미 정상 (' + currDays + '일)');
+      }
+      fixed0021 = true;
+      break;
+    }
+  }
+  if (!fixed0021) {
+    vacSheet.appendRow(['0021', '2025-01-01', 0, '연간발생', '2025', '', 15]);
+    Logger.log('✅ 0021 연간발생 15일 추가');
+  }
+
+  sortVacationSheet();
+  Logger.log('✅ fixVacationRecords 완료');
 }
 
 // ── 유급휴가 시트 1회 재정렬 (GAS 편집기에서 수동 실행) ──────────────

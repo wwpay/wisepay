@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 15:10 — employee 유급휴가 삭제 GAS 미반영 버그 수정 (no-cors→cors, 응답 확인 후 로컬 삭제)
+// 수정: 2026-06-16 17:23 — addVacationGrant no-cors→cors 전환 (초기발생 GAS 기록 누락 방지)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -269,13 +269,15 @@ function addVacationGrant(empNo, days, grantYear, reason) {
       typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin' &&
       typeof _writeToken !== 'undefined' && _writeToken) {
     fetch(gasUrl, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         type: 'addVacationGrantEntry',
         emp_no: String(empNo).padStart(4, '0'),
         days, grant_year: grantYear, reason, date: today,
         _uid: currentUser.id, _token: _writeToken
       })
+    }).then(r => r.json()).then(result => {
+      if (!result.ok) console.warn('[vac] addVacationGrantEntry failed:', result.error);
     }).catch(e => console.warn('[vac] addVacationGrantEntry error:', e));
   }
 }
