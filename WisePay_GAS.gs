@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-15 16:15 — createEmployeeAccount: 사원ID 셀 텍스트 서식 고정으로 앞자리 0 보존 수정 + fixUsersSheetSaeinID 유틸 추가
+// 수정: 2026-06-16 10:58 — addVacationGrantEntry 핸들러 추가(appendRow 방식) + saveVacationSheet 고정 헤더 + 신규 사원 추가 시 기존 데이터 보호
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -315,10 +315,8 @@ function doPost(e) {
     }
     if (data.type === 'saveVacation') {
       if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
-      if (Array.isArray(data.data)) {
-        if (data.data.length > 0) {
-          saveSheet(SHEET_VACATION, data.data);
-        }
+      if (Array.isArray(data.data) && data.data.length > 0) {
+        saveVacationSheet(data.data); // 고정 컬럼 순서로 저장 (헤더 순서 변경 방지)
       }
       return jsonResponse({ ok: true });
     }
@@ -410,7 +408,7 @@ function doPost(e) {
       var avVacSheet = getSheet(SHEET_VACATION);
       // 시트가 비어 있으면 헤더 초기화
       if (avVacSheet.getLastRow() === 0) {
-        avVacSheet.appendRow(['emp_no', 'date', 'used', 'reason', 'grant_year', 'days']);
+        avVacSheet.appendRow(['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']);
       }
       // 기존 헤더 순서에 맞춰 행 삽입 (remaining 컬럼 유무 대응)
       var avHdrRow = avVacSheet.getRange(1, 1, 1, avVacSheet.getLastColumn()).getValues()[0];
@@ -427,6 +425,38 @@ function doPost(e) {
         }
       });
       avVacSheet.appendRow(avNewRow);
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'addVacationGrantEntry') {
+      // 신규 사원 초기발생·연간발생 등 부여 기록을 appendRow로만 추가 (시트 초기화 없음)
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var agEmpNo  = String(data.emp_no     || '').trim().padStart(4, '0');
+      var agDays   = parseFloat(data.days   || 0);
+      var agGy     = String(data.grant_year || '').trim();
+      var agReason = String(data.reason     || '').trim().substring(0, 50);
+      var agDate   = String(data.date       || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd')).trim();
+      if (!agEmpNo || agEmpNo === '0000') {
+        return jsonResponse({ ok: false, error: 'Missing emp_no' });
+      }
+      var agSheet = getSheet(SHEET_VACATION);
+      var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days'];
+      if (agSheet.getLastRow() === 0) {
+        agSheet.appendRow(VAC_HEADERS);
+      }
+      var agHdrRow = agSheet.getRange(1, 1, 1, agSheet.getLastColumn()).getValues()[0];
+      var agNewRow = agHdrRow.map(function(h) {
+        switch (String(h)) {
+          case 'emp_no':     return agEmpNo;
+          case 'date':       return agDate;
+          case 'used':       return 0;
+          case 'reason':     return agReason;
+          case 'grant_year': return agGy;
+          case 'days':       return agDays;
+          case 'remaining':  return '';
+          default:           return '';
+        }
+      });
+      agSheet.appendRow(agNewRow);
       return jsonResponse({ ok: true });
     }
     if (data.type === 'createEmployeeAccount') {
@@ -1215,6 +1245,29 @@ function getVacationData() {
   return { ok: true, data: rows };
 }
 
+// 유급휴가 시트를 고정 헤더 순서로 전체 재작성 (saveSheet 대체 — 헤더 순서 변경 방지)
+function saveVacationSheet(records) {
+  var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days'];
+  var sheet = getSheet(SHEET_VACATION);
+  sheet.clearContents();
+  if (!records || !records.length) return;
+  var cleaned = records.map(function(r) {
+    var c = {};
+    Object.keys(r).forEach(function(k) {
+      if (k !== '_uid' && k !== '_token') c[k] = r[k];
+    });
+    return c;
+  });
+  var rows = [VAC_HEADERS].concat(cleaned.map(function(r) {
+    return VAC_HEADERS.map(function(h) {
+      var v = r[h] !== undefined ? r[h] : '';
+      return (Array.isArray(v) || (v !== null && typeof v === 'object' && !(v instanceof Date)))
+        ? JSON.stringify(v) : v;
+    });
+  }));
+  sheet.getRange(1, 1, rows.length, VAC_HEADERS.length).setValues(rows);
+}
+
 // 매년 1월 1일 자동 실행: 재직 중인 전 사원에게 15일 연간발생 추가
 function checkAndGrantAnnualVacation() {
   var now = new Date();
@@ -1232,7 +1285,7 @@ function checkAndGrantAnnualVacation() {
   var vacSheet = getSheet(SHEET_VACATION);
 
   if (vacSheet.getLastRow() === 0) {
-    vacSheet.getRange(1, 1, 1, 6).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'days']]);
+    vacSheet.getRange(1, 1, 1, 7).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']]);
   }
 
   emps.forEach(function(emp) {

@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 10:18 — 유급휴가 등록 모달 날짜 기본값 항상 오늘로 고정
+// 수정: 2026-06-16 10:58 — addVacationGrant: saveVacationToGas 대신 addVacationGrantEntry(appendRow) 사용 → 시트 초기화 방지
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -256,6 +256,7 @@ function addVacationUsage(empNo, date, used, reason) {
 }
 
 // 유급휴가 발생 추가 (초기발생·연간발생)
+// saveVacationToGas(전체 시트 덮어쓰기) 대신 appendRow 방식 핸들러만 사용 — 기존 데이터 보호
 function addVacationGrant(empNo, days, grantYear, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
@@ -264,7 +265,19 @@ function addVacationGrant(empNo, days, grantYear, reason) {
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++;
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
-  if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
+  if (typeof gasUrl !== 'undefined' && gasUrl &&
+      typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin' &&
+      typeof _writeToken !== 'undefined' && _writeToken) {
+    fetch(gasUrl, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type: 'addVacationGrantEntry',
+        emp_no: String(empNo).padStart(4, '0'),
+        days, grant_year: grantYear, reason, date: today,
+        _uid: currentUser.id, _token: _writeToken
+      })
+    }).catch(e => console.warn('[vac] addVacationGrantEntry error:', e));
+  }
 }
 
 // 사용 기록 삭제 — 삭제 후 remaining 재계산
