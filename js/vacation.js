@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 12:48 — 달력 인라인 메시지 폭 fit-content로 조정 + 이미 등록된 날짜 클릭 시 인라인 메시지로 통일
+// 수정: 2026-06-16 12:56 — 달력 인라인 메시지 수직 중앙 정렬 (top:50% + translate(-50%,-50%))
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -658,7 +658,7 @@ function _renderVacCalendar() {
   cal.innerHTML = `
     <div style="position:relative;">
       <div class="vac-cal-month-hdr">${year}${jp ? '年' : '년'} ${month}${jp ? '月' : '월'}</div>
-      <div id="vac-cal-inline-msg" style="display:none;position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:fit-content;white-space:nowrap;background:var(--orange);color:#fff;padding:9px 14px;border-radius:var(--r);font-size:calc(13px + var(--fs-delta));font-weight:600;box-shadow:var(--sh2);align-items:center;z-index:5;pointer-events:none;"></div>
+      <div id="vac-cal-inline-msg" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:fit-content;white-space:nowrap;background:var(--orange);color:#fff;padding:9px 14px;border-radius:var(--r);font-size:calc(13px + var(--fs-delta));font-weight:600;box-shadow:var(--sh2);z-index:5;pointer-events:none;"></div>
     </div>
     <div class="vac-cal-grid">
       ${dow.map((d, i) => `<div class="vac-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('')}
