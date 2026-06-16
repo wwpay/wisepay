@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 17:23 — addVacationGrant no-cors→cors 전환 (초기발생 GAS 기록 누락 방지)
+// 수정: 2026-06-16 18:04 — 초기발생 date=입사일 수정 + 과거 연간발생 자동 보정 + jan1Remaining prevYearEnd 기준으로 수정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -172,9 +172,10 @@ function calcVacationSummary(empNo) {
   const prevYearEndRemaining = parseFloat(
     Math.max(0, TG_valid_prev - Math.max(0, TU_prev - TG_exp_prev)).toFixed(1));
 
-  // 올해 1/1 기준 잔여 — 같은 FIFO 방식
-  const TG_all_jan1    = _grants(jan1Str, -Infinity);
-  const TG_valid_jan1  = _grants(jan1Str, thisYear - 1);
+  // 올해 1/1 기준 잔여 — "연간발생 지급 전 이월 잔여"이므로 prevYearEnd 기준으로 산출
+  // (jan1Str 기준이면 당해년 1/1 연간발생도 포함되어 이월 잔여와 연간발생이 합산됨)
+  const TG_all_jan1    = _grants(prevYearEnd, -Infinity);
+  const TG_valid_jan1  = _grants(prevYearEnd, thisYear - 1);
   const TG_exp_jan1    = TG_all_jan1 - TG_valid_jan1;
   const jan1Remaining  = parseFloat(
     Math.max(0, TG_valid_jan1 - Math.max(0, TU_prev - TG_exp_jan1)).toFixed(1));
@@ -257,11 +258,12 @@ function addVacationUsage(empNo, date, used, reason) {
 
 // 유급휴가 발생 추가 (초기발생·연간발생)
 // saveVacationToGas(전체 시트 덮어쓰기) 대신 appendRow 방식 핸들러만 사용 — 기존 데이터 보호
-function addVacationGrant(empNo, days, grantYear, reason) {
+// date: 발생 기준일 (초기발생=입사일, 연간발생=해당 1/1) — 생략 시 오늘
+function addVacationGrant(empNo, days, grantYear, reason, date) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-  const today = jstToday();
-  vacationData[key].push({ date: today, used: 0, reason, grant_year: grantYear, days });
+  const grantDate = date || jstToday();
+  vacationData[key].push({ date: grantDate, used: 0, reason, grant_year: grantYear, days });
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++;
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
@@ -273,7 +275,7 @@ function addVacationGrant(empNo, days, grantYear, reason) {
       body: JSON.stringify({
         type: 'addVacationGrantEntry',
         emp_no: String(empNo).padStart(4, '0'),
-        days, grant_year: grantYear, reason, date: today,
+        days, grant_year: grantYear, reason, date: grantDate,
         _uid: currentUser.id, _token: _writeToken
       })
     }).then(r => r.json()).then(result => {
@@ -294,6 +296,8 @@ function deleteVacationUsage(empNo, index) {
 }
 
 // 신규 사원 초기 유급휴가 발생
+// ─ 초기발생 date = 입사일 (emp.join)
+// ─ 입사 다음 해 ~ 올해 사이의 지나간 1월 1일마다 연간발생 자동 추가
 function initEmployeeVacation(emp) {
   if (!emp || !emp.join) return;
   const joinMonth = parseInt(emp.join.substring(5, 7));
@@ -303,7 +307,14 @@ function initEmployeeVacation(emp) {
   const days = calcInitialDays(joinMonth);
   const empNo = String(emp.no).padStart(4, '0');
 
-  addVacationGrant(empNo, days, joinYear, '초기발생');
+  addVacationGrant(empNo, days, joinYear, '초기발생', emp.join);
+
+  const today = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
+  for (let y = joinYear + 1; y <= thisYear; y++) {
+    const jan1 = `${y}-01-01`;
+    if (jan1 <= today) addVacationGrant(empNo, 15, y, '연간발생', jan1);
+  }
 }
 
 // ══════════════ UI ══════════════
