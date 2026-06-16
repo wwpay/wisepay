@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-16 09:10 — 모바일 유급휴가 상세 화면에 休暇登録 버튼 추가
+  수정: 2026-06-16 09:32 — 모바일 유급휴가 등록 버그 수정 (즉시 갱신 + 중복 날짜 알림)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1540,7 +1540,9 @@ function mSaveVacUsage() {
   const key = String(_mVacModalEmpNo).padStart(4, '0');
   const dup = (vacationData[key] || []).find(r => parseFloat(r.used) > 0 && r.date === date);
   if (dup) {
-    showToast(jp ? '既に登録済みの日付です' : '이미 등록된 날짜입니다', 'w');
+    alert(jp
+      ? 'この日付はすでに登録されています。\n既存の記録を削除してから再入力してください。'
+      : '이미 등록된 날짜입니다.\n기존 기록을 삭제 후 다시 입력해 주세요.');
     mSaveVacUsage._running = false;
     return;
   }
@@ -1570,6 +1572,8 @@ function mSaveVacUsage() {
   }
   mCloseVacModal();
   mRenderVacation();
+  // 상세 화면이 열려 있으면 사용 이력 목록도 즉시 재렌더링
+  if (mVacDetailEmpNo && mVacDetailEmpNo === key) mRenderVacDetail();
   showToast(jp ? '有給取得を記録しました' : '유급휴가 사용을 기록했습니다', 's');
   mSaveVacUsage._running = false;
 }
