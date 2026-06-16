@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-16 15:10 — deleteVacationEntry 행 검색 버그 수정: date(Date객체)·emp_no(숫자) 정규화 비교
+// 수정: 2026-06-16 15:38 — 유급휴가 시트 정렬 유지: addVacationEntry·addVacationGrantEntry·연간발생 appendRow 후 sortVacationSheet() 호출
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -434,6 +434,7 @@ function doPost(e) {
         }
       });
       avVacSheet.appendRow(avNewRow);
+      sortVacationSheet();
       return jsonResponse({ ok: true });
     }
     if (data.type === 'addVacationGrantEntry') {
@@ -466,6 +467,7 @@ function doPost(e) {
         }
       });
       agSheet.appendRow(agNewRow);
+      sortVacationSheet();
       return jsonResponse({ ok: true });
     }
     if (data.type === 'createEmployeeAccount') {
@@ -1304,6 +1306,7 @@ function checkAndGrantAnnualVacation() {
     if (!empNo || empNo === '0000') return;
     vacSheet.appendRow([empNo, today, 0, '연간발생', grantYear, 15]);
   });
+  sortVacationSheet();
 
   Logger.log('✅ 연간 유급휴가 발생 완료: ' + grantYear + '년 / ' + emps.filter(function(e) { return !String(e.leave || '').trim(); }).length + '명');
 }
