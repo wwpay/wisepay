@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-16 09:32 — 모바일 유급휴가 등록 버그 수정 (즉시 갱신 + 중복 날짜 알림)
+  수정: 2026-06-16 10:18 — 유급휴가 등록 모달 날짜 기본값 항상 오늘로 고정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1490,8 +1490,7 @@ function mOpenVacModal(empNo, prefillDate) {
     }
     if (dateEl) dateEl.value = prefillDate;
   } else {
-    const todayDup = (vacationData[key] || []).find(r => r.used > 0 && r.date === today);
-    if (dateEl) dateEl.value = todayDup ? '' : today;
+    if (dateEl) dateEl.value = today;
   }
 
   const r1 = document.getElementById('m-vac-r1');

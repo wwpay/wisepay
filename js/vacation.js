@@ -1,4 +1,4 @@
-// 수정: 2026-06-15 17:55 — 과거 날짜 클릭 인라인 메시지 스타일을 토스트(.w)와 동일하게 통일
+// 수정: 2026-06-16 10:18 — 유급휴가 등록 모달 날짜 기본값 항상 오늘로 고정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -890,9 +890,7 @@ function showVacationModal(empNo, prefillDate) {
     }
     if (dateEl) dateEl.value = prefillDate;
   } else {
-    // 버튼 클릭: 오늘 날짜가 이미 등록돼 있으면 날짜 비움 (재등록 유도)
-    const todayDup = (vacationData[key] || []).find(r => r.used > 0 && r.date === today);
-    if (dateEl) dateEl.value = todayDup ? '' : today;
+    if (dateEl) dateEl.value = today;
   }
 
   const r1 = document.getElementById('vac-modal-r1');
