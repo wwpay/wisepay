@@ -1419,7 +1419,7 @@ function mRenderVacation() {
         <div class="m-vac-card-body" style="font-size:12px;color:var(--text3);">${jp ? '有給管理対象外' : '유급휴가 관리 대상이 아닙니다'}</div>
       </div>`;
     }
-    let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null, jan1Remaining: 0, usedSinceJan1: 0, expiringNextYear: 0, mustUseByYearEnd: 0 };
+    let sum = { totalGranted: 0, totalUsed: 0, remaining: 0, expiringInfo: null, jan1Remaining: 0, usedSinceJan1: 0, futureUsed: 0, expiringNextYear: 0, mustUseByYearEnd: 0 };
     try { sum = calcVacationSummary(no); } catch(e) {}
     const unitStr = jp ? '日' : '일';
     const remCls  = sum.remaining        <= 5.0 ? 'color:var(--red);font-weight:700;' : 'font-weight:700;';
@@ -1438,7 +1438,7 @@ function mRenderVacation() {
         </div>
         <div style="${rowStyle}">
           <span style="font-size:11px;color:var(--text2);">${jp ? '今年使用' : '올해 사용'}</span>
-          <span style="font-size:14px;font-weight:700;">${sum.usedSinceJan1.toFixed(1)}${unitStr}</span>
+          <span style="font-size:14px;font-weight:700;">${sum.usedSinceJan1.toFixed(1)}${unitStr}<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px;">${jp ? `(未来${(sum.futureUsed||0).toFixed(1)}${unitStr})` : `(미래${(sum.futureUsed||0).toFixed(1)}${unitStr})`}</span></span>
         </div>
         <div style="${rowStyle}">
           <span style="font-size:11px;color:var(--text2);">${jp ? '残年次' : '남은 연차'}</span>
@@ -1701,7 +1701,7 @@ function mRenderVacDetail() {
   const detail = document.getElementById('m-vac-detail');
   if (!detail) return;
 
-  let sum = { jan1Remaining: 0, usedSinceJan1: 0, remaining: 0 };
+  let sum = { jan1Remaining: 0, usedSinceJan1: 0, futureUsed: 0, remaining: 0 };
   try { sum = calcVacationSummary(no); } catch(e) {}
   const unitStr = jp ? '日' : '일';
 
@@ -1777,6 +1777,7 @@ function mRenderVacDetail() {
       <div class="m-vac-stat">
         <div class="m-vac-stat-lbl">${jp ? '今年使用' : '올해 사용'}</div>
         <div class="m-vac-stat-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:1px;">${jp ? `未来${(sum.futureUsed||0).toFixed(1)}${unitStr}` : `미래${(sum.futureUsed||0).toFixed(1)}${unitStr}`}</div>
       </div>
       <div class="m-vac-stat">
         <div class="m-vac-stat-lbl">${jp ? '残年次' : '남은 연차'}</div>

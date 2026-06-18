@@ -196,16 +196,22 @@ function calcVacationSummary(empNo) {
   // 올해 1/1 00:00 기준 잔여: 올해 발생분까지 포함, 사용은 작년말까지, 소멸 판정 1/1 기준
   const jan1Remaining = _remainingAt(jan1Str, prevYearEnd, jan1Str);
 
-  // 현재 잔여: 오늘까지 발생/사용, 소멸 판정 오늘 기준
-  const remaining = _remainingAt(today, today, today);
+  // 현재 잔여: 오늘까지 발생, 미래 예정 사용 포함, 소멸 판정 오늘 기준
+  const remaining = _remainingAt(today, '9999-12-31', today);
 
-  // 올해 1/1 ~ 오늘 사용
+  // 올해 1/1 ~ 12/31 사용 (미래 예정 포함, 당해 연도 범위)
+  const yearEnd = `${thisYear}-12-31`;
   let usedSinceJan1 = 0;
-  usages.forEach(u => { if (u.date >= jan1Str && u.date <= today) usedSinceJan1 += u.used; });
+  usages.forEach(u => { if (u.date >= jan1Str && u.date <= yearEnd) usedSinceJan1 += u.used; });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 현재 잔여
-  const { pool: poolNow } = _simulate(today, today);
+  // 그 중 미래 예정 사용(오늘 포함, 올해분) — "남은 연차"에 선반영된 일수
+  let futureUsed = 0;
+  usages.forEach(u => { if (u.date >= today && u.date <= yearEnd) futureUsed += u.used; });
+  futureUsed = parseFloat(futureUsed.toFixed(1));
+
+  // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 잔여 (미래 예정 사용 포함)
+  const { pool: poolNow } = _simulate(today, '9999-12-31');
   let expiringNextYear = 0;
   poolNow.forEach(p => { if (p.gy === prevYear && today < p.expire) expiringNextYear += p.rem; });
   expiringNextYear = parseFloat(Math.max(0, expiringNextYear).toFixed(1));
@@ -239,6 +245,7 @@ function calcVacationSummary(empNo) {
     expiringInfo,
     jan1Remaining,
     usedSinceJan1,
+    futureUsed,
     expiringNextYear,
     mustUseByYearEnd: expiringNextYear,
   };
@@ -550,7 +557,7 @@ function renderVacationCards() {
         </div>
         <div class="vac-card-row">
           <span class="vac-card-row-label">${jp ? '今年使用' : '올해 사용'}</span>
-          <span class="vac-card-row-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</span>
+          <span class="vac-card-row-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px;">${jp ? `(未来${sum.futureUsed.toFixed(1)}${unitStr})` : `(미래${sum.futureUsed.toFixed(1)}${unitStr})`}</span></span>
         </div>
         <div class="vac-card-row">
           <span class="vac-card-row-label">${jp ? '残年次' : '남은 연차'}</span>
@@ -625,6 +632,7 @@ function renderVacationDetail() {
         <div class="vac-detail-stat">
           <div class="vac-detail-stat-label">${usedLbl}</div>
           <div class="vac-detail-stat-val">${sum.usedSinceJan1.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
+          <div class="vac-detail-stat-sub">${jp ? `うち未来 ${sum.futureUsed.toFixed(1)}${unitStr} 含む` : `미래 ${sum.futureUsed.toFixed(1)}${unitStr} 포함`}</div>
         </div>
         <div class="vac-detail-stat">
           <div class="vac-detail-stat-label">${remLbl}</div>
