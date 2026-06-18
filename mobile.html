@@ -1551,7 +1551,7 @@ function mSaveVacUsage() {
   const reason = (document.getElementById('m-vac-reason')?.value || '').slice(0, 50);
 
   // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
-  const grantYear = isEmployee && typeof _resolveGrantYear === 'function' ? _resolveGrantYear(_mVacModalEmpNo) : null;
+  const grantYear = isEmployee ? '' : null; // 사용행 grant_year 미사용 → 빈값
   try {
     addVacationUsage(_mVacModalEmpNo, date, used, reason);
   } catch(e) {

@@ -1,4 +1,4 @@
-// 수정: 2026-06-18 17:40 — 유급휴가 잔여 계산을 날짜순 FIFO 시뮬레이션으로 전환 (oldest-first, 엑셀 원본값 일치)
+// 수정: 2026-06-18 17:54 — 사용행 grant_year 기록 중단(빈값) — 계산 미사용, 발생행만 유지
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -246,6 +246,7 @@ function calcVacationSummary(empNo) {
 
 // 사용 시 차감할 grant_year 자동 결정 (현재 유효 발생분 중 오래된 것부터, FIFO)
 // 유효 범위: grant_year >= 올해-1 (발생연도+2 = 소멸연도이므로 2년 전 이전은 소멸)
+// (deprecated·미사용) FIFO 시뮬레이션 전환으로 사용행 grant_year 태깅 불필요 — 호출처 없음
 function _resolveGrantYear(empNo) {
   const today = jstToday();
   const thisYear = parseInt(today.substring(0, 4));
@@ -267,8 +268,8 @@ function _resolveGrantYear(empNo) {
 function addVacationUsage(empNo, date, used, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-  const grantYear = _resolveGrantYear(empNo);
-  vacationData[key].push({ date, used, reason, grant_year: grantYear });
+  // 사용행 grant_year는 계산에 미사용 → 빈값 (발생연도는 FIFO가 발생행으로 직접 산출)
+  vacationData[key].push({ date, used, reason, grant_year: '' });
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
@@ -986,7 +987,7 @@ function saveVacationUsage() {
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
 
   // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
-  const grantYear = isEmployee ? _resolveGrantYear(_vacModalEmpNo) : null;
+  const grantYear = isEmployee ? '' : null; // 사용행 grant_year 미사용 → 빈값
   addVacationUsage(_vacModalEmpNo, date, used, reason);
   if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
     fetch(gasUrl, {
