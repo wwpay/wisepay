@@ -1,5 +1,4 @@
-// 수정: 2026-06-18 — expireDate 날짜 오류 수정 (thisYear-12-31 → thisYear+1-01-01)
-// 수정: 2026-06-18 — calcVacationSummary 전면 grant_year 태그 기반 재작성 (잔여·소멸예정 불일치 해소, 시트 데이터와 일치)
+// 수정: 2026-06-18 — 유급휴가 잔여 cap&spill 보정 (발생연도 경계 과대태깅 0.5일 오차 수정)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -169,15 +168,30 @@ function calcVacationSummary(empNo) {
     records.map(r => parseInt(r.grant_year)).filter(g => !isNaN(g))
   )];
 
-  // refYear 시점 유효 발생분(grant_year >= refYear-1)의 잔여 합계
+  // ── cap & spill ──
+  // 각 발생연도는 자기 발생일수까지만 사용분을 흡수하고, 초과분은 다음(더 최근) 연도로 이월.
+  // 경계를 걸친 사용(예: 발생 잔여 0.5에 1일 사용 → 0.5 과대 태깅)이 있어도 정확히 차감되도록 보정.
+  function _capSpill(usedCutoff) {
+    const sorted = [...gYears].sort((a, b) => a - b);
+    const rem = {};
+    let carry = 0;
+    sorted.forEach(G => {
+      const used     = usedOf(G, usedCutoff) + carry;
+      const granted  = grantedOf(G);
+      const absorbed = Math.min(used, granted);
+      carry  = used - absorbed;     // 초과 사용분 → 다음 연도로 이월
+      rem[G] = granted - absorbed;  // 해당 연도 잔여 (>=0)
+    });
+    return { rem, carry };          // carry>0: 전체 발생분 초과 사용(음수 잔여 신호)
+  }
+
+  // refYear 시점 유효 발생분(grant_year >= refYear-1) 잔여 합계 (cap&spill 적용)
   // 사용은 usedCutoff 날짜까지만 반영해 과거 시점(1/1) 스냅샷도 지원
   function sumRemaining(refYear, usedCutoff) {
+    const { rem, carry } = _capSpill(usedCutoff);
     let s = 0;
-    gYears.forEach(G => {
-      if (G < refYear - 1) return; // 발생연도+2 = 소멸연도 → refYear 시점 만료분 제외
-      s += grantedOf(G) - usedOf(G, usedCutoff);
-    });
-    return parseFloat(s.toFixed(1));
+    Object.keys(rem).forEach(g => { if (parseInt(g) >= refYear - 1) s += rem[g]; });
+    return parseFloat((s - carry).toFixed(1)); // 초과 사용분만큼 음수 허용
   }
 
   // 올해 1/1 00:00 기준 잔여 (작년말까지 사용 반영, 2년 전 발생분은 소멸)
@@ -194,9 +208,9 @@ function calcVacationSummary(empNo) {
   // 현재 잔여 (유효 발생분 - 전체 사용분, 미래 예정 포함)
   const remaining = sumRemaining(thisYear, '9999-12-31');
 
-  // 내년 1/1 소멸 예정 = prevYear(작년) 발생분의 잔여 (해당 연도 태그 사용분 차감)
-  const expiringNextYear = parseFloat(
-    Math.max(0, grantedOf(prevYear) - usedOf(prevYear, '9999-12-31')).toFixed(1));
+  // 내년 1/1 소멸 예정 = prevYear(작년) 발생분의 잔여 (cap&spill: 옛 연도 초과 사용분 이월 반영)
+  const { rem: _remAll } = _capSpill('9999-12-31');
+  const expiringNextYear = parseFloat(Math.max(0, _remAll[prevYear] || 0).toFixed(1));
 
   // 전체 이력
   let totalGranted = 0, totalUsed = 0;
