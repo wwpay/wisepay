@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-16 18:04 — fixVacationRecords()에 0023 보정 추가 (초기발생 date 정정 + 2026 연간발생 추가)
+// 수정: 2026-06-18 — vacation 중복 기록 버그 수정 (employees 핸들러 vacation 생성 제거 + addVacationGrantEntry 중복 체크 추가)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -47,6 +47,114 @@ function doGet(e) {
     .setMimeType(callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
 }
 
+// ── GAS 유틸: 입사월 → 초기 발생일수 (JS와 동일 로직) ──────────────
+function calcInitialDays(joinMonth) {
+  if (joinMonth >= 1 && joinMonth <= 6) {
+    return 15 - (joinMonth - 1); // 1월=15, 2월=14, ..., 6월=10
+  }
+  return 13 - joinMonth; // 7월=6, 8월=5, 9월=4, 10월=3, 11월=2, 12월=1
+}
+
+// ── 신규 사원 초기 유급휴가 자동 생성 ──────────────
+// 입사일로부터 지나간 모든 1월 1일에 대해 연간발생 추가
+function ensureNewEmpVacation(empNo, joinDate) {
+  if (!empNo || !joinDate) return;
+  var empNoStr = String(parseInt(empNo || 0)).padStart(4, '0');
+  var joinMonth = parseInt(String(joinDate).substring(5, 7));
+  var joinYear = parseInt(String(joinDate).substring(0, 4));
+  if (isNaN(joinMonth) || isNaN(joinYear)) return;
+
+  var vacSheet = getSheet(SHEET_VACATION);
+  if (vacSheet.getLastRow() === 0) {
+    vacSheet.getRange(1, 1, 1, 7).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']]);
+  }
+
+  // 현재 존재하는 동 사원의 발생 기록을 확인 (emp_no + date + reason 조합으로 중복 감지)
+  var lastRow = vacSheet.getLastRow();
+  var allRows = lastRow < 2 ? [] : vacSheet.getRange(2, 1, lastRow - 1, 7).getValues();
+  var existingRecords = {};
+  var hdrRow = vacSheet.getRange(1, 1, 1, 7).getValues()[0];
+  var idxEmpNo = hdrRow.indexOf('emp_no');
+  var idxDate = hdrRow.indexOf('date');
+  var idxGrantYear = hdrRow.indexOf('grant_year');
+  var idxReason = hdrRow.indexOf('reason');
+
+  allRows.forEach(function(row) {
+    var no = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
+    var dt = String(row[idxDate] || '').substring(0, 10); // YYYY-MM-DD 형식
+    var gy = String(row[idxGrantYear] || '').trim();
+    var rsn = String(row[idxReason] || '').trim();
+    if (no === empNoStr) {
+      // 키: date + reason 조합 (같은 날 같은 사유 중복 방지)
+      existingRecords[dt + '_' + rsn] = true;
+      // 호환성: 기존 gy + rsn 키도 유지 (2025/06/16 이전 로직용)
+      existingRecords[gy + '_' + rsn] = true;
+    }
+  });
+
+  // 초기발생 추가 (없으면) — date + reason 조합으로 중복 방지
+  var initialDays = calcInitialDays(joinMonth);
+  var initKey = joinDate + '_초기발생';
+  if (!existingRecords[initKey]) {
+    vacSheet.appendRow([empNoStr, joinDate, 0, '초기발생', joinYear, '', initialDays]);
+    Logger.log('✅ [' + empNoStr + '] 초기발생 ' + initialDays + '일 추가 (' + joinDate + ')');
+  }
+
+  // 현재 기준 연간발생 추가 (없으면) — date(YYYY-01-01) + reason 조합으로 중복 방지
+  var today = new Date();
+  var todayStr = Utilities.formatDate(today, 'Asia/Tokyo', 'yyyy-MM-dd');
+  var thisYear = parseInt(todayStr.substring(0, 4));
+  for (var y = joinYear + 1; y <= thisYear; y++) {
+    var jan1 = y + '-01-01';
+    var annualKey = jan1 + '_연간발생';
+    if (jan1 <= todayStr && !existingRecords[annualKey]) {
+      vacSheet.appendRow([empNoStr, jan1, 0, '연간발생', y, '', 15]);
+      Logger.log('✅ [' + empNoStr + '] 연간발생 15일 추가 (' + y + '년)');
+    }
+  }
+
+  sortVacationSheet();
+}
+
+// ── 신규 사원 감지 및 초기 유급휴가 자동 생성 ──────────────
+// employees 시트에서 신규 사원을 감지해서 유급휴가 초기화
+function detectNewEmployeesAndInitVacation(newEmployees) {
+  if (!newEmployees || !Array.isArray(newEmployees) || newEmployees.length === 0) return;
+
+  var empSheet = getSheet(SHEET_EMP);
+  if (empSheet.getLastRow() < 2) {
+    // employees 시트가 비어있으면 모두 신규 사원으로 처리
+    newEmployees.forEach(function(emp) {
+      if (emp.no && emp.join) {
+        ensureNewEmpVacation(emp.no, emp.join);
+      }
+    });
+    return;
+  }
+
+  // 기존 사원 emp_no 수집
+  var hdr = empSheet.getRange(1, 1, 1, empSheet.getLastColumn()).getValues()[0];
+  var noCol = hdr.indexOf('no') >= 0 ? hdr.indexOf('no') : hdr.indexOf('사원');
+  if (noCol < 0) return;
+
+  var existingNos = {};
+  var allRows = empSheet.getRange(2, 1, empSheet.getLastRow() - 1, empSheet.getLastColumn()).getValues();
+  allRows.forEach(function(row) {
+    var no = String(parseInt(row[noCol] || 0)).padStart(4, '0');
+    if (no !== '0000') existingNos[no] = true;
+  });
+
+  // 신규 사원 감지 및 초기화
+  newEmployees.forEach(function(emp) {
+    if (!emp.no || !emp.join) return;
+    var empNoStr = String(parseInt(emp.no)).padStart(4, '0');
+    if (!existingNos[empNoStr]) {
+      Logger.log('🆕 신규 사원 감지: ' + empNoStr + ' (입사: ' + emp.join + ')');
+      ensureNewEmpVacation(emp.no, emp.join);
+    }
+  });
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -60,6 +168,7 @@ function doPost(e) {
     if (data.type === 'employees') {
       if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
       if (data.employees && data.employees.length > 0) {
+        // vacation 생성은 JS → addVacationGrantEntry 경로에서만 처리 (중복 방지)
         saveSheet(SHEET_EMP, data.employees);
       }
       return jsonResponse({ ok: true, count: (data.employees || []).length });
@@ -452,6 +561,29 @@ function doPost(e) {
       var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days'];
       if (agSheet.getLastRow() === 0) {
         agSheet.appendRow(VAC_HEADERS);
+      }
+      // 중복 체크: 동일 emp_no + date + reason 조합이 이미 있으면 skip
+      var agLastRow = agSheet.getLastRow();
+      if (agLastRow >= 2) {
+        var agHdrs0 = agSheet.getRange(1, 1, 1, agSheet.getLastColumn()).getValues()[0];
+        var agNoCol   = agHdrs0.indexOf('emp_no');
+        var agDateCol = agHdrs0.indexOf('date');
+        var agRsnCol  = agHdrs0.indexOf('reason');
+        var agAllRows = agSheet.getRange(2, 1, agLastRow - 1, agSheet.getLastColumn()).getValues();
+        var agDup = agAllRows.some(function(row) {
+          var rowNo = (typeof row[agNoCol] === 'number')
+            ? String(row[agNoCol]).padStart(4, '0')
+            : String(row[agNoCol] || '').trim().padStart(4, '0');
+          var rowDate = (row[agDateCol] instanceof Date)
+            ? Utilities.formatDate(row[agDateCol], 'Asia/Tokyo', 'yyyy-MM-dd')
+            : String(row[agDateCol] || '').substring(0, 10);
+          var rowRsn = String(row[agRsnCol] || '').trim();
+          return rowNo === agEmpNo && rowDate === agDate && rowRsn === agReason;
+        });
+        if (agDup) {
+          Logger.log('⏭ [' + agEmpNo + '] 중복 발견, skip: ' + agDate + ' ' + agReason);
+          return jsonResponse({ ok: true, skipped: true });
+        }
       }
       var agHdrRow = agSheet.getRange(1, 1, 1, agSheet.getLastColumn()).getValues()[0];
       var agNewRow = agHdrRow.map(function(h) {
@@ -1343,36 +1475,93 @@ function fixVacationRecords() {
   var idxDays      = hdrRow.indexOf('days');
   var allRows = lastRow < 2 ? [] : vacSheet.getRange(2, 1, lastRow - 1, 7).getValues();
 
-  // ── 0020: 초기발생 15일 (2025-01-01, grant_year=2025) 없으면 추가
-  var has0020 = allRows.some(function(row) {
+  // ── 0020: 초기발생 15일 (2025-01-01, grant_year=2025) — 존재 시 date 검사, 없으면 추가
+  var found0020 = false;
+  for (var i = 0; i < allRows.length; i++) {
+    var row = allRows[i];
     var no   = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
     var gy   = String(row[idxGrantYear] || '').trim();
     var used = parseFloat(row[idxUsed]   || 0);
     var days = parseFloat(row[idxDays]   || 0);
     var rsn  = String(row[idxReason]     || '').trim();
-    return no === '0020' && gy === '2025' && used === 0 && days > 0 && rsn === '초기발생';
-  });
-  if (!has0020) {
+    if (no === '0020' && gy === '2025' && used === 0 && days > 0 && rsn === '초기발생') {
+      found0020 = true;
+      var rawDate = row[idxDate];
+      var currDateStr = (rawDate instanceof Date)
+        ? Utilities.formatDate(rawDate, 'Asia/Tokyo', 'yyyy-MM-dd')
+        : String(rawDate || '').trim();
+      if (currDateStr !== '2025-01-01') {
+        vacSheet.getRange(i + 2, idxDate + 1).setValue('2025-01-01');
+        Logger.log('✅ 0020 초기발생 date → 2025-01-01 수정 (이전: ' + currDateStr + ')');
+      } else {
+        Logger.log('ℹ️ 0020 초기발생 이미 정상');
+      }
+      break;
+    }
+  }
+  if (!found0020) {
     vacSheet.appendRow(['0020', '2025-01-01', 0, '초기발생', '2025', '', 15]);
     Logger.log('✅ 0020 초기발생 15일 추가');
-  } else {
-    Logger.log('ℹ️ 0020 초기발생 이미 정상');
   }
 
-  // ── 0021: 연간발생 2025 (grant_year=2025) — days 비어있으면 15로 수정, 없으면 추가
+  // ── 0020: 연간발생 2026 (2026-01-01) 없으면 추가
+  var has0020Annual = allRows.some(function(row) {
+    var no   = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
+    var gy   = String(row[idxGrantYear] || '').trim();
+    var rsn  = String(row[idxReason]    || '').trim();
+    var days = parseFloat(row[idxDays]  || 0);
+    return no === '0020' && gy === '2026' && rsn === '연간발생' && days > 0;
+  });
+  if (!has0020Annual) {
+    vacSheet.appendRow(['0020', '2026-01-01', 0, '연간발생', '2026', '', 15]);
+    Logger.log('✅ 0020 2026 연간발생 15일 추가');
+  } else {
+    Logger.log('ℹ️ 0020 2026 연간발생 이미 존재');
+  }
+
+  // ── 0021: 초기발생(2024) 날짜 보정 + 연간발생 2025 (grant_year=2025) — days/date 검사, 없으면 추가
+  // 초기발생(0021, grant_year=2024) — date 강제 보정 (입사일: 2024-08-15)
+  for (var k = 0; k < allRows.length; k++) {
+    var r = allRows[k];
+    var noK = String(parseInt(r[idxEmpNo] || 0)).padStart(4, '0');
+    var gyK = String(r[idxGrantYear] || '').trim();
+    var rsnK = String(r[idxReason] || '').trim();
+    if (noK === '0021' && gyK === '2024' && rsnK === '초기발생') {
+      var rawDateK = r[idxDate];
+      var currDateK = (rawDateK instanceof Date)
+        ? Utilities.formatDate(rawDateK, 'Asia/Tokyo', 'yyyy-MM-dd')
+        : String(rawDateK || '').trim();
+      if (currDateK !== '2024-08-15') {
+        vacSheet.getRange(k + 2, idxDate + 1).setValue('2024-08-15');
+        Logger.log('✅ 0021 초기발생 date → 2024-08-15 수정 (이전: ' + currDateK + ')');
+      } else {
+        Logger.log('ℹ️ 0021 초기발생 이미 정상');
+      }
+      break;
+    }
+  }
+
   var fixed0021 = false;
-  for (var i = 0; i < allRows.length; i++) {
-    var row = allRows[i];
-    var no  = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
-    var gy  = String(row[idxGrantYear] || '').trim();
-    var rsn = String(row[idxReason]    || '').trim();
-    if (no === '0021' && gy === '2025' && rsn === '연간발생') {
-      var currDays = parseFloat(row[idxDays] || 0);
-      if (currDays <= 0) {
-        vacSheet.getRange(i + 2, idxDays + 1).setValue(15); // i+2: 1-indexed + header row offset
+  for (var i2 = 0; i2 < allRows.length; i2++) {
+    var row2 = allRows[i2];
+    var no2  = String(parseInt(row2[idxEmpNo] || 0)).padStart(4, '0');
+    var gy2  = String(row2[idxGrantYear] || '').trim();
+    var rsn2 = String(row2[idxReason]    || '').trim();
+    if (no2 === '0021' && gy2 === '2025' && rsn2 === '연간발생') {
+      var currDays2 = parseFloat(row2[idxDays] || 0);
+      var rawDate2 = row2[idxDate];
+      var currDate2 = (rawDate2 instanceof Date)
+        ? Utilities.formatDate(rawDate2, 'Asia/Tokyo', 'yyyy-MM-dd')
+        : String(rawDate2 || '').trim();
+      if (currDays2 <= 0) {
+        vacSheet.getRange(i2 + 2, idxDays + 1).setValue(15);
         Logger.log('✅ 0021 연간발생 days 컬럼 → 15로 수정');
       } else {
-        Logger.log('ℹ️ 0021 연간발생 이미 정상 (' + currDays + '일)');
+        Logger.log('ℹ️ 0021 연간발생 days 정상 (' + currDays2 + '일)');
+      }
+      if (currDate2 !== '2025-01-01') {
+        vacSheet.getRange(i2 + 2, idxDate + 1).setValue('2025-01-01');
+        Logger.log('✅ 0021 연간발생 date → 2025-01-01 수정 (이전: ' + currDate2 + ')');
       }
       fixed0021 = true;
       break;
@@ -1421,6 +1610,57 @@ function fixVacationRecords() {
 
   sortVacationSheet();
   Logger.log('✅ fixVacationRecords 완료');
+}
+
+// ── 유급휴가 시트 중복 발생 기록 제거 ──────────────
+// date + reason 조합 기준으로 후발 중복 행 삭제 (첫 번째 행만 유지)
+function removeDuplicateVacationRecords() {
+  var vacSheet = getSheet(SHEET_VACATION);
+  if (vacSheet.getLastRow() < 2) return;
+  
+  var allRows = vacSheet.getDataRange().getValues();
+  var hdrRow = allRows[0] || [];
+  var idxEmpNo = hdrRow.indexOf('emp_no');
+  var idxDate = hdrRow.indexOf('date');
+  var idxReason = hdrRow.indexOf('reason');
+  
+  if (idxEmpNo < 0 || idxDate < 0 || idxReason < 0) {
+    Logger.log('⚠️ 헤더 컬럼 누락: emp_no=' + idxEmpNo + ', date=' + idxDate + ', reason=' + idxReason);
+    return;
+  }
+  
+  var seen = {}; // (emp_no + date + reason) → 첫 만남 행번호
+  var toDelete = []; // 삭제할 행번호 (역순)
+  
+  for (var i = 1; i < allRows.length; i++) {
+    var row = allRows[i];
+    var no = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
+    var dt = row[idxDate] instanceof Date
+      ? Utilities.formatDate(row[idxDate], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(row[idxDate] || '').substring(0, 10);
+    var rsn = String(row[idxReason] || '').trim();
+    var key = no + '|' + dt + '|' + rsn;
+    
+    if (seen[key]) {
+      toDelete.push(i + 2); // 시트는 1-indexed, 헤더 고려하면 +2
+      Logger.log('⚠️ 중복 발견: ' + key + ' (행 ' + (i+2) + ') 삭제 예정');
+    } else {
+      seen[key] = i + 2;
+    }
+  }
+  
+  // 역순으로 삭제 (행번호 변경 방지)
+  for (var j = toDelete.length - 1; j >= 0; j--) {
+    vacSheet.deleteRow(toDelete[j]);
+    Logger.log('✅ 행 ' + toDelete[j] + ' 삭제');
+  }
+  
+  if (toDelete.length > 0) {
+    sortVacationSheet();
+    Logger.log('✅ 총 ' + toDelete.length + '개 중복 행 제거 완료');
+  } else {
+    Logger.log('ℹ️ 중복 행 없음');
+  }
 }
 
 // ── 유급휴가 시트 1회 재정렬 (GAS 편집기에서 수동 실행) ──────────────

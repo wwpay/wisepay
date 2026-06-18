@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 18:04 — 초기발생 date=입사일 수정 + 과거 연간발생 자동 보정 + jan1Remaining prevYearEnd 기준으로 수정
+// 수정: 2026-06-18 — expireDate 날짜 오류 수정 (thisYear-12-31 → thisYear+1-01-01)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -166,16 +166,17 @@ function calcVacationSummary(empNo) {
   const TU_prev = _usedUpTo(prevYearEnd);
 
   // 전년도 12/31 잔여 — FIFO: 만료 그랜트 먼저 소진 후 유효 그랜트 잔여 산출
+  // 유효 발생: grant_year >= thisYear - 2 (발생연도+2 = 소멸연도, 포함적 범위)
   const TG_all_prev    = _grants(prevYearEnd, -Infinity);
-  const TG_valid_prev  = _grants(prevYearEnd, thisYear - 1);
+  const TG_valid_prev  = _grants(prevYearEnd, thisYear - 2);
   const TG_exp_prev    = TG_all_prev - TG_valid_prev;
   const prevYearEndRemaining = parseFloat(
     Math.max(0, TG_valid_prev - Math.max(0, TU_prev - TG_exp_prev)).toFixed(1));
 
-  // 올해 1/1 기준 잔여 — "연간발생 지급 전 이월 잔여"이므로 prevYearEnd 기준으로 산출
-  // (jan1Str 기준이면 당해년 1/1 연간발생도 포함되어 이월 잔여와 연간발생이 합산됨)
-  const TG_all_jan1    = _grants(prevYearEnd, -Infinity);
-  const TG_valid_jan1  = _grants(prevYearEnd, thisYear - 1);
+  // 올해 1/1 00:00:00 기준 잔여 — 발생연도+2 = 소멸연도 (2024 발생은 2026-01-01 00:00:00 정각 소멸)
+  // 따라서 2026-01-01 시점에는 2025년 이상 발생분만 유효
+  const TG_all_jan1    = _grants(jan1Str, -Infinity);
+  const TG_valid_jan1  = _grants(jan1Str, thisYear - 1);
   const TG_exp_jan1    = TG_all_jan1 - TG_valid_jan1;
   const jan1Remaining  = parseFloat(
     Math.max(0, TG_valid_jan1 - Math.max(0, TU_prev - TG_exp_jan1)).toFixed(1));
@@ -195,8 +196,17 @@ function calcVacationSummary(empNo) {
   const remaining      = parseFloat(
     (TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
 
-  // 내년 1/1 소멸 예정 (prevYear 그랜트 잔여 - 올해 사용)
-  const expiringNextYear = parseFloat(Math.max(0, prevYearEndRemaining - usedSinceJan1).toFixed(1));
+  // 내년 1/1 소멸 예정 = prevYear(작년, 예: 2025) 발생분만 (올해 사용 차감)
+  // FIFO: 올해 사용 중 prevYear 발생분이 얼마나 소비되었나
+  const prevYearRecords = (vacationData[key] || [])
+    .filter(r => parseInt(r.grant_year) === prevYear);
+  const prevYearGranted = prevYearRecords
+    .filter(r => parseFloat(r.used) === 0 && parseFloat(r.days) > 0)
+    .reduce((sum, r) => sum + parseFloat(r.days || 0), 0);
+  const prevYearUsed = prevYearRecords
+    .filter(r => parseFloat(r.used) > 0)
+    .reduce((sum, r) => sum + parseFloat(r.used || 0), 0);
+  const expiringNextYear = parseFloat(Math.max(0, prevYearGranted - prevYearUsed).toFixed(1));
 
   // 전체 이력
   const totalGranted = parseFloat(TG_all_today.toFixed(1));
@@ -205,7 +215,7 @@ function calcVacationSummary(empNo) {
   // 3개월 이내 소멸 예정 알림
   let expiringInfo = null;
   if (expiringNextYear > 0) {
-    const expireDate = `${thisYear}-12-31`;
+    const expireDate = `${thisYear + 1}-01-01`;
     const diffDays   = (new Date(expireDate) - new Date(today)) / 86400000;
     const monthsLeft = diffDays / 30.44;
     if (monthsLeft <= 3) {
