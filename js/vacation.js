@@ -1,4 +1,5 @@
 // 수정: 2026-06-18 — expireDate 날짜 오류 수정 (thisYear-12-31 → thisYear+1-01-01)
+// 수정: 2026-06-18 — remaining 계산 오류 수정 (만료 발생분이 1/1 이후 사용분까지 흡수하던 버그)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -188,13 +189,13 @@ function calcVacationSummary(empNo) {
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 잔여 — FIFO (발생은 오늘까지, 사용은 미래 예정 포함)
+  // 잔여 — FIFO: 1/1 이전 사용분만 만료 발생분이 흡수, 1/1 이후 사용분은 유효 발생분에서 직접 차감
   const TU_total       = _usedUpTo('9999-12-31');
   const TG_all_today   = _grants(today, -Infinity);
   const TG_valid_today = _grants(today, thisYear - 1);
   const TG_exp_today   = TG_all_today - TG_valid_today;
   const remaining      = parseFloat(
-    (TG_valid_today - Math.max(0, TU_total - TG_exp_today)).toFixed(1));
+    (TG_valid_today - usedSinceJan1 - Math.max(0, TU_prev - TG_exp_today)).toFixed(1));
 
   // 내년 1/1 소멸 예정 = prevYear(작년, 예: 2025) 발생분만 (올해 사용 차감)
   // FIFO: 올해 사용 중 prevYear 발생분이 얼마나 소비되었나
