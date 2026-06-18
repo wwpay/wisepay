@@ -1,5 +1,6 @@
 // 수정: 2026-06-18 — expireDate 날짜 오류 수정 (thisYear-12-31 → thisYear+1-01-01)
 // 수정: 2026-06-18 — remaining 계산 오류 수정 (만료 발생분이 1/1 이후 사용분까지 흡수하던 버그)
+// 수정: 2026-06-18 — _resolveGrantYear가 사용 날짜 기준 FIFO로 차감 발생연도 결정 (소급 입력 시 소멸예정·잔여 불일치 수정)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -237,29 +238,30 @@ function calcVacationSummary(empNo) {
 }
 
 // 사용 시 차감할 grant_year 자동 결정 (오래된 것부터, FIFO)
-// 유효 범위: grant_year >= 올해-1 (2년 전 이전은 소멸)
-function _resolveGrantYear(empNo) {
-  const today = jstToday();
-  const thisYear = parseInt(today.substring(0, 4));
+// 유효 범위: grant_year >= (사용연도-1) — 사용 "날짜" 기준 (발생연도+2 = 소멸연도)
+// usageDate 생략 시 오늘 기준. 소급 입력 시 그 날짜에 유효했던 최古 발생분에서 차감
+function _resolveGrantYear(empNo, usageDate) {
+  const refDate  = usageDate || jstToday();
+  const refYear  = parseInt(refDate.substring(0, 4));
   const map = _buildGrantMap(empNo);
 
   const sortedYears = Object.keys(map)
     .map(gy => parseInt(gy))
-    .filter(gyNum => gyNum >= thisYear - 1)
+    .filter(gyNum => gyNum >= refYear - 1)
     .sort((a, b) => a - b);
 
   for (const gyNum of sortedYears) {
     const { granted, used } = map[gyNum];
     if (granted - used > 0) return gyNum;
   }
-  return thisYear; // fallback
+  return refYear; // fallback
 }
 
 // 유급휴가 사용 추가
 function addVacationUsage(empNo, date, used, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-  const grantYear = _resolveGrantYear(empNo);
+  const grantYear = _resolveGrantYear(empNo, date);
   vacationData[key].push({ date, used, reason, grant_year: grantYear });
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
