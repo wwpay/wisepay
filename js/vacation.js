@@ -1,4 +1,4 @@
-// 수정: 2026-06-18 14:24 — 유급휴가 잔여 cap&spill 보정 (발생연도 경계 과대태깅 0.5일 오차 수정)
+// 수정: 2026-06-18 17:40 — 유급휴가 잔여 계산을 날짜순 FIFO 시뮬레이션으로 전환 (oldest-first, 엑셀 원본값 일치)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -128,9 +128,10 @@ function _migrateVacationRemaining() {
 }
 
 // 사원의 현재 유급휴가 현황 계산
-// ─ 발생일수는 시트 발생 기록(used=0, days>0)에서 산출
-// ─ grant_year 태그 기반: 각 사용분을 차감 발생연도(grant_year)에 귀속시켜 잔여·소멸예정을 일관 계산
-//   (발생연도+2 = 소멸연도: 2024 발생분은 2026-01-01 00:00 정각 소멸)
+// ─ 발생분(초기발생·연간발생)과 사용분을 날짜순 FIFO로 시뮬레이션해 잔여·소멸예정 산출
+// ─ 규칙(oldest-first): 사용은 그 시점에 살아있는(발생됨 & 미소멸) 가장 오래된 발생분부터 차감
+// ─ 발생분 소멸일 = grant_year+2년의 1/1 (예: 2024 발생분 → 2026-01-01 00:00 소멸)
+// ─ grant_year는 발생행에서만 읽음(소멸연도 산출용). 사용행 grant_year는 계산에 미사용.
 function calcVacationSummary(empNo) {
   const today    = jstToday();
   const thisYear = parseInt(today.substring(0, 4));
@@ -141,76 +142,73 @@ function calcVacationSummary(empNo) {
   const key     = _vacKey(empNo);
   const records = vacationData[key] || [];
 
-  // grant_year별 발생일수 합계
-  function grantedOf(G) {
-    let t = 0;
-    records.forEach(r => {
-      if (parseInt(r.grant_year) !== G) return;
-      const used = parseFloat(r.used) || 0;
-      const days = parseFloat(r.days) || 0;
-      if (used === 0 && days > 0) t += days;
-    });
-    return t;
-  }
-  // grant_year별 사용일수 합계 (cutoff 날짜까지)
-  function usedOf(G, cutoff) {
-    let t = 0;
-    records.forEach(r => {
-      if (parseInt(r.grant_year) !== G) return;
-      const used = parseFloat(r.used) || 0;
-      if (used > 0 && r.date && r.date <= cutoff) t += used;
-    });
-    return t;
-  }
-
-  // 등장하는 모든 grant_year
-  const gYears = [...new Set(
-    records.map(r => parseInt(r.grant_year)).filter(g => !isNaN(g))
-  )];
-
-  // ── cap & spill ──
-  // 각 발생연도는 자기 발생일수까지만 사용분을 흡수하고, 초과분은 다음(더 최근) 연도로 이월.
-  // 경계를 걸친 사용(예: 발생 잔여 0.5에 1일 사용 → 0.5 과대 태깅)이 있어도 정확히 차감되도록 보정.
-  function _capSpill(usedCutoff) {
-    const sorted = [...gYears].sort((a, b) => a - b);
-    const rem = {};
-    let carry = 0;
-    sorted.forEach(G => {
-      const used     = usedOf(G, usedCutoff) + carry;
-      const granted  = grantedOf(G);
-      const absorbed = Math.min(used, granted);
-      carry  = used - absorbed;     // 초과 사용분 → 다음 연도로 이월
-      rem[G] = granted - absorbed;  // 해당 연도 잔여 (>=0)
-    });
-    return { rem, carry };          // carry>0: 전체 발생분 초과 사용(음수 잔여 신호)
-  }
-
-  // refYear 시점 유효 발생분(grant_year >= refYear-1) 잔여 합계 (cap&spill 적용)
-  // 사용은 usedCutoff 날짜까지만 반영해 과거 시점(1/1) 스냅샷도 지원
-  function sumRemaining(refYear, usedCutoff) {
-    const { rem, carry } = _capSpill(usedCutoff);
-    let s = 0;
-    Object.keys(rem).forEach(g => { if (parseInt(g) >= refYear - 1) s += rem[g]; });
-    return parseFloat((s - carry).toFixed(1)); // 초과 사용분만큼 음수 허용
-  }
-
-  // 올해 1/1 00:00 기준 잔여 (작년말까지 사용 반영, 2년 전 발생분은 소멸)
-  const jan1Remaining = sumRemaining(thisYear, prevYearEnd);
-
-  // 올해 1/1 이후 사용 (미래 예정 포함)
-  let usedSinceJan1 = 0;
+  // 발생분: 발생행(used=0, days>0) — 발생일(issue) + 소멸일(expire = grant_year+2의 1/1)
+  const grants = [];
   records.forEach(r => {
-    const u = parseFloat(r.used) || 0;
-    if (u > 0 && r.date && r.date >= jan1Str) usedSinceJan1 += u;
+    const used = parseFloat(r.used) || 0;
+    const days = parseFloat(r.days) || 0;
+    const gy   = parseInt(r.grant_year);
+    if (used === 0 && days > 0 && !isNaN(gy) && r.date) {
+      grants.push({ gy, days, issue: r.date, expire: `${gy + 2}-01-01` });
+    }
   });
+  // 사용분: 사용행(used>0) — 날짜 오름차순
+  const usages = records
+    .filter(r => (parseFloat(r.used) || 0) > 0 && r.date)
+    .map(r => ({ date: r.date, used: parseFloat(r.used) || 0 }))
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  // 날짜순 FIFO 시뮬레이션
+  //   grantCutoff: 이 날짜까지 발생한 발생분만 풀에 포함 (미래 발생분 제외)
+  //   usageCutoff: 이 날짜까지의 사용만 차감 (미래 예정 사용 제외)
+  //   각 사용은 그 사용일에 유효한(발생됨 & 미소멸) 최古 발생분부터 차감
+  function _simulate(grantCutoff, usageCutoff) {
+    const pool = grants
+      .filter(g => g.issue <= grantCutoff)
+      .map(g => ({ gy: g.gy, issue: g.issue, expire: g.expire, rem: g.days }))
+      .sort((a, b) => a.gy - b.gy);
+    let over = 0;
+    usages.forEach(u => {
+      if (u.date > usageCutoff) return;
+      let need = u.used;
+      for (const p of pool) {
+        if (need <= 0) break;
+        if (p.rem <= 0) continue;
+        if (u.date < p.issue) continue;   // 아직 발생 전
+        if (u.date >= p.expire) continue; // 이미 소멸
+        const take = Math.min(need, p.rem);
+        p.rem -= take;
+        need  -= take;
+      }
+      if (need > 0) over += need;          // 어느 발생분으로도 못 막음(권한 초과)
+    });
+    return { pool, over };
+  }
+
+  // asOf 시점 잔여 = 미소멸 발생분 잔여 합 - 초과사용량(음수 허용)
+  function _remainingAt(grantCutoff, usageCutoff, expiryAsOf) {
+    const { pool, over } = _simulate(grantCutoff, usageCutoff);
+    let s = 0;
+    pool.forEach(p => { if (expiryAsOf < p.expire) s += p.rem; });
+    return parseFloat((s - over).toFixed(1));
+  }
+
+  // 올해 1/1 00:00 기준 잔여: 올해 발생분까지 포함, 사용은 작년말까지, 소멸 판정 1/1 기준
+  const jan1Remaining = _remainingAt(jan1Str, prevYearEnd, jan1Str);
+
+  // 현재 잔여: 오늘까지 발생/사용, 소멸 판정 오늘 기준
+  const remaining = _remainingAt(today, today, today);
+
+  // 올해 1/1 ~ 오늘 사용
+  let usedSinceJan1 = 0;
+  usages.forEach(u => { if (u.date >= jan1Str && u.date <= today) usedSinceJan1 += u.used; });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 현재 잔여 (유효 발생분 - 전체 사용분, 미래 예정 포함)
-  const remaining = sumRemaining(thisYear, '9999-12-31');
-
-  // 내년 1/1 소멸 예정 = prevYear(작년) 발생분의 잔여 (cap&spill: 옛 연도 초과 사용분 이월 반영)
-  const { rem: _remAll } = _capSpill('9999-12-31');
-  const expiringNextYear = parseFloat(Math.max(0, _remAll[prevYear] || 0).toFixed(1));
+  // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 현재 잔여
+  const { pool: poolNow } = _simulate(today, today);
+  let expiringNextYear = 0;
+  poolNow.forEach(p => { if (p.gy === prevYear && today < p.expire) expiringNextYear += p.rem; });
+  expiringNextYear = parseFloat(Math.max(0, expiringNextYear).toFixed(1));
 
   // 전체 이력
   let totalGranted = 0, totalUsed = 0;
