@@ -37,7 +37,9 @@
       "WebFetch(domain:help-timecard.smaregi.jp)",
       "WebFetch(domain:support.yayoi-kk.co.jp)",
       "WebFetch(domain:jinjer-kyuyo.zendesk.com)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "PowerShell(git add -A)",
+      "PowerShell(git push)"
     ]
   }
 }
