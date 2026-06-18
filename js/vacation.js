@@ -1,6 +1,5 @@
 // 수정: 2026-06-18 — expireDate 날짜 오류 수정 (thisYear-12-31 → thisYear+1-01-01)
-// 수정: 2026-06-18 — remaining 계산 오류 수정 (만료 발생분이 1/1 이후 사용분까지 흡수하던 버그)
-// 수정: 2026-06-18 — _resolveGrantYear가 사용 날짜 기준 FIFO로 차감 발생연도 결정 (소급 입력 시 소멸예정·잔여 불일치 수정)
+// 수정: 2026-06-18 — calcVacationSummary 전면 grant_year 태그 기반 재작성 (잔여·소멸예정 불일치 해소, 시트 데이터와 일치)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -131,7 +130,8 @@ function _migrateVacationRemaining() {
 
 // 사원의 현재 유급휴가 현황 계산
 // ─ 발생일수는 시트 발생 기록(used=0, days>0)에서 산출
-// ─ FIFO 소멸 감안: 만료 직전 그랜트부터 차감해 잔여·소멸 예정을 정확히 계산
+// ─ grant_year 태그 기반: 각 사용분을 차감 발생연도(grant_year)에 귀속시켜 잔여·소멸예정을 일관 계산
+//   (발생연도+2 = 소멸연도: 2024 발생분은 2026-01-01 00:00 정각 소멸)
 function calcVacationSummary(empNo) {
   const today    = jstToday();
   const thisYear = parseInt(today.substring(0, 4));
@@ -139,80 +139,75 @@ function calcVacationSummary(empNo) {
   const jan1Str  = `${thisYear}-01-01`;
   const prevYearEnd = `${prevYear}-12-31`;
 
-  const key    = _vacKey(empNo);
-  const usages = (vacationData[key] || []).filter(r => parseFloat(r.used) > 0);
+  const key     = _vacKey(empNo);
+  const records = vacationData[key] || [];
 
-  // cutoffDate 시점까지 minGrantYear 이상인 발생 합계
-  // vacationData[key]를 직접 스캔: used 문자열 "0" 오판 방지를 위해 parseFloat 사용
-  function _grants(cutoffDate, minGrantYear) {
-    let total = 0;
-    (vacationData[key] || []).forEach(r => {
-      const usedVal = parseFloat(r.used) || 0;
-      const daysVal = parseFloat(r.days) || 0;
-      if (usedVal !== 0 || daysVal <= 0) return;
-      const gy = parseInt(r.grant_year);
-      if (isNaN(gy) || gy < minGrantYear) return;
-      if (!r.date || r.date > cutoffDate) return;
-      total += daysVal;
+  // grant_year별 발생일수 합계
+  function grantedOf(G) {
+    let t = 0;
+    records.forEach(r => {
+      if (parseInt(r.grant_year) !== G) return;
+      const used = parseFloat(r.used) || 0;
+      const days = parseFloat(r.days) || 0;
+      if (used === 0 && days > 0) t += days;
     });
-    return parseFloat(total.toFixed(1));
+    return t;
+  }
+  // grant_year별 사용일수 합계 (cutoff 날짜까지)
+  function usedOf(G, cutoff) {
+    let t = 0;
+    records.forEach(r => {
+      if (parseInt(r.grant_year) !== G) return;
+      const used = parseFloat(r.used) || 0;
+      if (used > 0 && r.date && r.date <= cutoff) t += used;
+    });
+    return t;
   }
 
-  // cutoffDate까지 사용 합계
-  function _usedUpTo(cutoffDate) {
-    let total = 0;
-    usages.forEach(r => { if (r.date && r.date <= cutoffDate) total += parseFloat(r.used) || 0; });
-    return parseFloat(total.toFixed(1));
+  // 등장하는 모든 grant_year
+  const gYears = [...new Set(
+    records.map(r => parseInt(r.grant_year)).filter(g => !isNaN(g))
+  )];
+
+  // refYear 시점 유효 발생분(grant_year >= refYear-1)의 잔여 합계
+  // 사용은 usedCutoff 날짜까지만 반영해 과거 시점(1/1) 스냅샷도 지원
+  function sumRemaining(refYear, usedCutoff) {
+    let s = 0;
+    gYears.forEach(G => {
+      if (G < refYear - 1) return; // 발생연도+2 = 소멸연도 → refYear 시점 만료분 제외
+      s += grantedOf(G) - usedOf(G, usedCutoff);
+    });
+    return parseFloat(s.toFixed(1));
   }
 
-  const TU_prev = _usedUpTo(prevYearEnd);
-
-  // 전년도 12/31 잔여 — FIFO: 만료 그랜트 먼저 소진 후 유효 그랜트 잔여 산출
-  // 유효 발생: grant_year >= thisYear - 2 (발생연도+2 = 소멸연도, 포함적 범위)
-  const TG_all_prev    = _grants(prevYearEnd, -Infinity);
-  const TG_valid_prev  = _grants(prevYearEnd, thisYear - 2);
-  const TG_exp_prev    = TG_all_prev - TG_valid_prev;
-  const prevYearEndRemaining = parseFloat(
-    Math.max(0, TG_valid_prev - Math.max(0, TU_prev - TG_exp_prev)).toFixed(1));
-
-  // 올해 1/1 00:00:00 기준 잔여 — 발생연도+2 = 소멸연도 (2024 발생은 2026-01-01 00:00:00 정각 소멸)
-  // 따라서 2026-01-01 시점에는 2025년 이상 발생분만 유효
-  const TG_all_jan1    = _grants(jan1Str, -Infinity);
-  const TG_valid_jan1  = _grants(jan1Str, thisYear - 1);
-  const TG_exp_jan1    = TG_all_jan1 - TG_valid_jan1;
-  const jan1Remaining  = parseFloat(
-    Math.max(0, TG_valid_jan1 - Math.max(0, TU_prev - TG_exp_jan1)).toFixed(1));
+  // 올해 1/1 00:00 기준 잔여 (작년말까지 사용 반영, 2년 전 발생분은 소멸)
+  const jan1Remaining = sumRemaining(thisYear, prevYearEnd);
 
   // 올해 1/1 이후 사용 (미래 예정 포함)
   let usedSinceJan1 = 0;
-  usages.forEach(r => {
-    if (r.date && r.date >= jan1Str) usedSinceJan1 += parseFloat(r.used) || 0;
+  records.forEach(r => {
+    const u = parseFloat(r.used) || 0;
+    if (u > 0 && r.date && r.date >= jan1Str) usedSinceJan1 += u;
   });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
 
-  // 잔여 — FIFO: 1/1 이전 사용분만 만료 발생분이 흡수, 1/1 이후 사용분은 유효 발생분에서 직접 차감
-  const TU_total       = _usedUpTo('9999-12-31');
-  const TG_all_today   = _grants(today, -Infinity);
-  const TG_valid_today = _grants(today, thisYear - 1);
-  const TG_exp_today   = TG_all_today - TG_valid_today;
-  const remaining      = parseFloat(
-    (TG_valid_today - usedSinceJan1 - Math.max(0, TU_prev - TG_exp_today)).toFixed(1));
+  // 현재 잔여 (유효 발생분 - 전체 사용분, 미래 예정 포함)
+  const remaining = sumRemaining(thisYear, '9999-12-31');
 
-  // 내년 1/1 소멸 예정 = prevYear(작년, 예: 2025) 발생분만 (올해 사용 차감)
-  // FIFO: 올해 사용 중 prevYear 발생분이 얼마나 소비되었나
-  const prevYearRecords = (vacationData[key] || [])
-    .filter(r => parseInt(r.grant_year) === prevYear);
-  const prevYearGranted = prevYearRecords
-    .filter(r => parseFloat(r.used) === 0 && parseFloat(r.days) > 0)
-    .reduce((sum, r) => sum + parseFloat(r.days || 0), 0);
-  const prevYearUsed = prevYearRecords
-    .filter(r => parseFloat(r.used) > 0)
-    .reduce((sum, r) => sum + parseFloat(r.used || 0), 0);
-  const expiringNextYear = parseFloat(Math.max(0, prevYearGranted - prevYearUsed).toFixed(1));
+  // 내년 1/1 소멸 예정 = prevYear(작년) 발생분의 잔여 (해당 연도 태그 사용분 차감)
+  const expiringNextYear = parseFloat(
+    Math.max(0, grantedOf(prevYear) - usedOf(prevYear, '9999-12-31')).toFixed(1));
 
   // 전체 이력
-  const totalGranted = parseFloat(TG_all_today.toFixed(1));
-  const totalUsed    = parseFloat(TU_total.toFixed(1));
+  let totalGranted = 0, totalUsed = 0;
+  records.forEach(r => {
+    const u = parseFloat(r.used) || 0;
+    const d = parseFloat(r.days) || 0;
+    if (u === 0 && d > 0) totalGranted += d;
+    else if (u > 0) totalUsed += u;
+  });
+  totalGranted = parseFloat(totalGranted.toFixed(1));
+  totalUsed    = parseFloat(totalUsed.toFixed(1));
 
   // 3개월 이내 소멸 예정 알림
   let expiringInfo = null;
@@ -237,31 +232,30 @@ function calcVacationSummary(empNo) {
   };
 }
 
-// 사용 시 차감할 grant_year 자동 결정 (오래된 것부터, FIFO)
-// 유효 범위: grant_year >= (사용연도-1) — 사용 "날짜" 기준 (발생연도+2 = 소멸연도)
-// usageDate 생략 시 오늘 기준. 소급 입력 시 그 날짜에 유효했던 최古 발생분에서 차감
-function _resolveGrantYear(empNo, usageDate) {
-  const refDate  = usageDate || jstToday();
-  const refYear  = parseInt(refDate.substring(0, 4));
+// 사용 시 차감할 grant_year 자동 결정 (현재 유효 발생분 중 오래된 것부터, FIFO)
+// 유효 범위: grant_year >= 올해-1 (발생연도+2 = 소멸연도이므로 2년 전 이전은 소멸)
+function _resolveGrantYear(empNo) {
+  const today = jstToday();
+  const thisYear = parseInt(today.substring(0, 4));
   const map = _buildGrantMap(empNo);
 
   const sortedYears = Object.keys(map)
     .map(gy => parseInt(gy))
-    .filter(gyNum => gyNum >= refYear - 1)
+    .filter(gyNum => gyNum >= thisYear - 1)
     .sort((a, b) => a - b);
 
   for (const gyNum of sortedYears) {
     const { granted, used } = map[gyNum];
     if (granted - used > 0) return gyNum;
   }
-  return refYear; // fallback
+  return thisYear; // fallback
 }
 
 // 유급휴가 사용 추가
 function addVacationUsage(empNo, date, used, reason) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
-  const grantYear = _resolveGrantYear(empNo, date);
+  const grantYear = _resolveGrantYear(empNo);
   vacationData[key].push({ date, used, reason, grant_year: grantYear });
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
