@@ -210,6 +210,12 @@ function loadPayrollForm() {
   };
 
   const ph = document.getElementById('payrollPlaceholder');
+  // currentEmpIdx가 -1이지만 DOM select에 실제 선택된 값이 있으면 동기화
+  if (currentEmpIdx < 0) {
+    const sel = document.getElementById('empSelect');
+    const v = sel ? parseInt(sel.value) : NaN;
+    if (!isNaN(v) && v >= 0 && v < employees.length) currentEmpIdx = v;
+  }
   // 미선택 상태
   if(currentEmpIdx < 0 || !employees.length) {
     showContent(false);
