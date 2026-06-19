@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-19 13:33 — 유급휴가 미래(예정) 등록일을 연보라색으로 구분 (월 탭·내역 리스트)
+  수정: 2026-06-19 14:45 — 모바일 탭 진입 전 개인정보 보호: 급여명세·임금대장·유급휴가 탭을 직접 열기 전까지 내용 숨김 처리
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -800,6 +800,9 @@ let mAY        = new Date().getFullYear();
 let _mPickerPage = 'payroll';
 let mTab = 'payroll';
 
+/* 탭 첫 방문 여부 — 방문 전까지는 내용 대신 안내 문구 표시 */
+const mTabVisited = { payroll: false, annual: false, vacation: false };
+
 /* 유급휴가 상세 상태 */
 let mVacDetailEmpNo  = null;
 let mVacDetailYear   = new Date().getFullYear();
@@ -908,9 +911,11 @@ function mGotoTab(id, el) {
   if (sbP) sbP.classList.toggle('hidden', id !== 'payroll');
   if (sbA) sbA.classList.toggle('hidden', id !== 'annual');
   if (id === 'employees') { mShowEmpList(); mRenderEmpList(); }
-  if (id === 'annual')    mRenderAnnual();
+  if (id === 'annual')    { mTabVisited.annual = true; mRenderAnnual(); }
+  if (id === 'payroll')   { mTabVisited.payroll = true; mRenderPayroll(); }
   if (id === 'change-password') { try { initChangePwPage(); } catch(e) {} }
   if (id === 'vacation') {
+    mTabVisited.vacation = true;
     if (mVacDetailEmpNo) {
       document.getElementById('m-vac-out').style.display = 'none';
       document.getElementById('m-vac-detail').style.display = 'block';
@@ -1172,6 +1177,11 @@ function mRenderPayroll() {
   const out = document.getElementById('m-payroll-out');
   const f   = n => n === 0 ? '0' : Math.round(n).toLocaleString();
 
+  if (!mTabVisited.payroll) {
+    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp?'給与明細タブを開いて月を選択してください':'급여 명세 탭을 열고 월을 선택해 주세요'}</div>`;
+    return;
+  }
+
   if (mEmp < 0 || mEmp >= employees.length) {
     out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">📋</div>${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
     return;
@@ -1264,6 +1274,11 @@ function mRenderAnnual() {
   document.getElementById('m-annual-year-txt').textContent = mAY + (jp?'年':'년');
 
   const out = document.getElementById('m-annual-out');
+  if (!mTabVisited.annual) {
+    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp?'賃金台帳タブを開いて確認してください':'임금대장 탭을 열어 확인해 주세요'}</div>`;
+    return;
+  }
+
   if (isNaN(idx) || idx < 0 || idx >= employees.length) {
     out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">📊</div>${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
     return;
@@ -1395,6 +1410,11 @@ function mRenderVacation() {
   const jp  = LANG === 'JP';
   const out = document.getElementById('m-vac-out');
   if (!out) return;
+
+  if (!mTabVisited.vacation) {
+    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp ? '有給休暇タブを開いて確認してください' : '유급휴가 탭을 열어 확인해 주세요'}</div>`;
+    return;
+  }
 
   const activeEmps = employees.filter(e => e && e.no != null && !e.leave && e.vacationApplied !== false);
   if (!activeEmps.length) {
