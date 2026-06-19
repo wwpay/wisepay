@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-19 11:28 — 유급 카드 세로형 복귀(소멸예정 연한배경 구분) + 상세 연산기호 오렌지로 가시화
+  수정: 2026-06-19 13:33 — 유급휴가 미래(예정) 등록일을 연보라색으로 구분 (월 탭·내역 리스트)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1650,16 +1650,23 @@ function mOpenVacMonthPicker() {
   if (grid) {
     const year = mVacDetailYear;
     const records = vacationData[mVacDetailEmpNo] || [];
-    const usedMonths = new Set(
-      records
-        .filter(r => r.date && r.date.startsWith(`${year}-`) && parseFloat(r.used) > 0)
-        .map(r => parseInt(r.date.substring(5, 7)))
-    );
+    const _mTodayStr = jstToday();
+    const usedMonths = new Set();
+    const pastMonths = new Set(); // 오늘까지 사용이 있는 달(과거/오늘 포함)
+    records.forEach(r => {
+      if (!r.date || !r.date.startsWith(`${year}-`) || !(parseFloat(r.used) > 0)) return;
+      const mm = parseInt(r.date.substring(5, 7));
+      usedMonths.add(mm);
+      if (r.date <= _mTodayStr) pastMonths.add(mm);
+    });
     grid.innerHTML = Array.from({length: 12}, (_, i) => {
       const m = i + 1;
       const active = m === mVacDetailMonth;
       const hasUsage = usedMonths.has(m);
-      const styleAttr = !active && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
+      const isFutureMon = hasUsage && !pastMonths.has(m); // 그 달 사용이 전부 미래
+      const styleAttr = !active && hasUsage
+        ? (isFutureMon ? ' style="background:#ddd6fe;color:#5b21b6;"' : ' style="background:#bfdbfe;color:#1e40af;"')
+        : '';
       return `<button class="m-month-btn${active ? ' active' : ''}"${styleAttr} onclick="mPickVacMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
     }).join('');
   }
@@ -1720,7 +1727,8 @@ function mRenderVacDetail() {
         const delBtn = canDel
           ? `<button onclick="event.stopPropagation();mDeleteVacUsage('${no}',${r._origIdx})" style="flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;padding:4px 6px;cursor:pointer;line-height:1;" title="${jp ? '削除' : '삭제'}">✕</button>`
           : '';
-        return `<div class="m-vac-detail-row" style="display:flex;align-items:center;gap:8px;">
+        const futureBg = (r.date && r.date > _mToday) ? 'background:#F5F3FF;border-radius:6px;' : ''; // 미래(연보라)
+        return `<div class="m-vac-detail-row" style="display:flex;align-items:center;gap:8px;${futureBg}">
           <span style="font-size:13px;font-weight:600;white-space:nowrap;">${r.date}</span>
           ${badge}
           ${reason}

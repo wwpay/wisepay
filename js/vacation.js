@@ -1,4 +1,4 @@
-// 수정: 2026-06-19 11:28 — 유급 카드 세로형 복귀(소멸예정 연한배경 구분) + 상세 연산기호 오렌지(#d97706)로 가시화
+// 수정: 2026-06-19 13:33 — 유급휴가 미래(예정) 등록일을 과거와 다른 연보라색으로 구분 (달력 날짜·월 탭·내역 리스트)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -756,13 +756,14 @@ function _renderVacCalendar() {
     const info     = usedDates[dateStr];
     const dow_idx  = (firstDay + d - 1) % 7;
     const isToday  = dateStr === today;
+    const isFuture = dateStr > today;
     let cls = 'vac-cal-day';
     if (dow_idx === 0) cls += ' sun';
     if (dow_idx === 6) cls += ' sat';
     if (info) cls += ' used';
     if (isToday) cls += ' today-mark';
     let spanCls = '';
-    if (info) spanCls = info.used < 1 ? 'vac-day-half' : 'vac-day-used';
+    if (info) spanCls = (info.used < 1 ? 'vac-day-half' : 'vac-day-used') + (isFuture ? ' future' : '');
     const numSpan = spanCls ? `<span class="${spanCls}">${d}</span>` : `<span class="vac-day-num">${d}</span>`;
     const todayBar = isToday ? '<div class="vac-today-bar"></div>' : '';
     // 모든 날짜 클릭 시 해당 날짜로 등록 팝업 열기
@@ -806,7 +807,8 @@ function _renderVacList() {
     const delBtn = canDel
       ? `<button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>`
       : '';
-    return `<div class="vac-list-item" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
+    const futureCls = (r.date && r.date > _today) ? ' future' : '';
+    return `<div class="vac-list-item${futureCls}" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
         <span class="vac-list-date">${_jstDateFmt(r.date)}</span>
         <span class="vac-list-badge ${badgeCls}">${badgeTxt}</span>
         <span class="vac-list-reason">${r.reason || ''}</span>
@@ -885,16 +887,26 @@ function _renderVacNavBar() {
   const month = _vacDetailMonth;
   const u = jp ? '月' : '월';
   const records = vacationData[_vacDetailEmpNo] || [];
-  const usedMonths = new Set(
-    records
-      .filter(r => r.date && r.date.startsWith(`${year}-`) && parseFloat(r.used) > 0)
-      .map(r => parseInt(r.date.substring(5, 7)))
-  );
+  const _todayStr = jstToday();
+  const usedMonths = new Set();
+  const pastMonths = new Set(); // 오늘까지 사용이 있는 달(과거/오늘 포함)
+  records.forEach(r => {
+    if (!r.date || !r.date.startsWith(`${year}-`) || !(parseFloat(r.used) > 0)) return;
+    const mm = parseInt(r.date.substring(5, 7));
+    usedMonths.add(mm);
+    if (r.date <= _todayStr) pastMonths.add(mm);
+  });
   const monthTabs = Array.from({length:12},(_,i)=>{
     const m = i+1;
     const isActive = m === month;
     const hasUsage = usedMonths.has(m);
-    const style = !isActive && hasUsage ? ' style="background:#bfdbfe;color:#1e40af;"' : '';
+    const isFutureMon = hasUsage && !pastMonths.has(m); // 그 달 사용이 전부 미래
+    let style = '';
+    if (!isActive && hasUsage) {
+      style = isFutureMon
+        ? ' style="background:#ddd6fe;color:#5b21b6;"'   // 미래(연보라)
+        : ' style="background:#bfdbfe;color:#1e40af;"';  // 과거(파랑)
+    }
     return `<button class="month-tab${isActive?' active':''}"${style} onclick="vacSetMonth(${m})">${m}${u}</button>`;
   }).join('');
   bar.innerHTML = `
