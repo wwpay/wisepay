@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-19 14:58 — 모바일 탭 보호 로직 수정: 탭 비활성 시 렌더 skip(annual·vacation), 활성 탭만 방문 처리. PC 사원 로그인 급여명세 오류 수정(gas.js finally)
+  수정: 2026-06-20 08:25 — 급여명세 탭에서 월·연·사원 변경 시 자물쇠 해제 안 되는 버그 수정 (B안: 조작 시 visited ON)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -983,6 +983,7 @@ function mPickEmp(idx) {
     mEmp = idx;
     const el = document.getElementById('m-emp-sel-label');
     if (el) el.innerHTML = _mEmpLabel(mEmp, jp);
+    mTabVisited.payroll = true;
     mRenderPayroll();
   } else {
     mAnnualEmp = idx;
@@ -1042,6 +1043,7 @@ function mChangeYear(d) {
   }
   mY = nextY; mM = d < 0 ? 12 : 1;
   localStorage.setItem(M_YEAR_K, mY); localStorage.setItem(M_MON_K, mM);
+  mTabVisited.payroll = true;
   mRenderMonthSel(); mRenderPayroll();
 }
 
@@ -1049,6 +1051,7 @@ function mOnMonthChange() {
   const v = parseInt(document.getElementById('m-month-sel')?.value);
   if (isNaN(v) || v < 1) return;
   mM = v; localStorage.setItem(M_MON_K, mM);
+  mTabVisited.payroll = true;
   mRenderPayroll();
 }
 
@@ -1076,6 +1079,7 @@ function mClosePayrollMonthPicker() {
 function mPickPayrollMonth(m) {
   mM = m; localStorage.setItem(M_MON_K, mM);
   mClosePayrollMonthPicker();
+  mTabVisited.payroll = true;
   mRenderMonthSel();
   mRenderPayroll();
 }
