@@ -1,4 +1,4 @@
-// 수정: 2026-06-19 13:33 — 유급휴가 미래(예정) 등록일을 과거와 다른 연보라색으로 구분 (달력 날짜·월 탭·내역 리스트)
+// 수정: 2026-06-19 13:39 — 상세 연산기호(−,=)를 앰버→중립 회색·20px로 변경 (앰버 남발 해소, 남은연차/소멸예정 색 구분)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -273,7 +273,7 @@ function _vacEqHtml(sum, jp) {
   const itemS = 'display:flex;flex-direction:column;align-items:center;flex:1 1 0;min-width:0;text-align:center;';
   const valS  = 'font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;';
   const lblS  = 'font-size:9px;color:var(--text3);line-height:1.2;margin-top:3px;';
-  const opS   = 'font-size:16px;color:var(--orange,#d97706);font-weight:700;padding-top:1px;flex:0 0 auto;';
+  const opS   = 'font-size:20px;color:var(--text2);font-weight:700;line-height:1;padding-top:1px;flex:0 0 auto;';
   const sepS  = 'width:1px;background:var(--border);align-self:stretch;margin:1px 4px;flex:0 0 auto;';
   const item  = (val, lbl, color) =>
     `<div style="${itemS}"><div style="${valS}${color ? `color:${color};` : ''}">${val}${unit}</div><div style="${lblS}">${lbl}</div></div>`;
