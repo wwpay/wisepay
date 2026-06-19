@@ -1,4 +1,4 @@
-// 수정: 2026-06-11 16:40 — changeYear: 2023년 이하 차단, 데이터 유무 체크 제거
+// 수정: 2026-06-20 08:10 — 給与計算情報 섹션 관리자만 표시 (showContent 조건 추가)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -203,10 +203,11 @@ function loadPayrollForm() {
     const pb = document.getElementById('payrollBody');
     const rw = document.querySelector('.rates-wrap');
     const ci = document.querySelector('.calc-info');
+    const _isAdmin = typeof currentUser !== 'undefined' && currentUser?.role === 'admin';
     if(pc) pc.style.display = show ? '' : 'none';
     if(pb) pb.style.display = show ? 'grid' : 'none';
     if(rw) rw.style.display = show ? '' : 'none';
-    if(ci) ci.style.display = show ? '' : 'none';
+    if(ci) ci.style.display = (show && _isAdmin) ? '' : 'none';
   };
 
   const ph = document.getElementById('payrollPlaceholder');

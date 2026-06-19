@@ -1,4 +1,4 @@
-// 수정: 2026-06-16 12:13 — 로그인 ID 입력란 엔터키 → PW 입력란으로 포커스 이동
+// 수정: 2026-06-20 08:10 — 급여명세 표준보수월액·공제란 물음표·給与計算情報 관리자만 표시
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -276,6 +276,15 @@ function applyViewerRestrictions() {
   window.applyRates            = blocked;
   window.saveRateHistory       = blocked;
   window.downloadBackupExcel   = blocked;
+
+  // 표준 보수 월액 행: 빈 칸 유지 (레이아웃 유지)
+  const hyoRow = document.getElementById('t-r-hyo')?.closest('.row');
+  if (hyoRow) hyoRow.style.visibility = 'hidden';
+
+  // 공제란 물음표(tip-icon) 숨김
+  document.querySelectorAll('#page-payroll .tip-icon').forEach(el => {
+    el.style.display = 'none';
+  });
 
   // idle 자동 로그아웃: click/keydown 감지, 1시간 무조작 시 로그아웃
   document.addEventListener('click',   _onIdleActivity);
