@@ -1,4 +1,4 @@
-// 수정: 2026-06-18 17:54 — 사용행 grant_year 기록 중단(빈값) — 계산 미사용, 발생행만 유지
+// 수정: 2026-06-19 09:21 — 미래 예정 사용을 당해년도(올해 12/31)로 한정 (내년분 침범으로 잔여 꼬임 수정, v1.5.1)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -138,6 +138,7 @@ function calcVacationSummary(empNo) {
   const prevYear = thisYear - 1;
   const jan1Str  = `${thisYear}-01-01`;
   const prevYearEnd = `${prevYear}-12-31`;
+  const yearEnd     = `${thisYear}-12-31`;
 
   const key     = _vacKey(empNo);
   const records = vacationData[key] || [];
@@ -196,11 +197,10 @@ function calcVacationSummary(empNo) {
   // 올해 1/1 00:00 기준 잔여: 올해 발생분까지 포함, 사용은 작년말까지, 소멸 판정 1/1 기준
   const jan1Remaining = _remainingAt(jan1Str, prevYearEnd, jan1Str);
 
-  // 현재 잔여: 오늘까지 발생, 미래 예정 사용 포함, 소멸 판정 오늘 기준
-  const remaining = _remainingAt(today, '9999-12-31', today);
+  // 현재 잔여: 오늘까지 발생, 미래 예정 사용은 올해(12/31)까지만 반영(내년분 제외), 소멸 판정 오늘 기준
+  const remaining = _remainingAt(today, yearEnd, today);
 
   // 올해 1/1 ~ 12/31 사용 (미래 예정 포함, 당해 연도 범위)
-  const yearEnd = `${thisYear}-12-31`;
   let usedSinceJan1 = 0;
   usages.forEach(u => { if (u.date >= jan1Str && u.date <= yearEnd) usedSinceJan1 += u.used; });
   usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
@@ -210,8 +210,8 @@ function calcVacationSummary(empNo) {
   usages.forEach(u => { if (u.date >= today && u.date <= yearEnd) futureUsed += u.used; });
   futureUsed = parseFloat(futureUsed.toFixed(1));
 
-  // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 잔여 (미래 예정 사용 포함)
-  const { pool: poolNow } = _simulate(today, '9999-12-31');
+  // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 잔여 (미래 예정 사용은 올해 12/31까지만 반영)
+  const { pool: poolNow } = _simulate(today, yearEnd);
   let expiringNextYear = 0;
   poolNow.forEach(p => { if (p.gy === prevYear && today < p.expire) expiringNextYear += p.rem; });
   expiringNextYear = parseFloat(Math.max(0, expiringNextYear).toFixed(1));
