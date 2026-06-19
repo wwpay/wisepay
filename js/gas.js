@@ -1,4 +1,4 @@
-// 수정: 2026-06-12 12:22 — employee 권한: getEmployeeData POST로 본인 데이터만 로드
+// 수정: 2026-06-19 15:30 — JSONP 콜백 이름 충돌 수정(admin 유급휴가 미로딩 버그) + fetchVacationData 성공 후 재렌더
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -147,9 +147,11 @@ function updateGasStatus() {
 }
 
 // GAS 통신 - JSONP 방식 (CORS 완전 우회)
+let _gasCbSeq = 0;
 function gasRequest(params, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
-    const cbName = 'wisepay_cb_' + Date.now();
+    // 콜백 이름 충돌 방지: Date.now()만으로는 동일 ms 동시 호출 시 충돌 → 시퀀스+랜덤 추가
+    const cbName = 'wisepay_cb_' + Date.now() + '_' + (++_gasCbSeq) + '_' + Math.floor(Math.random() * 1e6);
     const script = document.createElement('script');
     const timeout = setTimeout(() => {
       delete window[cbName];
@@ -160,7 +162,7 @@ function gasRequest(params, timeoutMs = 15000) {
     window[cbName] = (data) => {
       clearTimeout(timeout);
       delete window[cbName];
-      document.body.removeChild(script);
+      if (document.body.contains(script)) document.body.removeChild(script);
       resolve(data);
     };
 
@@ -734,6 +736,8 @@ async function fetchVacationData() {
       });
       vacationData = rebuilt;
       localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+      // 데이터 갱신 후 유급휴가 화면 재렌더 (비동기 페치 완료 시점 반영)
+      if (typeof renderVacationPage === 'function') renderVacationPage();
     }
   } catch(e) {
     console.log('[WisePay] vacation fetch skipped:', e.message);
