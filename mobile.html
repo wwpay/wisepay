@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-16 16:53 — mRenderVacDetail: 메모 없는 항목 X 버튼 위치 깨짐 수정 (reason 스팬 항상 렌더링)
+  수정: 2026-06-19 11:19 — 유급휴가 표시 수식형 통일(총유급−사용완료−사용예정=남은연차│소멸예정) + 안내 팝업 (v1.6.0)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1432,22 +1432,7 @@ function mRenderVacation() {
         ${mTitleHtml}
       </div>
       <div class="m-vac-card-body">
-        <div style="${rowStyle}">
-          <span style="font-size:11px;color:var(--text2);">${jan1Label}</span>
-          <span style="font-size:14px;font-weight:700;">${sum.jan1Remaining.toFixed(1)}${unitStr}</span>
-        </div>
-        <div style="${rowStyle}">
-          <span style="font-size:11px;color:var(--text2);">${jp ? '今年使用' : '올해 사용'}</span>
-          <span style="font-size:14px;font-weight:700;">${sum.usedSinceJan1.toFixed(1)}${unitStr}<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px;">${jp ? `(未来${(sum.futureUsed||0).toFixed(1)}${unitStr})` : `(미래${(sum.futureUsed||0).toFixed(1)}${unitStr})`}</span></span>
-        </div>
-        <div style="${rowStyle}">
-          <span style="font-size:11px;color:var(--text2);">${jp ? '残年次' : '남은 연차'}</span>
-          <span style="font-size:14px;${remCls}">${sum.remaining.toFixed(1)}${unitStr}</span>
-        </div>
-        <div style="${lastRowStyle}margin-bottom:8px;">
-          <span style="font-size:11px;color:var(--text2);">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
-          <span style="font-size:14px;${expCls}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
-        </div>
+        <div style="margin:2px 0 12px;">${_vacEqHtml(sum, jp)}</div>
         <div style="display:flex;gap:8px;">
           <button onclick="mOpenVacDetail('${no}')"
             style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">
@@ -1559,6 +1544,7 @@ function mSaveVacUsage() {
     mSaveVacUsage._running = false;
     return;
   }
+  if (typeof _vacRegisterNotice === 'function') _vacRegisterNotice(date, isEmployee); // 내년분/미래삭제불가 안내 팝업
   if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
     fetch(gasUrl, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
@@ -1769,21 +1755,7 @@ function mRenderVacDetail() {
   detail.innerHTML = `
     <button class="m-back-btn" onclick="mCloseVacDetail()">◀ <span>${jp ? '一覧へ' : '목록으로'}</span></button>
     <div style="font-size:17px;font-weight:700;margin-bottom:12px;">${emp.name}${emp.kana ? `<span style="font-size:12px;color:var(--text3);margin-left:5px;font-weight:400;">（${emp.kana}）</span>` : ''}</div>
-    <div class="m-vac-stats" style="margin-bottom:14px;">
-      <div class="m-vac-stat">
-        <div class="m-vac-stat-lbl">${jp ? '1/1残' : '1/1 잔여'}</div>
-        <div class="m-vac-stat-val">${sum.jan1Remaining.toFixed(1)}${unitStr}</div>
-      </div>
-      <div class="m-vac-stat">
-        <div class="m-vac-stat-lbl">${jp ? '今年使用' : '올해 사용'}</div>
-        <div class="m-vac-stat-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:1px;">${jp ? `未来${(sum.futureUsed||0).toFixed(1)}${unitStr}` : `미래${(sum.futureUsed||0).toFixed(1)}${unitStr}`}</div>
-      </div>
-      <div class="m-vac-stat">
-        <div class="m-vac-stat-lbl">${jp ? '残年次' : '남은 연차'}</div>
-        <div class="m-vac-stat-val${sum.remaining <= 5 ? ' red' : ''}">${sum.remaining.toFixed(1)}${unitStr}</div>
-      </div>
-    </div>
+    <div style="margin-bottom:14px;">${_vacEqHtml(sum, jp)}</div>
     <button onclick="mOpenVacModal('${no}')"
       style="width:100%;padding:11px;border:1px solid var(--accent);border-radius:9px;background:var(--accent2);color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;">
       ${jp ? '休暇登録' : '휴가 등록'}

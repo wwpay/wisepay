@@ -1,4 +1,4 @@
-// 수정: 2026-06-19 09:21 — 미래 예정 사용을 당해년도(올해 12/31)로 한정 (내년분 침범으로 잔여 꼬임 수정, v1.5.1)
+// 수정: 2026-06-19 11:19 — 유급휴가 표시 수식형 통일(총유급−사용완료−사용예정=남은연차│소멸예정) + 내년분/미래삭제불가 안내 팝업 (v1.6.0)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -194,21 +194,27 @@ function calcVacationSummary(empNo) {
     return parseFloat((s - over).toFixed(1));
   }
 
-  // 올해 1/1 00:00 기준 잔여: 올해 발생분까지 포함, 사용은 작년말까지, 소멸 판정 1/1 기준
+  // 올해 1/1 00:00 기준 잔여 (참고용): 올해 발생분까지 포함, 사용은 작년말까지, 소멸 판정 1/1 기준
   const jan1Remaining = _remainingAt(jan1Str, prevYearEnd, jan1Str);
 
-  // 현재 잔여: 오늘까지 발생, 미래 예정 사용은 올해(12/31)까지만 반영(내년분 제외), 소멸 판정 오늘 기준
+  // 총 유급 = 올해 사용 빼기 전 잔여 (기존자=1/1잔여값, 중도입사자=초기발생). 모든 사원 통일.
+  const startBalance = _remainingAt(today, prevYearEnd, today);
+
+  // 현재 잔여(남은 연차): 오늘까지 발생, 미래 예정 사용은 올해(12/31)까지만 반영(내년분 제외), 소멸 판정 오늘 기준
   const remaining = _remainingAt(today, yearEnd, today);
 
-  // 올해 1/1 ~ 12/31 사용 (미래 예정 포함, 당해 연도 범위)
-  let usedSinceJan1 = 0;
-  usages.forEach(u => { if (u.date >= jan1Str && u.date <= yearEnd) usedSinceJan1 += u.used; });
-  usedSinceJan1 = parseFloat(usedSinceJan1.toFixed(1));
+  // 사용 완료 = 올해 1/1 ~ 오늘(오늘 포함)
+  let usedDone = 0;
+  usages.forEach(u => { if (u.date >= jan1Str && u.date <= today) usedDone += u.used; });
+  usedDone = parseFloat(usedDone.toFixed(1));
 
-  // 그 중 미래 예정 사용(오늘 포함, 올해분) — "남은 연차"에 선반영된 일수
+  // 사용 예정 = 내일 ~ 올해 12/31 (오늘 미포함)
   let futureUsed = 0;
-  usages.forEach(u => { if (u.date >= today && u.date <= yearEnd) futureUsed += u.used; });
+  usages.forEach(u => { if (u.date > today && u.date <= yearEnd) futureUsed += u.used; });
   futureUsed = parseFloat(futureUsed.toFixed(1));
+
+  // (호환) 올해 사용 합계 = 사용 완료 + 사용 예정
+  const usedSinceJan1 = parseFloat((usedDone + futureUsed).toFixed(1));
 
   // 내년 1/1 소멸 예정 = 작년(prevYear) 발생분의 잔여 (미래 예정 사용은 올해 12/31까지만 반영)
   const { pool: poolNow } = _simulate(today, yearEnd);
@@ -244,11 +250,90 @@ function calcVacationSummary(empNo) {
     remaining,
     expiringInfo,
     jan1Remaining,
-    usedSinceJan1,
-    futureUsed,
+    startBalance,   // 총 유급 (올해 사용 빼기 전 잔여)
+    usedDone,       // 사용 완료 (1/1~오늘)
+    futureUsed,     // 사용 예정 (내일~12/31)
+    usedSinceJan1,  // 올해 사용 합계 (= usedDone + futureUsed)
     expiringNextYear,
     mustUseByYearEnd: expiringNextYear,
   };
+}
+
+// 유급휴가 요약을 "총유급 − 사용완료 − 사용예정 = 남은연차 │ 소멸예정" 수식형 HTML로 생성 (PC·모바일 공용)
+// 인라인 스타일 사용 — 외부 CSS 로딩과 무관하게 동작
+function _vacEqHtml(sum, jp) {
+  const unit = jp ? '日' : '일';
+  const f = v => (v || 0).toFixed(1);
+  const remColor = sum.remaining < 0 ? 'var(--red)' : sum.remaining <= 5.0 ? 'var(--orange,#e67e22)' : '';
+  const expColor = sum.expiringNextYear > 0 ? 'var(--red)' : '';
+  const L = jp
+    ? { tot: '総有給', done: '使用済', plan: '使用予定', rem: '残年次', exp: '消滅予定' }
+    : { tot: '총 유급', done: '사용 완료', plan: '사용 예정', rem: '남은 연차', exp: '소멸 예정' };
+  const wrapS = 'display:flex;align-items:flex-start;justify-content:space-between;gap:2px;';
+  const itemS = 'display:flex;flex-direction:column;align-items:center;flex:1 1 0;min-width:0;text-align:center;';
+  const valS  = 'font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;';
+  const lblS  = 'font-size:9px;color:var(--text3);line-height:1.2;margin-top:3px;';
+  const opS   = 'font-size:13px;color:var(--text3);opacity:.4;padding-top:2px;flex:0 0 auto;';
+  const sepS  = 'width:1px;background:var(--border);align-self:stretch;margin:1px 4px;flex:0 0 auto;';
+  const item  = (val, lbl, color) =>
+    `<div style="${itemS}"><div style="${valS}${color ? `color:${color};` : ''}">${val}${unit}</div><div style="${lblS}">${lbl}</div></div>`;
+  return `<div style="${wrapS}">`
+    + item(f(sum.startBalance), L.tot, '')
+    + `<div style="${opS}">−</div>`
+    + item(f(sum.usedDone), L.done, '')
+    + `<div style="${opS}">−</div>`
+    + item(f(sum.futureUsed), L.plan, '')
+    + `<div style="${opS}">=</div>`
+    + item(f(sum.remaining), L.rem, remColor)
+    + `<div style="${sepS}"></div>`
+    + item(f(sum.expiringNextYear), L.exp, expColor)
+    + `</div>`;
+}
+
+// 정보 팝업 (확인 버튼 1개 + "오늘 하루 보지 않기" 체크). type별로 오늘 하루 표시 억제. (PC·모바일 공용)
+function _vacInfoPopup(type, msgKo, msgJp) {
+  const jp = (typeof LANG !== 'undefined' && LANG === 'JP');
+  const todayStr = jstToday();
+  const key = `vacInfoSuppress_${type}`;
+  try { if (localStorage.getItem(key) === todayStr) return; } catch (e) {}
+  if (document.getElementById('vacInfoPopupOv')) return; // 중복 표시 방지
+  const msg = jp ? msgJp : msgKo;
+  const ov = document.createElement('div');
+  ov.id = 'vacInfoPopupOv';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;';
+  ov.innerHTML =
+    `<div style="background:var(--card,#fff);border-radius:14px;padding:20px 20px 16px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.25);">`
+    + `<div style="font-size:14px;line-height:1.65;color:var(--text1,#222);white-space:pre-line;">${msg}</div>`
+    + `<label style="display:flex;align-items:center;gap:7px;margin-top:16px;font-size:12px;color:var(--text3);cursor:pointer;user-select:none;">`
+    +   `<input type="checkbox" id="vacInfoSuppressChk" style="width:15px;height:15px;"> ${jp ? '今日は表示しない' : '오늘 하루 보지 않기'}`
+    + `</label>`
+    + `<div style="text-align:right;margin-top:14px;">`
+    +   `<button id="vacInfoOkBtn" style="padding:8px 22px;border:none;border-radius:8px;background:var(--accent,#2563eb);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">${jp ? '確認' : '확인'}</button>`
+    + `</div></div>`;
+  document.body.appendChild(ov);
+  const close = () => {
+    try { if (ov.querySelector('#vacInfoSuppressChk').checked) localStorage.setItem(key, todayStr); } catch (e) {}
+    ov.remove();
+  };
+  ov.querySelector('#vacInfoOkBtn').onclick = close;
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+}
+
+// 유급휴가 등록 후 안내 팝업 트리거 — 내년분(모두) / 미래 삭제불가(사원만)
+function _vacRegisterNotice(date, isEmployee) {
+  if (!date) return;
+  const todayStr = jstToday();
+  const thisYr = parseInt(todayStr.substring(0, 4));
+  const dYr = parseInt(date.substring(0, 4));
+  if (dYr > thisYr) {
+    _vacInfoPopup('nextYear',
+      "이 휴가는 내년분이라\n올해 '남은 연차'에는 반영되지 않습니다.",
+      'この休暇は翌年分のため、\n今年の「残年次」には反映されません。');
+  } else if (date > todayStr && isEmployee) {
+    _vacInfoPopup('futureDel',
+      '미래 날짜의 휴가는\n해당 날짜가 지나면 삭제할 수 없습니다.',
+      '未来の日付の休暇は、\nその日付を過ぎると削除できません。');
+  }
 }
 
 // 사용 시 차감할 grant_year 자동 결정 (현재 유효 발생분 중 오래된 것부터, FIFO)
@@ -551,23 +636,8 @@ function renderVacationCards() {
         <button class="btn btn-sm btn-primary" onclick="showVacationDetail('${no}')">${jp ? '詳細' : '상세'}</button>
       </div>
       <div class="vac-card-body">
-        <div class="vac-card-row">
-          <span class="vac-card-row-label">${jan1Label}</span>
-          <span class="vac-card-row-val">${sum.jan1Remaining.toFixed(1)}${unitStr}</span>
-        </div>
-        <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '今年使用' : '올해 사용'}</span>
-          <span class="vac-card-row-val">${sum.usedSinceJan1.toFixed(1)}${unitStr}<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px;">${jp ? `(未来${sum.futureUsed.toFixed(1)}${unitStr})` : `(미래${sum.futureUsed.toFixed(1)}${unitStr})`}</span></span>
-        </div>
-        <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? '残年次' : '남은 연차'}</span>
-          <span class="vac-card-row-val" style="${remStyle}">${sum.remaining.toFixed(1)}${unitStr}</span>
-        </div>
-        <div class="vac-card-row">
-          <span class="vac-card-row-label">${jp ? `${thisYear + 1}年1月1日消滅予定` : `${thisYear + 1}년 1월 1일 소멸 예정`}</span>
-          <span class="vac-card-row-val ${expClass}">${sum.expiringNextYear.toFixed(1)}${unitStr}</span>
-        </div>
-        <div class="vac-card-foot">
+        ${_vacEqHtml(sum, jp)}
+        <div class="vac-card-foot" style="margin-top:12px;">
           <button class="btn" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
         </div>
       </div>
@@ -624,25 +694,7 @@ function renderVacationDetail() {
         ${emp.kana ? `<span style="font-size:12px;color:var(--text3);font-weight:400;">（${emp.kana}）</span>` : ''}
         <span style="font-size:12px;color:var(--text3);">No.${no}</span>
       </div>
-      <div class="vac-detail-stats">
-        <div class="vac-detail-stat">
-          <div class="vac-detail-stat-label">${jan1Lbl}</div>
-          <div class="vac-detail-stat-val">${sum.jan1Remaining.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
-        </div>
-        <div class="vac-detail-stat">
-          <div class="vac-detail-stat-label">${usedLbl}</div>
-          <div class="vac-detail-stat-val">${sum.usedSinceJan1.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
-          <div class="vac-detail-stat-sub">${jp ? `うち未来 ${sum.futureUsed.toFixed(1)}${unitStr} 含む` : `미래 ${sum.futureUsed.toFixed(1)}${unitStr} 포함`}</div>
-        </div>
-        <div class="vac-detail-stat">
-          <div class="vac-detail-stat-label">${remLbl}</div>
-          <div class="vac-detail-stat-val" style="${remStyle}">${sum.remaining.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
-        </div>
-        <div class="vac-detail-stat">
-          <div class="vac-detail-stat-label">${expLbl}</div>
-          <div class="vac-detail-stat-val" style="${expStyle}">${sum.expiringNextYear.toFixed(1)}<span style="font-size:12px;font-weight:400;">${unitStr}</span></div>
-        </div>
-      </div>
+      <div style="margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid var(--border);">${_vacEqHtml(sum, jp)}</div>
       ${sum.expiringInfo ? `<div class="vac-expiry-warn">⚠️ ${sum.expiringInfo.days}${jp?'日':'일'} ${jp?'が':'이'} ${sum.expiringInfo.monthsLeft}${jp?'ヶ月以内に失効予定':'개월 이내 소멸 예정'} (${sum.expiringInfo.expireDate})</div>` : ''}`;
   }
 
@@ -997,6 +1049,7 @@ function saveVacationUsage() {
   // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
   const grantYear = isEmployee ? '' : null; // 사용행 grant_year 미사용 → 빈값
   addVacationUsage(_vacModalEmpNo, date, used, reason);
+  _vacRegisterNotice(date, isEmployee); // 내년분/미래삭제불가 안내 팝업
   if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
     fetch(gasUrl, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
