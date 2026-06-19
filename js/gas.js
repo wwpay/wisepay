@@ -273,10 +273,11 @@ async function _loadEmployeeDataFromGas() {
     buildHistEmpSel();
     if (typeof renderVacationPage === 'function') renderVacationPage();
     updateGasStatus();
-    applyEmployeeRestrictions();
   } catch(err) {
     console.warn('_loadEmployeeDataFromGas failed:', err);
     updateGasStatus();
+  } finally {
+    applyEmployeeRestrictions();
   }
 }
 

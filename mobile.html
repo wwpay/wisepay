@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-19 14:45 — 모바일 탭 진입 전 개인정보 보호: 급여명세·임금대장·유급휴가 탭을 직접 열기 전까지 내용 숨김 처리
+  수정: 2026-06-19 14:58 — 모바일 탭 보호 로직 수정: 탭 비활성 시 렌더 skip(annual·vacation), 활성 탭만 방문 처리. PC 사원 로그인 급여명세 오류 수정(gas.js finally)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1178,7 +1178,7 @@ function mRenderPayroll() {
   const f   = n => n === 0 ? '0' : Math.round(n).toLocaleString();
 
   if (!mTabVisited.payroll) {
-    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp?'給与明細タブを開いて月を選択してください':'급여 명세 탭을 열고 월을 선택해 주세요'}</div>`;
+    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp?'給与明細タブを開いて確認してください':'급여 명세 탭을 열어 월을 선택해 주세요'}</div>`;
     return;
   }
 
@@ -1275,8 +1275,8 @@ function mRenderAnnual() {
 
   const out = document.getElementById('m-annual-out');
   if (!mTabVisited.annual) {
-    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp?'賃金台帳タブを開いて確認してください':'임금대장 탭을 열어 확인해 주세요'}</div>`;
-    return;
+    if (mTab !== 'annual') return; // 탭 미방문 + 탭이 비활성 → 렌더 건너뜀
+    mTabVisited.annual = true;
   }
 
   if (isNaN(idx) || idx < 0 || idx >= employees.length) {
@@ -1412,8 +1412,8 @@ function mRenderVacation() {
   if (!out) return;
 
   if (!mTabVisited.vacation) {
-    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">🔒</div>${jp ? '有給休暇タブを開いて確認してください' : '유급휴가 탭을 열어 확인해 주세요'}</div>`;
-    return;
+    if (mTab !== 'vacation') return; // 탭 미방문 + 탭이 비활성 → 렌더 건너뜀
+    mTabVisited.vacation = true;
   }
 
   const activeEmps = employees.filter(e => e && e.no != null && !e.leave && e.vacationApplied !== false);
