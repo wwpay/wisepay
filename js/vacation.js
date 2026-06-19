@@ -1,4 +1,4 @@
-// 수정: 2026-06-19 11:19 — 유급휴가 표시 수식형 통일(총유급−사용완료−사용예정=남은연차│소멸예정) + 내년분/미래삭제불가 안내 팝업 (v1.6.0)
+// 수정: 2026-06-19 11:28 — 유급 카드 세로형 복귀(소멸예정 연한배경 구분) + 상세 연산기호 오렌지(#d97706)로 가시화
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -273,7 +273,7 @@ function _vacEqHtml(sum, jp) {
   const itemS = 'display:flex;flex-direction:column;align-items:center;flex:1 1 0;min-width:0;text-align:center;';
   const valS  = 'font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;';
   const lblS  = 'font-size:9px;color:var(--text3);line-height:1.2;margin-top:3px;';
-  const opS   = 'font-size:13px;color:var(--text3);opacity:.4;padding-top:2px;flex:0 0 auto;';
+  const opS   = 'font-size:16px;color:var(--orange,#d97706);font-weight:700;padding-top:1px;flex:0 0 auto;';
   const sepS  = 'width:1px;background:var(--border);align-self:stretch;margin:1px 4px;flex:0 0 auto;';
   const item  = (val, lbl, color) =>
     `<div style="${itemS}"><div style="${valS}${color ? `color:${color};` : ''}">${val}${unit}</div><div style="${lblS}">${lbl}</div></div>`;
@@ -288,6 +288,27 @@ function _vacEqHtml(sum, jp) {
     + `<div style="${sepS}"></div>`
     + item(f(sum.expiringNextYear), L.exp, expColor)
     + `</div>`;
+}
+
+// 유급휴가 요약을 세로 나열형 HTML로 생성 (카드용, PC·모바일 공용). 소멸 예정은 연한 배경으로 구분.
+function _vacRowsHtml(sum, jp) {
+  const unit = jp ? '日' : '일';
+  const f = v => (v || 0).toFixed(1);
+  const remColor = sum.remaining < 0 ? 'color:var(--red);' : sum.remaining <= 5.0 ? 'color:var(--orange,#d97706);' : '';
+  const expColor = sum.expiringNextYear > 0 ? 'color:var(--red);' : '';
+  const L = jp
+    ? { tot: '総有給', done: '使用済', plan: '使用予定', rem: '残年次', exp: '消滅予定' }
+    : { tot: '총 유급', done: '사용 완료', plan: '사용 예정', rem: '남은 연차', exp: '소멸 예정' };
+  const lblS = 'font-size:12px;color:var(--text2);';
+  const valS = 'font-size:15px;font-weight:700;';
+  const row = (lbl, val, valC, rowExtra) =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 2px;border-bottom:1px solid var(--border2);${rowExtra || ''}">`
+    + `<span style="${lblS}">${lbl}</span><span style="${valS}${valC || ''}">${val}${unit}</span></div>`;
+  return row(L.tot, f(sum.startBalance), '', '')
+    + row(L.done, f(sum.usedDone), '', '')
+    + row(L.plan, f(sum.futureUsed), '', '')
+    + row(L.rem, f(sum.remaining), remColor, 'border-bottom:none;')
+    + row(L.exp, f(sum.expiringNextYear), expColor, 'border-bottom:none;margin-top:6px;background:var(--surface2,#f6f7f9);border-radius:8px;padding:7px 9px;');
 }
 
 // 정보 팝업 (확인 버튼 1개 + "오늘 하루 보지 않기" 체크). type별로 오늘 하루 표시 억제. (PC·모바일 공용)
@@ -636,7 +657,7 @@ function renderVacationCards() {
         <button class="btn btn-sm btn-primary" onclick="showVacationDetail('${no}')">${jp ? '詳細' : '상세'}</button>
       </div>
       <div class="vac-card-body">
-        ${_vacEqHtml(sum, jp)}
+        ${_vacRowsHtml(sum, jp)}
         <div class="vac-card-foot" style="margin-top:12px;">
           <button class="btn" onclick="showVacationModal('${no}')">${jp ? '休暇登録' : '휴가 등록'}</button>
         </div>
