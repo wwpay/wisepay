@@ -1,4 +1,4 @@
-/* 수정: 2026-06-19 13:33 — 유급휴가 미래(예정) 등록일 연보라 구분 클래스(.vac-day-*.future, .vac-list-item.future) 추가 */
+/* 수정: 2026-06-19 13:44 — 미래 반차 색(.vac-day-half.future)을 더 진한 보라(#C4B5FD)로 — 너무 연해 안 보이던 것 보정 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -387,7 +387,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-day-half{background:#BBF7D0;color:#166534;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
 /* 미래(예정) 등록일 — 과거(파랑/초록)와 구분되는 연보라 */
 .vac-day-used.future{background:#DDD6FE;color:#5B21B6;}
-.vac-day-half.future{background:#EDE9FE;color:#5B21B6;}
+.vac-day-half.future{background:#C4B5FD;color:#4C1D95;}
 .vac-day-num{display:inline-block;}
 .vac-today-bar{width:28px;height:3px;background:#D97706;border-radius:2px;margin:2px auto 0;}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
