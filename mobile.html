@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-06-20 09:58 — 유급휴가 월 피커: 선택된 달 앰버 테두리+글로우 강조
+  수정: 2026-06-20 10:04 — 급여명세·유급휴가 월 피커: 선택된 달 앰버 테두리+글로우 강조
 -->
 <!-- ================================================
   WisePay Mobile (給与Pro by Wisewires)
@@ -1068,7 +1068,8 @@ function mOpenPayrollMonthPicker() {
     grid.innerHTML = Array.from({length: 12}, (_, i) => {
       const m = i + 1;
       const active = m === mM;
-      return `<button class="m-month-btn${active ? ' active' : ''}" onclick="mPickPayrollMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
+      const styleAttr = active ? ' style="border:2px solid #d97706;box-shadow:0 0 0 3px rgba(217,119,6,.18);"' : '';
+      return `<button class="m-month-btn${active ? ' active' : ''}"${styleAttr} onclick="mPickPayrollMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
     }).join('');
   }
   if (ov) { ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
