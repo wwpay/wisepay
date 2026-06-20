@@ -1,3 +1,6 @@
+<!--
+  수정: 2026-06-20 09:58 — 유급휴가 월 피커: 선택된 달 앰버 테두리+글로우 강조
+-->
 <!-- ================================================
   WisePay Mobile (給与Pro by Wisewires)
 ================================================ -->
@@ -1688,9 +1691,12 @@ function mOpenVacMonthPicker() {
       const active = m === mVacDetailMonth;
       const hasUsage = usedMonths.has(m);
       const isFutureMon = hasUsage && !pastMonths.has(m); // 그 달 사용이 전부 미래
-      const styleAttr = !active && hasUsage
-        ? (isFutureMon ? ' style="background:#ddd6fe;color:#5b21b6;"' : ' style="background:#bfdbfe;color:#1e40af;"')
+      const usageStyle = hasUsage
+        ? (isFutureMon ? 'background:#ddd6fe;color:#5b21b6;' : 'background:#bfdbfe;color:#1e40af;')
         : '';
+      const activeStyle = active ? 'border:2px solid #d97706;box-shadow:0 0 0 3px rgba(217,119,6,.18);' : '';
+      const combined = usageStyle + activeStyle;
+      const styleAttr = combined ? ` style="${combined}"` : '';
       return `<button class="m-month-btn${active ? ' active' : ''}"${styleAttr} onclick="mPickVacMonth(${m})">${m}${jp ? '月' : '월'}</button>`;
     }).join('');
   }
