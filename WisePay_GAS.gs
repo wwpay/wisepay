@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-22 15:45 — 비번 변경 오류 메시지 / 구분자 → <br> 2줄 표기로 통일
+// 수정: 2026-06-22 22:10 — backupWeekly에 유급휴가·공휴일 시트 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -1189,7 +1189,8 @@ function backupWeekly() {
   const main = SpreadsheetApp.getActiveSpreadsheet();
   const backup = SpreadsheetApp.create(name);
   [SHEET_EMP, SHEET_PAY, SHEET_RATE, SHEET_LOG,
-   SHEET_USERS, SHEET_DELETED, SHEET_PAID, SHEET_SNAP].forEach(function(sn) {
+   SHEET_USERS, SHEET_DELETED, SHEET_PAID, SHEET_SNAP,
+   SHEET_VACATION, SHEET_HOLIDAY].forEach(function(sn) {
     const src = main.getSheetByName(sn);
     if (!src) return;
     const nr = src.getLastRow(), nc = src.getLastColumn();
