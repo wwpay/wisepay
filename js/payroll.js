@@ -1,4 +1,4 @@
-// 수정: 2026-06-20 08:10 — 給与計算情報 섹션 관리자만 표시 (showContent 조건 추가)
+// 수정: 2026-06-22 11:57 — 사원 로그인 시 송금완료 이전 단계 급여명세 빈 폼 처리
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -323,6 +323,24 @@ function loadPayrollForm() {
   const _ymCheck = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
   const _isPaid   = _dataStatus !== 'none' && paidYMs.has(_ymCheck);
   const _finalStatus = _isPaid ? 'paid' : _dataStatus;
+
+  // 사원 로그인 시 송금완료 이전 단계(가입력·보존·미입력)는 빈 폼으로 표시
+  const _isEmpRole = typeof currentUser !== 'undefined' && currentUser?.role === 'employee';
+  if (_isEmpRole && !_isPaid) {
+    PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
+    _payrollDataStatus = 'empty';
+    _updatePayrollStatus('empty');
+    updateEmpHeader();
+    payrollDirty = false;
+    const saveBtn0 = document.getElementById('btn-save');
+    if(saveBtn0) { saveBtn0.style.background = ''; saveBtn0.style.borderColor = ''; }
+    const discardBtn0 = document.getElementById('btn-discard');
+    if(discardBtn0) discardBtn0.disabled = true;
+    _applyPaidLock(false);
+    recalc();
+    return;
+  }
+
   _payrollDataStatus = _finalStatus;
   _updatePayrollStatus(_finalStatus);
   updateEmpHeader();
