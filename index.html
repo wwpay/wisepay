@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-22 15:45 — 비번 변경 오류 메시지 전체 한일 2줄 표기(innerHTML+br)로 통일
+  수정: 2026-06-22 17:16 — cpw-err min-height 2줄 확보, 비번 오류 고정 2줄 메시지
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -556,7 +556,7 @@
             </button>
           </div>
         </div>
-        <div id="cpw-err" style="font-size:12px;min-height:16px;"></div>
+        <div id="cpw-err" style="font-size:12px;min-height:36px;line-height:1.6;"></div>
         <button id="cpw-btn" onclick="doChangePassword()"
           style="align-self:flex-start;padding:9px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;"
           onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='var(--accent)'">
