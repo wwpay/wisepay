@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 12:15 — 급여명세 입력란 blur 시 "0" 잔류 버그 수정 (관리자 포함)
+// 수정: 2026-06-22 12:30 — 급여명세 0 잔류 3중 수정: fmtInput·blur리스너·_applyEmpViewMode
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -378,6 +378,7 @@ function fmtInput(input) {
   const raw = input.value.replace(/[^0-9]/g, '');
   if(raw === '') { input.value = ''; markPayrollDirty(); return; }
   const num = parseInt(raw, 10);
+  if(num === 0) { input.value = ''; markPayrollDirty(); return; }
   const pos = input.selectionStart;
   const prevLen = input.value.length;
   input.value = (isNeg ? '-' : '') + num.toLocaleString();
@@ -419,7 +420,7 @@ function _applyEmpViewMode() {
       span.className = 'row-emp-val';
       inp.parentElement.appendChild(span);
     }
-    span.textContent = inp.value;
+    span.textContent = parseInt((inp.value || '').replace(/,/g, '')) ? inp.value : '';
   });
 }
 
@@ -452,11 +453,11 @@ function savePrevVal(input) {
   if(input.value === '0') input.value = '';
 }
 
-// 포커스 이탈 시 "0" 잔류 방지 — savePrevVal(진입)과 대칭 처리
+// 포커스 이탈 시 0 잔류 방지 — parseInt 기반으로 '0'·'0,000' 등 모든 케이스 커버
 document.addEventListener('blur', function(e) {
-  if (e.target.matches && e.target.matches('#page-payroll .row-input') && e.target.value === '0') {
-    e.target.value = '';
-  }
+  if (!e.target.matches || !e.target.matches('#page-payroll .row-input')) return;
+  const n = parseInt((e.target.value || '').replace(/,/g, ''));
+  if (!n) e.target.value = '';
 }, true);
 
 // 반각 스페이스로 변환 (일본어 입력 시 전각 스페이스 → 반각)
