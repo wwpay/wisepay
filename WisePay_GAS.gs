@@ -1,5 +1,5 @@
-// WisePay GAS Script
-// 수정: 2026-06-22 22:10 — backupWeekly에 유급휴가·공휴일 시트 추가
+﻿// WisePay GAS Script
+// 수정: 2026-06-22 22:34 — 미사용 함수 3개 제거 (calcInitialDays, ensureNewEmpVacation, detectNewEmployeesAndInitVacation)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -45,114 +45,6 @@ function doGet(e) {
   return ContentService
     .createTextOutput(callback ? callback + '(' + json + ')' : json)
     .setMimeType(callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
-}
-
-// ── GAS 유틸: 입사월 → 초기 발생일수 (JS와 동일 로직) ──────────────
-function calcInitialDays(joinMonth) {
-  if (joinMonth >= 1 && joinMonth <= 6) {
-    return 15 - (joinMonth - 1); // 1월=15, 2월=14, ..., 6월=10
-  }
-  return 13 - joinMonth; // 7월=6, 8월=5, 9월=4, 10월=3, 11월=2, 12월=1
-}
-
-// ── 신규 사원 초기 유급휴가 자동 생성 ──────────────
-// 입사일로부터 지나간 모든 1월 1일에 대해 연간발생 추가
-function ensureNewEmpVacation(empNo, joinDate) {
-  if (!empNo || !joinDate) return;
-  var empNoStr = String(parseInt(empNo || 0)).padStart(4, '0');
-  var joinMonth = parseInt(String(joinDate).substring(5, 7));
-  var joinYear = parseInt(String(joinDate).substring(0, 4));
-  if (isNaN(joinMonth) || isNaN(joinYear)) return;
-
-  var vacSheet = getSheet(SHEET_VACATION);
-  if (vacSheet.getLastRow() === 0) {
-    vacSheet.getRange(1, 1, 1, 7).setValues([['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']]);
-  }
-
-  // 현재 존재하는 동 사원의 발생 기록을 확인 (emp_no + date + reason 조합으로 중복 감지)
-  var lastRow = vacSheet.getLastRow();
-  var allRows = lastRow < 2 ? [] : vacSheet.getRange(2, 1, lastRow - 1, 7).getValues();
-  var existingRecords = {};
-  var hdrRow = vacSheet.getRange(1, 1, 1, 7).getValues()[0];
-  var idxEmpNo = hdrRow.indexOf('emp_no');
-  var idxDate = hdrRow.indexOf('date');
-  var idxGrantYear = hdrRow.indexOf('grant_year');
-  var idxReason = hdrRow.indexOf('reason');
-
-  allRows.forEach(function(row) {
-    var no = String(parseInt(row[idxEmpNo] || 0)).padStart(4, '0');
-    var dt = String(row[idxDate] || '').substring(0, 10); // YYYY-MM-DD 형식
-    var gy = String(row[idxGrantYear] || '').trim();
-    var rsn = String(row[idxReason] || '').trim();
-    if (no === empNoStr) {
-      // 키: date + reason 조합 (같은 날 같은 사유 중복 방지)
-      existingRecords[dt + '_' + rsn] = true;
-      // 호환성: 기존 gy + rsn 키도 유지 (2025/06/16 이전 로직용)
-      existingRecords[gy + '_' + rsn] = true;
-    }
-  });
-
-  // 초기발생 추가 (없으면) — date + reason 조합으로 중복 방지
-  var initialDays = calcInitialDays(joinMonth);
-  var initKey = joinDate + '_초기발생';
-  if (!existingRecords[initKey]) {
-    vacSheet.appendRow([empNoStr, joinDate, 0, '초기발생', joinYear, '', initialDays]);
-    Logger.log('✅ [' + empNoStr + '] 초기발생 ' + initialDays + '일 추가 (' + joinDate + ')');
-  }
-
-  // 현재 기준 연간발생 추가 (없으면) — date(YYYY-01-01) + reason 조합으로 중복 방지
-  var today = new Date();
-  var todayStr = Utilities.formatDate(today, 'Asia/Tokyo', 'yyyy-MM-dd');
-  var thisYear = parseInt(todayStr.substring(0, 4));
-  for (var y = joinYear + 1; y <= thisYear; y++) {
-    var jan1 = y + '-01-01';
-    var annualKey = jan1 + '_연간발생';
-    if (jan1 <= todayStr && !existingRecords[annualKey]) {
-      vacSheet.appendRow([empNoStr, jan1, 0, '연간발생', y, '', 15]);
-      Logger.log('✅ [' + empNoStr + '] 연간발생 15일 추가 (' + y + '년)');
-    }
-  }
-
-  sortVacationSheet();
-}
-
-// ── 신규 사원 감지 및 초기 유급휴가 자동 생성 ──────────────
-// employees 시트에서 신규 사원을 감지해서 유급휴가 초기화
-function detectNewEmployeesAndInitVacation(newEmployees) {
-  if (!newEmployees || !Array.isArray(newEmployees) || newEmployees.length === 0) return;
-
-  var empSheet = getSheet(SHEET_EMP);
-  if (empSheet.getLastRow() < 2) {
-    // employees 시트가 비어있으면 모두 신규 사원으로 처리
-    newEmployees.forEach(function(emp) {
-      if (emp.no && emp.join) {
-        ensureNewEmpVacation(emp.no, emp.join);
-      }
-    });
-    return;
-  }
-
-  // 기존 사원 emp_no 수집
-  var hdr = empSheet.getRange(1, 1, 1, empSheet.getLastColumn()).getValues()[0];
-  var noCol = hdr.indexOf('no') >= 0 ? hdr.indexOf('no') : hdr.indexOf('사원');
-  if (noCol < 0) return;
-
-  var existingNos = {};
-  var allRows = empSheet.getRange(2, 1, empSheet.getLastRow() - 1, empSheet.getLastColumn()).getValues();
-  allRows.forEach(function(row) {
-    var no = String(parseInt(row[noCol] || 0)).padStart(4, '0');
-    if (no !== '0000') existingNos[no] = true;
-  });
-
-  // 신규 사원 감지 및 초기화
-  newEmployees.forEach(function(emp) {
-    if (!emp.no || !emp.join) return;
-    var empNoStr = String(parseInt(emp.no)).padStart(4, '0');
-    if (!existingNos[empNoStr]) {
-      Logger.log('🆕 신규 사원 감지: ' + empNoStr + ' (입사: ' + emp.join + ')');
-      ensureNewEmpVacation(emp.no, emp.join);
-    }
-  });
 }
 
 function doPost(e) {
