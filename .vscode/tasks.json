@@ -4,7 +4,13 @@
     {
       "label": "git pull on startup",
       "type": "shell",
-      "command": "git pull",
+      "command": "Start-Sleep 3; git pull; if ($LASTEXITCODE -ne 0) { Start-Sleep 5; git pull }",
+      "options": {
+        "shell": {
+          "executable": "powershell.exe",
+          "args": ["-NoProfile", "-Command"]
+        }
+      },
       "runOptions": {
         "runOn": "folderOpen"
       },
