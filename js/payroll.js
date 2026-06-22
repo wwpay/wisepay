@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 15:11 — 사원 empty 상태 텍스트 앞 "—" 제거
+// 수정: 2026-06-22 17:27 — 사원 데이터없음 상태: recalc가 쓴 0 표시 전체 공란 처리
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -341,6 +341,14 @@ function loadPayrollForm() {
     _applyPaidLock(false);
     recalc();
     _applyEmpViewMode();
+    // データなし状態: recalcが書いた0を全消去
+    ['shikyuuTotal','totalPayTxt',
+     'k-kenko','k-kaigo','k-kodomo','k-nenkin','k-koyo','k-shotoku',
+     'kojoTotal','totalKojoTxt','netAmountTxt',
+     'ci-kenko','ci-nenkin','ci-koyo','ci-shotoku','netDiffTxt'
+    ].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+    const _kaigoEl = document.getElementById('k-kaigo');
+    if (_kaigoEl) _kaigoEl.className = 'row-val';
     return;
   }
 
