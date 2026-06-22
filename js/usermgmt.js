@@ -1,4 +1,4 @@
-// 수정: 2026-05-28 17:23 — 사용자 관리 기능 신규 추가 (admin 전용)
+// 수정: 2026-06-22 15:24 — 사원 비번 재설정 입력란 눈 아이콘(password visibility toggle) 추가
 'use strict';
 
 function renderUserMgmt() {
@@ -67,11 +67,17 @@ function _renderUserRows(users) {
       </div>
       <div id="pwr-form-${id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
-          <input type="password" id="pwr-input-${id}"
-            placeholder="${LANG === 'JP' ? '新しいパスワード' : '새 비밀번호'}"
-            style="flex:1;min-width:140px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-            onkeydown="if(event.key==='Enter')confirmPwReset('${id}')">
+          <div style="position:relative;flex:1;min-width:140px;">
+            <input type="password" id="pwr-input-${id}"
+              placeholder="${LANG === 'JP' ? '新しいパスワード' : '새 비밀번호'}"
+              style="width:100%;padding:7px 36px 7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')confirmPwReset('${id}')">
+            <button type="button" id="pwr-eye-${id}" tabindex="-1" onclick="togglePwEye('pwr-input-${id}','pwr-eye-${id}')"
+              style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+              ${typeof _EYE_ON !== 'undefined' ? _EYE_ON : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'}
+            </button>
+          </div>
           <button id="pwr-ok-${id}" onclick="confirmPwReset('${id}')"
             style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
             ${LANG === 'JP' ? '確定' : '확인'}

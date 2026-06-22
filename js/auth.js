@@ -1,4 +1,4 @@
-// 수정: 2026-06-20 08:10 — 급여명세 표준보수월액·공제란 물음표·給与計算情報 관리자만 표시
+// 수정: 2026-06-22 15:24 — togglePwEye 범용 함수 추가 (비번 변경·재설정 눈 아이콘용)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -14,6 +14,15 @@ function toggleLoginPw() {
   if (!pw || !btn) return;
   const show = pw.type === 'password';
   pw.type    = show ? 'text' : 'password';
+  btn.innerHTML = show ? _EYE_OFF : _EYE_ON;
+}
+
+function togglePwEye(inputId, btnId) {
+  const pw  = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!pw || !btn) return;
+  const show = pw.type === 'password';
+  pw.type       = show ? 'text' : 'password';
   btn.innerHTML = show ? _EYE_OFF : _EYE_ON;
 }
 

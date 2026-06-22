@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-22 15:11 — payroll.js: 사원 empty 상태 "— データなし/데이터 없음"에서 "—" 제거
+  수정: 2026-06-22 15:24 — 비번 변경·재설정 입력란 5곳 password visibility toggle(눈 아이콘) 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -519,24 +519,42 @@
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div>
           <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">現在のパスワード / 현재 비밀번호</div>
-          <input type="password" id="cpw-current" autocomplete="current-password"
-            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-            onkeydown="if(event.key==='Enter')document.getElementById('cpw-new').focus()">
+          <div style="position:relative;">
+            <input type="password" id="cpw-current" autocomplete="current-password"
+              style="width:100%;padding:9px 36px 9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')document.getElementById('cpw-new').focus()">
+            <button type="button" id="cpw-current-eye" tabindex="-1" onclick="togglePwEye('cpw-current','cpw-current-eye')"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード / 새 비밀번호</div>
-          <input type="password" id="cpw-new" autocomplete="new-password"
-            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-            onkeydown="if(event.key==='Enter')document.getElementById('cpw-confirm').focus()">
+          <div style="position:relative;">
+            <input type="password" id="cpw-new" autocomplete="new-password"
+              style="width:100%;padding:9px 36px 9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')document.getElementById('cpw-confirm').focus()">
+            <button type="button" id="cpw-new-eye" tabindex="-1" onclick="togglePwEye('cpw-new','cpw-new-eye')"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;">新しいパスワード（確認） / 새 비밀번호 확인</div>
-          <input type="password" id="cpw-confirm" autocomplete="new-password"
-            style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-            onkeydown="if(event.key==='Enter')doChangePassword()">
+          <div style="position:relative;">
+            <input type="password" id="cpw-confirm" autocomplete="new-password"
+              style="width:100%;padding:9px 36px 9px 12px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')doChangePassword()">
+            <button type="button" id="cpw-confirm-eye" tabindex="-1" onclick="togglePwEye('cpw-confirm','cpw-confirm-eye')"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
         <div id="cpw-err" style="font-size:12px;min-height:16px;"></div>
         <button id="cpw-btn" onclick="doChangePassword()"
@@ -706,17 +724,29 @@
         <div style="display:flex;flex-direction:column;gap:8px;max-width:300px;">
           <div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">현재 비밀번호 / 現在のパスワード</div>
-            <input type="password" id="mypw-current"
-              style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
-              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-              onkeydown="if(event.key==='Enter')document.getElementById('mypw-new').focus()">
+            <div style="position:relative;">
+              <input type="password" id="mypw-current"
+                style="width:100%;padding:7px 36px 7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+                onkeydown="if(event.key==='Enter')document.getElementById('mypw-new').focus()">
+              <button type="button" id="mypw-current-eye" tabindex="-1" onclick="togglePwEye('mypw-current','mypw-current-eye')"
+                style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">새 비밀번호 / 新しいパスワード</div>
-            <input type="password" id="mypw-new"
-              style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
-              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-              onkeydown="if(event.key==='Enter')confirmMyPwChange()">
+            <div style="position:relative;">
+              <input type="password" id="mypw-new"
+                style="width:100%;padding:7px 36px 7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box;outline:none;"
+                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+                onkeydown="if(event.key==='Enter')confirmMyPwChange()">
+              <button type="button" id="mypw-new-eye" tabindex="-1" onclick="togglePwEye('mypw-new','mypw-new-eye')"
+                style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;line-height:1;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div id="mypw-err" style="color:var(--red);font-size:12px;min-height:16px;"></div>
           <button id="mypw-btn" onclick="confirmMyPwChange()"
