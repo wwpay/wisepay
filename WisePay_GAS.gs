@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-06-18 — vacation 중복 기록 버그 수정 (employees 핸들러 vacation 생성 제거 + addVacationGrantEntry 중복 체크 추가)
+// 수정: 2026-06-22 15:34 — changePassword 오류 메시지 한국어→한일 이중 언어로 수정
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -361,7 +361,7 @@ function doPost(e) {
       if (!cpUid || !cpHash || !cpNewHash) return jsonResponse({ ok: false, error: 'Missing parameters' });
       var cpSheet   = getSheet(SHEET_USERS);
       var cpVals    = cpSheet.getDataRange().getValues();
-      if (cpVals.length < 2) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
+      if (cpVals.length < 2) return jsonResponse({ ok: false, error: '現在のパスワードが一致しません / 현재 비밀번호가 일치하지 않습니다' });
       var cpHdrs    = cpVals[0];
       var cpIdCol   = cpHdrs.indexOf('ID');
       var cpHashCol = cpHdrs.indexOf('PW_HASH');
@@ -371,13 +371,13 @@ function doPost(e) {
       for (var ri = 1; ri < cpVals.length; ri++) {
         if (String(cpVals[ri][cpIdCol] || '').trim() === cpUid) {
           var storedHash = String(cpVals[ri][cpHashCol] || '').toLowerCase().trim();
-          if (storedHash !== cpHash) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
+          if (storedHash !== cpHash) return jsonResponse({ ok: false, error: '現在のパスワードが一致しません / 현재 비밀번호가 일치하지 않습니다' });
           cpRole = cpRoleCol >= 0 ? String(cpVals[ri][cpRoleCol] || '').trim() : '';
           cpRow  = ri; break;
         }
       }
-      if (cpRow < 0) return jsonResponse({ ok: false, error: '현재 비밀번호가 일치하지 않습니다' });
-      if (cpRole !== 'employee' && cpRole !== 'viewer') return jsonResponse({ ok: false, error: '권한이 없습니다' });
+      if (cpRow < 0) return jsonResponse({ ok: false, error: '現在のパスワードが一致しません / 현재 비밀번호가 일치하지 않습니다' });
+      if (cpRole !== 'employee' && cpRole !== 'viewer') return jsonResponse({ ok: false, error: '権限がありません / 권한이 없습니다' });
       cpSheet.getRange(cpRow + 1, cpHashCol + 1).setValue(cpNewHash);
       return jsonResponse({ ok: true });
     }
