@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 17:27 — 사원 데이터없음 상태: recalc가 쓴 0 표시 전체 공란 처리
+// 수정: 2026-06-22 17:34 — 사원 데이터없음: 공제·합계 공란, 차인지급액 ¥0+전월비 ±0 유지
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -341,14 +341,16 @@ function loadPayrollForm() {
     _applyPaidLock(false);
     recalc();
     _applyEmpViewMode();
-    // データなし状態: recalcが書いた0を全消去
+    // データなし状態: recalcが書いた0を全消去 (netAmountTxtは¥0のまま残す)
     ['shikyuuTotal','totalPayTxt',
      'k-kenko','k-kaigo','k-kodomo','k-nenkin','k-koyo','k-shotoku',
-     'kojoTotal','totalKojoTxt','netAmountTxt',
-     'ci-kenko','ci-nenkin','ci-koyo','ci-shotoku','netDiffTxt'
+     'kojoTotal','totalKojoTxt',
+     'ci-kenko','ci-nenkin','ci-koyo','ci-shotoku'
     ].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
     const _kaigoEl = document.getElementById('k-kaigo');
     if (_kaigoEl) _kaigoEl.className = 'row-val';
+    const _de = document.getElementById('netDiffTxt');
+    if (_de) { _de.textContent = (LANG==='JP'?'前月比':'전월 대비') + '  ─ ±0'; _de.className = 'net-diff nc'; }
     return;
   }
 
