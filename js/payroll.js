@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 12:30 — 급여명세 0 잔류 3중 수정: fmtInput·blur리스너·_applyEmpViewMode
+// 수정: 2026-06-22 15:11 — 사원 empty 상태 텍스트 앞 "—" 제거
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -70,7 +70,7 @@ function _updatePayrollStatus(status) {
       text: jp ? '📋 仮入力値（未保存）' : '📋 임시 입력값 (미저장)' },
     empty:  { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)',
       text: (typeof currentUser !== 'undefined' && currentUser?.role === 'employee')
-        ? (jp ? '— データなし' : '— 데이터 없음')
+        ? (jp ? 'データなし' : '데이터 없음')
         : (jp ? '— 入力なし' : '— 입력값 없음') },
     paid:   { bg:'#eff6ff', color:'#1e40af', border:'#bfdbfe',
       text: (jp ? '🔒 送金完了' : '🔒 송금완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
