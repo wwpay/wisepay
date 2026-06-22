@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-15 10:58 — 비밀번호 변경 기능 추가 (gotoPage titles + handler)
+﻿// 수정: 2026-06-22 12:45 — 급여 입력란 focusout '0' 복원 리스너 제거 (0 잔류 버그 진짜 원인)
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -87,12 +87,8 @@ function initApp() {
   // GAS URL은 state.js에서 하드코딩 — localStorage에 동기화
   localStorage.setItem(LS.gas, gasUrl);
 
-  // 급여 입력란: 포커스 이탈 시 빈 값 → "0" 복원
-  document.addEventListener('focusout', e => {
-    if(e.target.matches('#page-payroll .row-input') && e.target.value === '') {
-      e.target.value = '0';
-    }
-  });
+  // (제거) 이전: 급여 입력란 포커스 이탈 시 빈 값 → "0" 복원 — 0 잔류 버그 원인이라 삭제.
+  // 빈 칸은 pv()에서 0으로 파싱되므로 계산엔 영향 없음. payroll.js의 blur 리스너가 0 잔류를 방지.
 
   renderEmpSelect();
   renderMonthTabs();
