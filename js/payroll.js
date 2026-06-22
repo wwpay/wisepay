@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 11:57 — 사원 로그인 시 송금완료 이전 단계 급여명세 빈 폼 처리
+// 수정: 2026-06-22 12:00 — 사원·viewer 급여명세 입력란 텍스트 표시 + 0입력 버그 수정
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -338,6 +338,7 @@ function loadPayrollForm() {
     if(discardBtn0) discardBtn0.disabled = true;
     _applyPaidLock(false);
     recalc();
+    _applyEmpViewMode();
     return;
   }
 
@@ -351,6 +352,7 @@ function loadPayrollForm() {
   if(discardBtn0) discardBtn0.disabled = true;
   _applyPaidLock(_isPaid); // background 리셋 이후 호출해야 녹색이 덮이지 않음
   recalc();
+  _applyEmpViewMode();
 }
 
 function updateEmpHeader() {
@@ -402,6 +404,21 @@ function discardPayroll() {
   const discardBtn = document.getElementById('btn-discard');
   if(discardBtn) discardBtn.disabled = true;
   loadPayrollForm();
+}
+
+// 사원·viewer: 입력란을 숨기고 값을 텍스트 스팬으로 표시 (클릭 반응·0입력 버그 방지)
+function _applyEmpViewMode() {
+  if (!currentUser || currentUser.role === 'admin') return;
+  document.querySelectorAll('#page-payroll .row-input').forEach(inp => {
+    inp.style.display = 'none';
+    let span = inp.parentElement.querySelector('.row-emp-val');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'row-emp-val';
+      inp.parentElement.appendChild(span);
+    }
+    span.textContent = inp.value;
+  });
 }
 
 function pv(id) {

@@ -1,4 +1,4 @@
-/* 수정: 2026-06-19 13:49 — 미래 풀데이↔반차 색 교환 (풀데이 진보라 #C4B5FD / 반차 연보라 #DDD6FE) */
+/* 수정: 2026-06-22 12:00 — 사원·viewer 급여명세 입력란 → 텍스트 표시 (.row-emp-val) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -135,6 +135,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .row-val.hi{color:var(--accent);} .row-val.zero{color:var(--text3);}
 .row-input{width:108px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:calc(12.5px + var(--fs-delta));font-family:inherit;color:var(--text);background:var(--surface);transition:border-color .15s;}
 .row-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,91,219,.1);}
+.row-emp-val{width:108px;text-align:right;font-size:calc(12.5px + var(--fs-delta));font-weight:500;color:var(--text);padding:3px 7px;}
 .row-total{background:var(--surface2)!important;border-top:1px solid var(--border)!important;font-weight:600;}
 
 /* TOOLTIP ICON */
