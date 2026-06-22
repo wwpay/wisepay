@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 12:05 — 사원 로그인 시 empty 상태 텍스트 "데이터 없음/データなし"로 변경
+// 수정: 2026-06-22 12:15 — 급여명세 입력란 blur 시 "0" 잔류 버그 수정 (관리자 포함)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -451,6 +451,13 @@ function savePrevVal(input) {
   prevValues[input.id] = input.value;
   if(input.value === '0') input.value = '';
 }
+
+// 포커스 이탈 시 "0" 잔류 방지 — savePrevVal(진입)과 대칭 처리
+document.addEventListener('blur', function(e) {
+  if (e.target.matches && e.target.matches('#page-payroll .row-input') && e.target.value === '0') {
+    e.target.value = '';
+  }
+}, true);
 
 // 반각 스페이스로 변환 (일본어 입력 시 전각 스페이스 → 반각)
 function toHalfSpace(str) {
