@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 15:24 — 사원 비번 재설정 입력란 눈 아이콘(password visibility toggle) 추가
+// 수정: 2026-06-22 15:45 — 관리자 본인 PW 변경 오류 메시지 innerHTML+<br> 2줄 표기로 수정
 'use strict';
 
 function renderUserMgmt() {
@@ -167,10 +167,10 @@ async function confirmMyPwChange() {
       if (newEl) newEl.value = '';
       showToast(LANG === 'JP' ? 'パスワードを変更しました ✓' : '비밀번호를 변경했습니다 ✓', 's');
     } else {
-      if (errEl) errEl.textContent = result.error || (LANG === 'JP' ? '現在のパスワードが違います' : '현재 비밀번호가 틀렸습니다');
+      if (errEl) errEl.innerHTML = result.error || '現在のパスワードが違います<br>현재 비밀번호가 틀렸습니다';
     }
   } catch(e) {
-    if (errEl) errEl.textContent = LANG === 'JP' ? 'エラーが発生しました' : '오류가 발생했습니다';
+    if (errEl) errEl.innerHTML = 'エラーが発生しました<br>오류가 발생했습니다';
   } finally {
     if (btnEl) {
       btnEl.disabled = false;
