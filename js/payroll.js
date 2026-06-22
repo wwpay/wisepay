@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 12:00 — 사원·viewer 급여명세 입력란 텍스트 표시 + 0입력 버그 수정
+// 수정: 2026-06-22 12:05 — 사원 로그인 시 empty 상태 텍스트 "데이터 없음/データなし"로 변경
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -69,7 +69,9 @@ function _updatePayrollStatus(status) {
     approx: { bg:'#fffbeb', color:'#92400e', border:'#fde68a',
       text: jp ? '📋 仮入力値（未保存）' : '📋 임시 입력값 (미저장)' },
     empty:  { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)',
-      text: jp ? '— 入力なし' : '— 입력값 없음' },
+      text: (typeof currentUser !== 'undefined' && currentUser?.role === 'employee')
+        ? (jp ? '— データなし' : '— 데이터 없음')
+        : (jp ? '— 入力なし' : '— 입력값 없음') },
     paid:   { bg:'#eff6ff', color:'#1e40af', border:'#bfdbfe',
       text: (jp ? '🔒 送金完了' : '🔒 송금완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
   }[status] || { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)', text:'' };
