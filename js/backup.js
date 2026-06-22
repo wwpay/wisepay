@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 00:57 — 복원 모달 연도 선택 추가 + 삭제 범위 한정 + _uid/_token 제거
+// 수정: 2026-06-22 21:59 — Excel 백업에 유급휴가 시트 추가
 'use strict';
 
 /* ── 날짜 유틸 ── */
@@ -525,9 +525,13 @@ async function downloadBackupExcel() {
   const wb = XLSX.utils.book_new();
   const empData = employees.length ? employees.map(e => ({ ...e, families: JSON.stringify(e.families || []) })) : [{}];
   const payData = collectAllPayrolls();
+  const vacData = Object.entries(vacationData || {}).flatMap(([empNo, records]) =>
+    (records || []).map(r => ({ emp_no: empNo, ...r }))
+  );
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(empData), '사원정보');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payData.length ? payData : [{}]), '급여데이터');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rateHistory.length ? rateHistory : [{}]), '보험료율이력');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(vacData.length ? vacData : [{}]), '유급휴가');
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const ok = await _saveWithFolder(blob, filename);
