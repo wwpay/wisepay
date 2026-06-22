@@ -1,4 +1,4 @@
-// 수정: 2026-06-19 13:39 — 상세 연산기호(−,=)를 앰버→중립 회색·20px로 변경 (앰버 남발 해소, 남은연차/소멸예정 색 구분)
+// 수정: 2026-06-22 22:42 — 유급휴가 달력 공휴일 빨간색 표시 (localStorage holidayCache 활용)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -746,6 +746,7 @@ function _renderVacCalendar() {
     ? ['日','月','火','水','木','金','土']
     : ['일','월','화','수','목','금','토'];
 
+  const holidays = JSON.parse(localStorage.getItem('holidayCache') || '[]');
   let cells = '';
   for (let i = 0; i < firstDay; i++) {
     const emptyCls = i === 0 ? ' sun' : i === 6 ? ' sat' : '';
@@ -760,6 +761,7 @@ function _renderVacCalendar() {
     let cls = 'vac-cal-day';
     if (dow_idx === 0) cls += ' sun';
     if (dow_idx === 6) cls += ' sat';
+    if (holidays.includes(dateStr)) cls += ' holiday';
     if (info) cls += ' used';
     if (isToday) cls += ' today-mark';
     let spanCls = '';
