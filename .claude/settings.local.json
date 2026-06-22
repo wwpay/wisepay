@@ -39,7 +39,10 @@
       "WebFetch(domain:jinjer-kyuyo.zendesk.com)",
       "Bash(node *)",
       "PowerShell(git add -A)",
-      "PowerShell(git push)"
+      "PowerShell(git push)",
+      "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" add js/backup.js index.html ??????.md)",
+      "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" commit -m \"feat: Excel ??\\(??\\)? ???? ?? ??\")",
+      "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" push)"
     ]
   }
 }
