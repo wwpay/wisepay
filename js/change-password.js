@@ -1,4 +1,4 @@
-// 수정: 2026-06-22 17:16 — 비번 불일치 오류 고정 2줄 메시지(GAS 의존 제거), cpw-err min-height 2줄로 확장
+// 수정: 2026-06-22 17:16 — cpw-err min-height 2줄로 확장, 오류 메시지 result.error 폴백 유지
 'use strict';
 
 function initChangePwPage() {
@@ -55,7 +55,7 @@ async function doChangePassword() {
       if (errEl) { errEl.style.color = '#16a34a'; errEl.innerHTML = 'パスワードを変更しました。再ログインしてください。<br>비밀번호를 변경했습니다. 다시 로그인해 주세요.'; }
       setTimeout(() => doLogout(), 1800);
     } else {
-      showErr('現在のパスワードが一致しません<br>현재 비밀번호가 일치하지 않습니다');
+      showErr(result.error || '現在のパスワードが一致しません<br>현재 비밀번호가 일치하지 않습니다');
     }
   } catch(e) {
     showErr('エラーが発生しました<br>오류가 발생했습니다');
