@@ -1,4 +1,4 @@
-// 수정: 2026-06-23 17:20 — 오늘 날짜 표시: 앰버 라운딩 사각 + 오늘/今日 레이블 (기존 밑줄 제거)
+// 수정: 2026-06-23 17:23 — 오늘 날짜 표시: 앰버 라운딩 외곽선만 (채움 없음, 레이블 제거)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -767,9 +767,8 @@ function _renderVacCalendar() {
     let spanCls = '';
     if (info) spanCls = (info.used < 1 ? 'vac-day-half' : 'vac-day-used') + (isFuture ? ' future' : '');
     const numSpan = spanCls ? `<span class="${spanCls}">${d}</span>` : `<span class="vac-day-num">${d}</span>`;
-    const todayLbl = isToday ? `<span class="vac-today-lbl">${jp ? '今日' : '오늘'}</span>` : '';
     // 모든 날짜 클릭 시 해당 날짜로 등록 팝업 열기
-    cells += `<div class="${cls}" style="cursor:pointer;" onclick="showVacationModal('${no}','${dateStr}')">${todayLbl}${numSpan}</div>`;
+    cells += `<div class="${cls}" style="cursor:pointer;" onclick="showVacationModal('${no}','${dateStr}')">${numSpan}</div>`;
   }
 
   cal.innerHTML = `
