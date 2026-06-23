@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-22 22:34 — WisePay_GAS.gs: 미사용 함수 3개 제거
+  수정: 2026-06-23 09:32 — 연말정산 정산액 힌트 텍스트 → 물음표 툴팁으로 전환
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -241,8 +241,7 @@
         <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-koyo">雇用保険料</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-koyo')" onfocus="showTip(this,'tip-koyo')" onmouseleave="hideTip('tip-koyo')" onblur="hideTip('tip-koyo')" onclick="toggleTip(this,'tip-koyo',event)">❓</span></span><span class="row-val hi" id="k-koyo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-shotoku">所得税</span><span class="row-val" id="k-shotoku">0</span></div>
         <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-jumin')" onfocus="showTip(this,'tip-jumin')" onmouseleave="hideTip('tip-jumin')" onblur="hideTip('tip-jumin')" onclick="toggleTip(this,'tip-jumin',event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
-        <div class="row"><span class="row-label" id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
-        <div style="font-size:10px;color:var(--text3);padding:3px 13px;" id="t-nencho-hint">※ 還付はマイナス(-)入力 / 환급은 마이너스(-) 입력</div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-nencho')" onfocus="showTip(this,'tip-nencho')" onmouseleave="hideTip('tip-nencho')" onblur="hideTip('tip-nencho')" onclick="toggleTip(this,'tip-nencho',event)">❓</span></span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
         <div class="row row-total"><span class="row-label" id="t-k-total">計</span><span class="row-val" id="kojoTotal">0</span></div>
       </div>
     </div>
@@ -1024,6 +1023,7 @@ document.addEventListener('DOMContentLoaded', initFontSize);
 <div class="tip-portal" id="tip-kodomo" role="tooltip" aria-hidden="true"></div>
 <div class="tip-portal" id="tip-koyo"   role="tooltip" aria-hidden="true"></div>
 <div class="tip-portal" id="tip-jumin"  role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-nencho" role="tooltip" aria-hidden="true"></div>
 <script>
 (function() {
   function _reposition(icon, id) {

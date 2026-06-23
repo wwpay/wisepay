@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-13 18:43 — 원천세 납부서 i18n 라벨 추가
+﻿// 수정: 2026-06-23 09:32 — 연말정산 정산액 tip-nencho 툴팁 추가, t-nencho-hint 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -128,6 +128,10 @@ function applyLang() {
     '구청·시청에서 보내는 특별징수 통지서의 월별 금액을 입력하세요.<br>※ 월별 금액 기준은 \'지급일\'입니다.<br><br>예) 6월분 주민세 → 6월 10일 지급(5월분 급여)에서 공제<br><br>※ 6월분은 연간 합계의 단수 조정으로 다른 달과 금액이 다를 수 있습니다.'
   );
   setTxt('t-k-nencho', '年末調整精算額', '연말정산 정산액');
+  setHtml('tip-nencho',
+    '還付がある場合はマイナス(-)で入力してください',
+    '환급이 있는 경우 마이너스(-)로 입력하세요'
+  );
   setTxt('t-k-total', '計', '합계');
 
   setTxt('t-gas-title', '🔗 Google スプレッドシート連携設定', '🔗 Google 스프레드시트 연동 설정');
@@ -208,7 +212,6 @@ function applyLang() {
   setTxt('t-ci-nenkin', '厚生年金', '후생연금');
   setTxt('t-ci-koyo', '雇用保険', '고용보험');
   setTxt('t-ci-shotoku', '所得税', '소득세');
-  setTxt('t-nencho-hint', '※ 還付はマイナス(-)入力', '※ 환급은 마이너스(-) 입력');
   setTxt('t-banner-msg', '【保険料率更新】2026年度 協会けんぽ（東京都）の保険料率が改定されました。', '【보험료율 업데이트】2026년도 協会けんぽ（東京都）의 보험료율이 개정되었습니다。');
 
   setTxt('t-mr-title', '✨ 最新保険料率（2026年度）', '✨ 최신 보험료율（2026년도）');
