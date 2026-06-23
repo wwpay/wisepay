@@ -392,7 +392,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-day-half.future{background:#DDD6FE;color:#5B21B6;}
 .vac-day-num{display:inline-block;}
 .vac-today-bar{display:none;}
-.today-mark .vac-day-num{box-shadow:0 0 0 2px #D97706;border-radius:6px;}
+.today-mark .vac-day-num{min-width:28px;padding:2px 6px;text-align:center;font-weight:700;box-shadow:0 0 0 2px #D97706;border-radius:6px;}
 .today-mark .vac-day-used,.today-mark .vac-day-half,.today-mark .vac-day-used.future,.today-mark .vac-day-half.future{box-shadow:0 0 0 2px #D97706;}
 .vac-list-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;cursor:pointer;transition:background .12s;}
 .vac-list-item:hover{background:var(--surface2);}
