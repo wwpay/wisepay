@@ -1,4 +1,4 @@
-// 수정: 2026-06-24 22:08 — 로그인 오류 메시지 전체 한일 줄바꿈 분리 (innerHTML+<br>)
+// 수정: 2026-06-24 22:15 — forgotPassword() 보안 수정: wiseadmin 외 계정 차단 + 빈 ID 시각 피드백
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -135,19 +135,32 @@ function _showLogin() {
 }
 
 async function forgotPassword() {
-  const id  = (document.getElementById('login-id').value || '').trim();
-  const err = document.getElementById('login-err');
+  const idEl = document.getElementById('login-id');
+  const id   = (idEl.value || '').trim();
+  const err  = document.getElementById('login-err');
+
+  // 빈 ID → 입력란 빨간 테두리 + 메시지
   if (!id) {
+    idEl.style.borderColor = '#ef4444';
+    idEl.focus();
     err.innerHTML = 'IDを入力してください<br>ID를 먼저 입력해 주세요';
-    document.getElementById('login-id').focus();
+    setTimeout(() => { idEl.style.borderColor = '#e2e8f0'; err.innerHTML = ''; }, 3000);
     return;
   }
+
+  // 관리자(wiseadmin) 계정 전용 기능 — 다른 계정은 안내 메시지만 표시
+  if (id !== 'wiseadmin') {
+    err.innerHTML = 'パスワード再設定は管理者にお問い合わせください<br>비밀번호 재설정은 관리자에게 문의해 주세요';
+    setTimeout(() => { err.innerHTML = ''; }, 5000);
+    return;
+  }
+
   const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
   if (!url) {
     err.innerHTML = 'GAS URLが設定されていません<br>GAS URL이 설정되지 않았습니다';
     return;
   }
-  if (!confirm('管理者メールに仮パスワードを送信します。\n관리자 이메일로 임시 비밀번호를 발송합니다.\n\nよろしいですか？ / 계속할까요?')) return;
+  if (!confirm('wiseadmin のパスワードをリセットします。\nwiseadmin 비밀번호를 초기화합니다.\n\n管理者メールに仮パスワードを送信します。\n관리자 이메일로 임시 비밀번호를 발송합니다.\n\nよろしいですか？ / 계속할까요?')) return;
   err.innerHTML = '';
   const btn = document.getElementById('login-btn');
   btn.disabled = true;
@@ -159,7 +172,7 @@ async function forgotPassword() {
       err.innerHTML = 'メールを送信しました ✓<br>이메일을 발송했습니다 ✓';
     } else {
       err.style.color = '#ef4444';
-      err.innerHTML = result.error || '送信失敗 / 발송 실패';
+      err.innerHTML = result.error || '送信失敗<br>발송 실패';
     }
   } catch(e) {
     err.style.color = '#ef4444';
