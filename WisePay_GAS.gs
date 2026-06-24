@@ -1,5 +1,5 @@
 ﻿// WisePay GAS Script
-// 수정: 2026-06-24 22:45 — 비번 분실 이메일 링크 방식으로 전환 (requestPasswordReset / confirmReset)
+// 수정: 2026-06-24 23:30 — 비번 재설정 링크 URL을 GitHub Pages로 변경 (netlify→github.io)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -606,7 +606,7 @@ function doPost(e) {
           tokSheet.getRange(1,1,1,5).setValues([['token','user_id','created_at','expires_at','used']]);
         }
         tokSheet.appendRow([rpToken, rpId, rpNowStr, rpExpStr, false]);
-        var rpLink = 'https://wwpay.netlify.app/?reset_token=' + rpToken;
+        var rpLink = 'https://wwpay.github.io/wisepay/?reset_token=' + rpToken;
         GmailApp.sendEmail(ADMIN_EMAIL,
           '[WisePay] パスワードリセットリンク / 비밀번호 재설정 링크',
           'パスワードリセットが要求されました。\n비밀번호 재설정이 요청되었습니다。\n\n' +

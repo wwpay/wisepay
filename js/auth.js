@@ -205,17 +205,13 @@ function closePwResetResultModal() {
 // gasRequest는 gas.js에서 정의(auth.js보다 늦게 로드)되므로 window.load 후 실행
 
 window.addEventListener('load', function checkResetToken() {
-  console.log('[PwReset] checkResetToken 실행, search=', window.location.search);
   const token = new URLSearchParams(window.location.search).get('reset_token');
-  console.log('[PwReset] token=', token);
   if (!token) return;
   // URL에서 토큰 제거 (주소창 노출 최소화)
   history.replaceState(null, '', window.location.pathname);
-  console.log('[PwReset] gasRequest 타입=', typeof gasRequest);
   showPwResetResult(true, 'リセットリンクを確認中…<br>링크 확인 중…');
   gasRequest({ action: 'confirmReset', token })
     .then(res => {
-      console.log('[PwReset] 응답=', res);
       if (res.ok) {
         showPwResetResult(true,
           '仮パスワード:<br><strong style="font-size:20px;letter-spacing:2px;color:#4f46e5;">' + res.tempPw + '</strong><br>' +
