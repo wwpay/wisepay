@@ -1,4 +1,4 @@
-// 수정: 2026-06-24 22:02 — forgotPassword() 메시지 한일 줄바꿈 분리 (innerHTML+<br>)
+// 수정: 2026-06-24 22:08 — 로그인 오류 메시지 전체 한일 줄바꿈 분리 (innerHTML+<br>)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -178,7 +178,7 @@ async function doLogin() {
   const btn    = document.getElementById('login-btn');
 
   if (!id || !pw) {
-    err.textContent = 'IDとパスワードを入力してください / ID와 비밀번호를 입력해 주세요';
+    err.innerHTML = 'IDとパスワードを入力してください<br>ID와 비밀번호를 입력해 주세요';
     return;
   }
 
@@ -217,7 +217,7 @@ async function doLogin() {
       document.getElementById('login-pw').focus();
     }
   } catch(e) {
-    err.textContent = 'ログインエラー / 로그인 오류가 발생했습니다';
+    err.innerHTML = 'ログインエラー<br>로그인 오류가 발생했습니다';
     console.error('Login error:', e);
   } finally {
     btn.disabled = false;
