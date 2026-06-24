@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-06-24 23:40 — auth.js 캐시버스팅 쿼리 추가, 결과 모달 폭 320px
+  수정: 2026-06-24 23:45 — 임시 비번 모달 폭 360px + word-break:keep-all (일본어 줄바꿈 개선)
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -80,9 +80,9 @@
 
 <!-- 임시 비번 표시 모달 -->
 <div id="pw-reset-result-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10001;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:left;">
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:left;">
     <div id="pw-reset-result-icon" style="font-size:32px;margin-bottom:12px;text-align:center;"></div>
-    <div id="pw-reset-result-msg" style="font-size:13px;color:#1e293b;line-height:1.7;margin-bottom:20px;"></div>
+    <div id="pw-reset-result-msg" style="font-size:13px;color:#1e293b;line-height:1.7;margin-bottom:20px;word-break:keep-all;"></div>
     <button onclick="closePwResetResultModal()" style="width:100%;padding:9px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">OK</button>
   </div>
 </div>
@@ -1004,7 +1004,7 @@
 </div>
 
 <script src="js/state.js"></script>
-<script src="js/auth.js?v=20260624b"></script>
+<script src="js/auth.js?v=20260624c"></script>
 <script src="js/utils.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/tax-tables.js"></script>
