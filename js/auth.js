@@ -202,17 +202,15 @@ function closePwResetResultModal() {
 }
 
 // ── 앱 로드 시 reset_token URL 파라미터 감지 ──
+// gasRequest는 gas.js에서 정의(auth.js보다 늦게 로드)되므로 window.load 후 실행
 
-(function checkResetToken() {
+window.addEventListener('load', function checkResetToken() {
   const token = new URLSearchParams(window.location.search).get('reset_token');
   if (!token) return;
   // URL에서 토큰 제거 (주소창 노출 최소화)
   history.replaceState(null, '', window.location.pathname);
-  const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
-  if (!url) return;
   showPwResetResult(true, 'リセットリンクを確認中…<br>링크 확인 중…');
-  fetch(url + '?action=confirmReset&token=' + encodeURIComponent(token))
-    .then(r => r.json())
+  gasRequest({ action: 'confirmReset', token })
     .then(res => {
       if (res.ok) {
         showPwResetResult(true,
@@ -224,7 +222,7 @@ function closePwResetResultModal() {
       }
     })
     .catch(() => showPwResetResult(false, 'エラーが発生しました<br>오류가 발생했습니다'));
-})();
+});
 
 async function doLogin() {
   const id     = (document.getElementById('login-id').value || '').trim();
