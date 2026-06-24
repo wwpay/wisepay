@@ -140,7 +140,7 @@ function openPwResetModal() {
   const modal = document.getElementById('pw-reset-modal');
   modal.style.display = 'flex';
   const inp = document.getElementById('pw-reset-id');
-  inp.value = '';
+  inp.value = (document.getElementById('login-id')?.value || '').trim();
   document.getElementById('pw-reset-err').innerHTML = '';
   inp.style.borderColor = '#e2e8f0';
   setTimeout(() => inp.focus(), 50);
