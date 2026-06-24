@@ -1,4 +1,4 @@
-// 수정: 2026-06-24 21:48 — forgotPassword() 추가 (관리자 임시 비번 메일 발송)
+// 수정: 2026-06-24 22:02 — forgotPassword() 메시지 한일 줄바꿈 분리 (innerHTML+<br>)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -138,17 +138,17 @@ async function forgotPassword() {
   const id  = (document.getElementById('login-id').value || '').trim();
   const err = document.getElementById('login-err');
   if (!id) {
-    err.textContent = 'IDを入力してください / ID를 먼저 입력해 주세요';
+    err.innerHTML = 'IDを入力してください<br>ID를 먼저 입력해 주세요';
     document.getElementById('login-id').focus();
     return;
   }
   const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
   if (!url) {
-    err.textContent = 'GAS URLが設定されていません / GAS URL이 설정되지 않았습니다';
+    err.innerHTML = 'GAS URLが設定されていません<br>GAS URL이 설정되지 않았습니다';
     return;
   }
   if (!confirm('管理者メールに仮パスワードを送信します。\n관리자 이메일로 임시 비밀번호를 발송합니다.\n\nよろしいですか？ / 계속할까요?')) return;
-  err.textContent = '';
+  err.innerHTML = '';
   const btn = document.getElementById('login-btn');
   btn.disabled = true;
   try {
@@ -156,17 +156,17 @@ async function forgotPassword() {
     const result = await resp.json();
     if (result.ok) {
       err.style.color = '#0d9e6f';
-      err.textContent = 'メールを送信しました ✓ / 이메일을 발송했습니다 ✓';
+      err.innerHTML = 'メールを送信しました ✓<br>이메일을 발송했습니다 ✓';
     } else {
       err.style.color = '#ef4444';
-      err.textContent = result.error || '送信失敗 / 발송 실패';
+      err.innerHTML = result.error || '送信失敗 / 발송 실패';
     }
   } catch(e) {
     err.style.color = '#ef4444';
-    err.textContent = 'エラーが発生しました / 오류가 발생했습니다';
+    err.innerHTML = 'エラーが発生しました<br>오류가 발생했습니다';
   } finally {
     btn.disabled = false;
-    setTimeout(() => { err.textContent = ''; err.style.color = '#ef4444'; }, 6000);
+    setTimeout(() => { err.innerHTML = ''; err.style.color = '#ef4444'; }, 6000);
   }
 }
 
