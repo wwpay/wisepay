@@ -1,5 +1,5 @@
 ﻿// WisePay GAS Script
-// 수정: 2026-06-22 22:34 — 미사용 함수 3개 제거 (calcInitialDays, ensureNewEmpVacation, detectNewEmployeesAndInitVacation)
+// 수정: 2026-06-24 21:48 — resetAdminPassword 핸들러 추가 (임시 비번 메일 발송)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -580,6 +580,53 @@ function doPost(e) {
         paidYMs:      getPaidYMs(),
         forcedEmpNo:  forcedPad
       }});
+    }
+    if (data.type === 'resetAdminPassword') {
+      var raId = String(data.id || '').trim();
+      if (!raId) return jsonResponse({ ok: false, error: 'Missing id' });
+      // admin 권한 계정만 허용
+      var raUsers = sheetToObjects(getSheet(SHEET_USERS));
+      var raFound = false;
+      for (var rai = 0; rai < raUsers.length; rai++) {
+        if (String(raUsers[rai]['ID']   || '').trim() === raId &&
+            String(raUsers[rai]['권한'] || '').trim() === 'admin') {
+          raFound = true; break;
+        }
+      }
+      if (!raFound) return jsonResponse({ ok: false, error: 'Admin account not found' });
+      // 임시 비번 생성 (8자 영숫자, 혼동 쉬운 문자 제외)
+      var raCh = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      var raTmp = '';
+      for (var ri2 = 0; ri2 < 8; ri2++) raTmp += raCh[Math.floor(Math.random() * raCh.length)];
+      // SHA-256 해시
+      var raDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, raTmp);
+      var raHash = raDigest.map(function(b) {
+        var h = (b < 0 ? b + 256 : b).toString(16);
+        return h.length === 1 ? '0' + h : h;
+      }).join('');
+      // users 시트 갱신
+      var raSheet = getSheet(SHEET_USERS);
+      var raVals  = raSheet.getDataRange().getValues();
+      var raHdrs  = raVals[0];
+      var raIdCol = raHdrs.indexOf('ID');
+      var raHCol  = raHdrs.indexOf('PW_HASH');
+      for (var rj = 1; rj < raVals.length; rj++) {
+        if (String(raVals[rj][raIdCol] || '').trim() === raId) {
+          raSheet.getRange(rj + 1, raHCol + 1).setValue(raHash);
+          break;
+        }
+      }
+      // 메일 발송
+      var raTs = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+      GmailApp.sendEmail(
+        ADMIN_EMAIL,
+        '[WisePay] 임시 비밀번호 발급',
+        'WisePay 관리자 임시 비밀번호가 발급되었습니다.\n\n' +
+        '임시 비밀번호: ' + raTmp + '\n\n' +
+        '발급 일시: ' + raTs + ' (JST)\n\n' +
+        '로그인 후 [설정 → 비밀번호 변경]에서 반드시 변경해 주세요.\n\n--\nWisePay by Wisewires'
+      );
+      return jsonResponse({ ok: true });
     }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {

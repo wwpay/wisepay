@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-06-22 22:42 — vacation.js/styles.css: 유급휴가 달력 공휴일 빨간색 표시
+  수정: 2026-06-24 21:48 — 로그인 화면 "비밀번호를 잊으셨나요?" 링크 추가
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -53,6 +53,11 @@
     <button id="login-btn" onclick="doLogin()"
       style="width:100%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;"
       onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">ログイン / 로그인</button>
+    <div style="text-align:right;margin-top:10px;">
+      <a href="#" onclick="forgotPassword();return false;"
+        style="font-size:11px;color:#94a3b8;text-decoration:none;"
+        onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#94a3b8'">パスワードをお忘れですか？ / 비밀번호를 잊으셨나요?</a>
+    </div>
   </div>
 </div>
 
