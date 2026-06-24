@@ -45,7 +45,8 @@
       "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" push)",
       "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" add WisePay_GAS.gs index.html ??????.md)",
       "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" commit -m \"fix: GAS backupWeekly? ????�E??? ?? ?? \\(?? ??\\)\")",
-      "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" commit -m \"refactor: GAS ??? ?? 3? ?? \\(calcInitialDays, ensureNewEmpVacation, detectNewEmployeesAndInitVacation\\)\")"
+      "PowerShell(git -C \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\" commit -m \"refactor: GAS ??? ?? 3? ?? \\(calcInitialDays, ensureNewEmpVacation, detectNewEmployeesAndInitVacation\\)\")",
+      "PowerShell($h=@{'Cache-Control'='no-cache'}; $idx=Invoke-WebRequest -Uri \\(\"https://wwpay.github.io/wisepay/index.html?cb=\" + \\(Get-Random\\)\\) -Headers $h -UseBasicParsing; if\\($idx.Content -match 'auth\\\\.js\\\\?v=20260624b'\\){'INDEX: 최신 \\(캐시버스팅 있음\\)'}else{'INDEX: 옛버전 \\(캐시버스팅 없음\\)'}; $js=Invoke-WebRequest -Uri \\(\"https://wwpay.github.io/wisepay/js/auth.js?cb=\" + \\(Get-Random\\)\\) -Headers $h -UseBasicParsing; if\\($js.Content -match 'コピー'\\){'AUTH.JS: 최신 \\(복사버튼 있음\\)'}else{'AUTH.JS: 옛버전 \\(복사버튼 없음\\)'})"
     ]
   }
 }
