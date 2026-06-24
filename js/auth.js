@@ -177,7 +177,7 @@ async function submitPwReset() {
       showPwResetResult(true,
         isAdmin
           ? 'メールにリセットリンクを送信しました。<br>메일로 재설정 링크를 발송했습니다。<br><span style="font-size:11px;color:#94a3b8;">（有効期限：1時間 / 유효 시간: 1시간）</span>'
-          : 'メールで管理者に通知しました。<br>관리자에게 메일로 알렸습니다。<br><span style="font-size:11px;color:#94a3b8;">管理者が対応後ご連絡します / 관리자 처리 후 연락드립니다</span>'
+          : 'メールで管理者に通知しました。<br>관리자에게 메일로 알렸습니다。<br><span style="font-size:11px;color:#94a3b8;">管理者が対応後ご連絡します<br>관리자 처리 후 연락드립니다</span>'
       );
     } else {
       err.innerHTML = res.error || '送信失敗<br>발송 실패';
