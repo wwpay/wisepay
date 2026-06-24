@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-06-24 23:30 — auth.js: 임시 비번 모달 한글 병기·복사 버튼·설명 글씨 개선·디버그 제거
+  수정: 2026-06-24 23:35 — 비번 분실 모달 취소 버튼 사선 구분으로 통일
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -72,8 +72,8 @@
       onkeydown="if(event.key==='Enter')submitPwReset()">
     <div id="pw-reset-err" style="color:#ef4444;font-size:12px;min-height:32px;margin-bottom:8px;line-height:1.6;"></div>
     <div style="display:flex;gap:8px;">
-      <button onclick="closePwResetModal()" style="flex:1;padding:9px 4px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;line-height:1.4;cursor:pointer;color:#64748b;white-space:nowrap;">キャンセル<br>취소</button>
-      <button id="pw-reset-btn" onclick="submitPwReset()" style="flex:1;padding:9px 4px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:13px;line-height:1.4;font-weight:600;cursor:pointer;white-space:nowrap;">確認<br>확인</button>
+      <button onclick="closePwResetModal()" style="flex:1;padding:9px 4px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;cursor:pointer;color:#64748b;white-space:nowrap;">キャンセル / 취소</button>
+      <button id="pw-reset-btn" onclick="submitPwReset()" style="flex:1;padding:9px 4px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">確認 / 확인</button>
     </div>
   </div>
 </div>
