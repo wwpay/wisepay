@@ -221,7 +221,8 @@ window.addEventListener('load', function checkResetToken() {
         showPwResetResult(false, res.error || '無効なリンクです<br>유효하지 않은 링크입니다');
       }
     })
-    .catch(() => showPwResetResult(false, 'エラーが発生しました<br>오류가 발생했습니다'));
+    .catch(err => showPwResetResult(false,
+      'エラーが発生しました<br>오류가 발생했습니다<br><span style="font-size:10px;color:#94a3b8;">[' + (err && err.message ? err.message : err) + ']<br>GAS: ' + ((typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl.slice(-12) : 'none') + '</span>'));
 });
 
 async function doLogin() {
