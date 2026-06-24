@@ -1,5 +1,5 @@
 ﻿// WisePay GAS Script
-// 수정: 2026-06-24 21:48 — resetAdminPassword 핸들러 추가 (임시 비번 메일 발송)
+// 수정: 2026-06-24 22:45 — 비번 분실 이메일 링크 방식으로 전환 (requestPasswordReset / confirmReset)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -37,6 +37,7 @@ function doGet(e) {
     else if (action === 'getUsers')                                       result = getUsers();
     else if (action === 'getHolidays')                                    result = getHolidaysData();
     else if (action === 'getVacation')                                    result = getVacationData();
+    else if (action === 'confirmReset')                                    result = confirmPasswordReset(e.parameter.token || '');
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
@@ -581,52 +582,49 @@ function doPost(e) {
         forcedEmpNo:  forcedPad
       }});
     }
-    if (data.type === 'resetAdminPassword') {
-      var raId = String(data.id || '').trim();
-      if (!raId) return jsonResponse({ ok: false, error: 'Missing id' });
-      // admin 권한 계정만 허용
-      var raUsers = sheetToObjects(getSheet(SHEET_USERS));
-      var raFound = false;
-      for (var rai = 0; rai < raUsers.length; rai++) {
-        if (String(raUsers[rai]['ID']   || '').trim() === raId &&
-            String(raUsers[rai]['권한'] || '').trim() === 'admin') {
-          raFound = true; break;
-        }
+    if (data.type === 'requestPasswordReset') {
+      var rpId = String(data.id || '').trim();
+      if (!rpId) return jsonResponse({ ok: false, error: 'Missing id' });
+      // ID 존재 확인
+      var rpAllUsers = sheetToObjects(getSheet(SHEET_USERS));
+      var rpUser = null;
+      for (var rpi = 0; rpi < rpAllUsers.length; rpi++) {
+        if (String(rpAllUsers[rpi]['ID'] || '').trim() === rpId) { rpUser = rpAllUsers[rpi]; break; }
       }
-      if (!raFound) return jsonResponse({ ok: false, error: 'Admin account not found' });
-      // 임시 비번 생성 (8자 영숫자, 혼동 쉬운 문자 제외)
-      var raCh = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-      var raTmp = '';
-      for (var ri2 = 0; ri2 < 8; ri2++) raTmp += raCh[Math.floor(Math.random() * raCh.length)];
-      // SHA-256 해시
-      var raDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, raTmp);
-      var raHash = raDigest.map(function(b) {
-        var h = (b < 0 ? b + 256 : b).toString(16);
-        return h.length === 1 ? '0' + h : h;
-      }).join('');
-      // users 시트 갱신
-      var raSheet = getSheet(SHEET_USERS);
-      var raVals  = raSheet.getDataRange().getValues();
-      var raHdrs  = raVals[0];
-      var raIdCol = raHdrs.indexOf('ID');
-      var raHCol  = raHdrs.indexOf('PW_HASH');
-      for (var rj = 1; rj < raVals.length; rj++) {
-        if (String(raVals[rj][raIdCol] || '').trim() === raId) {
-          raSheet.getRange(rj + 1, raHCol + 1).setValue(raHash);
-          break;
+      if (!rpUser) return jsonResponse({ ok: false, error: '登録されていないIDです<br>등록되지 않은 ID입니다' });
+      var rpRole = String(rpUser['권한'] || '').trim();
+      var rpName = String(rpUser['이름'] || '').trim();
+      if (rpRole === 'admin') {
+        // 1회용 토큰 생성 (UUID, 1시간 유효)
+        var rpToken = Utilities.getUuid().replace(/-/g, '');
+        var rpNow  = new Date();
+        var rpExp  = new Date(rpNow.getTime() + 60 * 60 * 1000);
+        var rpNowStr = Utilities.formatDate(rpNow, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+        var rpExpStr = Utilities.formatDate(rpExp, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+        var tokSheet = getSheet('reset_tokens');
+        if (tokSheet.getLastRow() === 0) {
+          tokSheet.getRange(1,1,1,5).setValues([['token','user_id','created_at','expires_at','used']]);
         }
+        tokSheet.appendRow([rpToken, rpId, rpNowStr, rpExpStr, false]);
+        var rpLink = 'https://wwpay.netlify.app/?reset_token=' + rpToken;
+        GmailApp.sendEmail(ADMIN_EMAIL,
+          '[WisePay] パスワードリセットリンク / 비밀번호 재설정 링크',
+          'パスワードリセットが要求されました。\n비밀번호 재설정이 요청되었습니다。\n\n' +
+          '下記リンクをクリックしてリセットしてください。\n아래 링크를 클릭하여 재설정하세요。\n\n' +
+          rpLink + '\n\n' +
+          '※ 1時間で無効になります。/ ※ 1시간 후 만료됩니다。\n\n' +
+          'お心当たりのない場合は無視してください。\n본인이 요청하지 않은 경우 무시해 주세요。\n\n--\nWisePay by Wisewires'
+        );
+        return jsonResponse({ ok: true, role: 'admin' });
+      } else if (rpRole === 'employee' || rpRole === 'viewer') {
+        GmailApp.sendEmail(ADMIN_EMAIL,
+          '[WisePay] 비밀번호 초기화 요청 — ' + rpId + ' (' + rpName + ')',
+          rpId + ' (' + rpName + ')님이 비밀번호 분실을 신고했습니다.\n\n' +
+          '사용자 관리 화면에서 비밀번호를 초기화해 주세요.\n\n--\nWisePay by Wisewires'
+        );
+        return jsonResponse({ ok: true, role: rpRole, name: rpName });
       }
-      // 메일 발송
-      var raTs = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-      GmailApp.sendEmail(
-        ADMIN_EMAIL,
-        '[WisePay] 임시 비밀번호 발급',
-        'WisePay 관리자 임시 비밀번호가 발급되었습니다.\n\n' +
-        '임시 비밀번호: ' + raTmp + '\n\n' +
-        '발급 일시: ' + raTs + ' (JST)\n\n' +
-        '로그인 후 [설정 → 비밀번호 변경]에서 반드시 변경해 주세요.\n\n--\nWisePay by Wisewires'
-      );
-      return jsonResponse({ ok: true });
+      return jsonResponse({ ok: false, error: '対応していないアカウントです<br>지원하지 않는 계정입니다' });
     }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {
@@ -1701,4 +1699,55 @@ function fixUsersSheetSaeinID() {
     }
   }
   Logger.log('✅ 총 ' + fixed + '개 셀 교정 완료');
+}
+
+// ── 비밀번호 재설정 토큰 검증 → 임시 비번 생성 (doGet action=confirmReset 에서 호출) ──
+function confirmPasswordReset(token) {
+  if (!token) return { ok: false, error: 'Missing token' };
+  var tokSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('reset_tokens');
+  if (!tokSheet || tokSheet.getLastRow() < 2) return { ok: false, error: 'Invalid token' };
+  var vals = tokSheet.getDataRange().getValues();
+  var hdrs = vals[0];
+  var tCol    = hdrs.indexOf('token');
+  var uCol    = hdrs.indexOf('user_id');
+  var eCol    = hdrs.indexOf('expires_at');
+  var usedCol = hdrs.indexOf('used');
+  var row = -1;
+  for (var i = 1; i < vals.length; i++) {
+    if (String(vals[i][tCol] || '').trim() === token) { row = i; break; }
+  }
+  if (row < 0) return { ok: false, error: '無効なリンクです<br>유효하지 않은 링크입니다' };
+  var used = vals[row][usedCol];
+  if (used === true || String(used).toLowerCase() === 'true') {
+    return { ok: false, error: 'このリンクは既に使用済みです<br>이 링크는 이미 사용되었습니다' };
+  }
+  var expires = new Date(vals[row][eCol]);
+  if (new Date() > expires) {
+    return { ok: false, error: 'このリンクは期限切れです（1時間）<br>링크가 만료되었습니다（1시간）' };
+  }
+  var userId = String(vals[row][uCol] || '').trim();
+  // 임시 비번 생성
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  var tempPw = '';
+  for (var ci = 0; ci < 8; ci++) tempPw += chars[Math.floor(Math.random() * chars.length)];
+  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, tempPw);
+  var newHash = digest.map(function(b) {
+    var h = (b < 0 ? b + 256 : b).toString(16);
+    return h.length === 1 ? '0' + h : h;
+  }).join('');
+  // users 시트 갱신
+  var uSheet = getSheet(SHEET_USERS);
+  var uVals  = uSheet.getDataRange().getValues();
+  var uHdrs  = uVals[0];
+  var idCol  = uHdrs.indexOf('ID');
+  var hCol   = uHdrs.indexOf('PW_HASH');
+  for (var j = 1; j < uVals.length; j++) {
+    if (String(uVals[j][idCol] || '').trim() === userId) {
+      uSheet.getRange(j + 1, hCol + 1).setValue(newHash);
+      break;
+    }
+  }
+  // 토큰 사용 처리
+  tokSheet.getRange(row + 1, usedCol + 1).setValue(true);
+  return { ok: true, tempPw: tempPw };
 }

@@ -1,4 +1,4 @@
-// 수정: 2026-06-24 22:15 — forgotPassword() 보안 수정: wiseadmin 외 계정 차단 + 빈 ID 시각 피드백
+// 수정: 2026-06-24 22:45 — 비밀번호 분실 모달 + 이메일 링크 방식 재설정 + 로그인 유효성 ID/PW 분리
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -134,54 +134,97 @@ function _showLogin() {
   }
 }
 
-async function forgotPassword() {
-  const idEl = document.getElementById('login-id');
-  const id   = (idEl.value || '').trim();
-  const err  = document.getElementById('login-err');
+// ── 비밀번호 분실 모달 ──
 
-  // 빈 ID → 입력란 빨간 테두리 + 메시지
+function openPwResetModal() {
+  const modal = document.getElementById('pw-reset-modal');
+  modal.style.display = 'flex';
+  const inp = document.getElementById('pw-reset-id');
+  inp.value = '';
+  document.getElementById('pw-reset-err').innerHTML = '';
+  inp.style.borderColor = '#e2e8f0';
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closePwResetModal() {
+  document.getElementById('pw-reset-modal').style.display = 'none';
+}
+
+async function submitPwReset() {
+  const inp  = document.getElementById('pw-reset-id');
+  const id   = (inp.value || '').trim();
+  const err  = document.getElementById('pw-reset-err');
+  const btn  = document.getElementById('pw-reset-btn');
+
   if (!id) {
-    idEl.style.borderColor = '#ef4444';
-    idEl.focus();
-    err.innerHTML = 'IDを入力してください<br>ID를 먼저 입력해 주세요';
-    setTimeout(() => { idEl.style.borderColor = '#e2e8f0'; err.innerHTML = ''; }, 3000);
+    inp.style.borderColor = '#ef4444';
+    inp.focus();
+    err.innerHTML = 'IDを入力してください<br>ID를 입력해 주세요';
     return;
   }
-
-  // 관리자(wiseadmin) 계정 전용 기능 — 다른 계정은 안내 메시지만 표시
-  if (id !== 'wiseadmin') {
-    err.innerHTML = 'パスワード再設定は管理者にお問い合わせください<br>비밀번호 재설정은 관리자에게 문의해 주세요';
-    setTimeout(() => { err.innerHTML = ''; }, 5000);
-    return;
-  }
-
-  const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
-  if (!url) {
-    err.innerHTML = 'GAS URLが設定されていません<br>GAS URL이 설정되지 않았습니다';
-    return;
-  }
-  if (!confirm('wiseadmin のパスワードをリセットします。\nwiseadmin 비밀번호를 초기화합니다.\n\n管理者メールに仮パスワードを送信します。\n관리자 이메일로 임시 비밀번호를 발송합니다.\n\nよろしいですか？ / 계속할까요?')) return;
+  inp.style.borderColor = '#e2e8f0';
   err.innerHTML = '';
-  const btn = document.getElementById('login-btn');
   btn.disabled = true;
+  btn.textContent = '送信中… / 발송 중…';
+
   try {
-    const resp   = await fetch(url, { method: 'POST', body: JSON.stringify({ type: 'resetAdminPassword', id }) });
-    const result = await resp.json();
-    if (result.ok) {
-      err.style.color = '#0d9e6f';
-      err.innerHTML = 'メールを送信しました ✓<br>이메일을 발송했습니다 ✓';
+    const url  = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
+    const resp = await fetch(url, { method: 'POST', body: JSON.stringify({ type: 'requestPasswordReset', id }) });
+    const res  = await resp.json();
+    if (res.ok) {
+      closePwResetModal();
+      const isAdmin = res.role === 'admin';
+      showPwResetResult(true,
+        isAdmin
+          ? 'メールにリセットリンクを送信しました。<br>메일로 재설정 링크를 발송했습니다。<br><span style="font-size:11px;color:#94a3b8;">（有効期限：1時間 / 유효 시간: 1시간）</span>'
+          : 'メールで管理者に通知しました。<br>관리자에게 메일로 알렸습니다。<br><span style="font-size:11px;color:#94a3b8;">管理者が対応後ご連絡します / 관리자 처리 후 연락드립니다</span>'
+      );
     } else {
-      err.style.color = '#ef4444';
-      err.innerHTML = result.error || '送信失敗<br>발송 실패';
+      err.innerHTML = res.error || '送信失敗<br>발송 실패';
     }
   } catch(e) {
-    err.style.color = '#ef4444';
     err.innerHTML = 'エラーが発生しました<br>오류가 발생했습니다';
   } finally {
     btn.disabled = false;
-    setTimeout(() => { err.innerHTML = ''; err.style.color = '#ef4444'; }, 6000);
+    btn.textContent = '確認 / 확인';
   }
 }
+
+function showPwResetResult(ok, msg) {
+  const modal = document.getElementById('pw-reset-result-modal');
+  document.getElementById('pw-reset-result-icon').textContent = ok ? '✉️' : '⚠️';
+  document.getElementById('pw-reset-result-msg').innerHTML = msg;
+  modal.style.display = 'flex';
+}
+
+function closePwResetResultModal() {
+  document.getElementById('pw-reset-result-modal').style.display = 'none';
+}
+
+// ── 앱 로드 시 reset_token URL 파라미터 감지 ──
+
+(function checkResetToken() {
+  const token = new URLSearchParams(window.location.search).get('reset_token');
+  if (!token) return;
+  // URL에서 토큰 제거 (주소창 노출 최소화)
+  history.replaceState(null, '', window.location.pathname);
+  const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
+  if (!url) return;
+  showPwResetResult(true, 'リセットリンクを確認中…<br>링크 확인 중…');
+  fetch(url + '?action=confirmReset&token=' + encodeURIComponent(token))
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        showPwResetResult(true,
+          '仮パスワード:<br><strong style="font-size:20px;letter-spacing:2px;color:#4f46e5;">' + res.tempPw + '</strong><br>' +
+          '<span style="font-size:11px;color:#94a3b8;">上記でログイン後、パスワードを変更してください<br>위 비밀번호로 로그인 후 변경해 주세요</span>'
+        );
+      } else {
+        showPwResetResult(false, res.error || '無効なリンクです<br>유효하지 않은 링크입니다');
+      }
+    })
+    .catch(() => showPwResetResult(false, 'エラーが発生しました<br>오류가 발생했습니다'));
+})();
 
 async function doLogin() {
   const id     = (document.getElementById('login-id').value || '').trim();
@@ -190,8 +233,14 @@ async function doLogin() {
   const err    = document.getElementById('login-err');
   const btn    = document.getElementById('login-btn');
 
-  if (!id || !pw) {
-    err.innerHTML = 'IDとパスワードを入力してください<br>ID와 비밀번호를 입력해 주세요';
+  if (!id) {
+    err.innerHTML = 'IDを入力してください<br>ID를 입력해 주세요';
+    document.getElementById('login-id').focus();
+    return;
+  }
+  if (!pw) {
+    err.innerHTML = 'パスワードを入力してください<br>비밀번호를 입력해 주세요';
+    document.getElementById('login-pw').focus();
     return;
   }
 
