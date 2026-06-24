@@ -1,4 +1,4 @@
-// 수정: 2026-06-24 22:45 — 비밀번호 분실 모달 + 이메일 링크 방식 재설정 + 로그인 유효성 ID/PW 분리
+// 수정: 2026-06-24 23:30 — 임시 비번 모달 UI 개선: 한글 병기·설명 글씨 개선·복사 버튼·디버그 제거
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -214,15 +214,16 @@ window.addEventListener('load', function checkResetToken() {
     .then(res => {
       if (res.ok) {
         showPwResetResult(true,
-          '仮パスワード:<br><strong style="font-size:20px;letter-spacing:2px;color:#4f46e5;">' + res.tempPw + '</strong><br>' +
-          '<span style="font-size:11px;color:#94a3b8;">上記でログイン後、パスワードを変更してください<br>위 비밀번호로 로그인 후 변경해 주세요</span>'
+          '仮パスワード / 임시 비밀번호:<br>' +
+          '<strong style="font-size:22px;letter-spacing:3px;color:#4f46e5;display:block;margin:8px 0 6px;">' + res.tempPw + '</strong>' +
+          '<button onclick="navigator.clipboard.writeText(this.dataset.pw).then(()=>{this.textContent=\'✓ コピー済 / 복사됨\';setTimeout(()=>{this.textContent=\'📋 コピー / 복사\'},2000)})" data-pw="' + res.tempPw + '" style="display:block;width:100%;padding:6px 0;margin-bottom:12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;cursor:pointer;color:#334155;">📋 コピー / 복사</button>' +
+          '<span style="font-size:12px;color:#64748b;line-height:1.7;">上記でログイン後、パスワードを変更してください。<br>위 비밀번호로 로그인 후 변경해 주세요。</span>'
         );
       } else {
         showPwResetResult(false, res.error || '無効なリンクです<br>유효하지 않은 링크입니다');
       }
     })
-    .catch(err => showPwResetResult(false,
-      'エラーが発生しました<br>오류가 발생했습니다<br><span style="font-size:10px;color:#94a3b8;">[' + (err && err.message ? err.message : err) + ']<br>GAS: ' + ((typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl.slice(-12) : 'none') + '</span>'));
+    .catch(() => showPwResetResult(false, 'エラーが発生しました<br>오류가 발생했습니다'));
 });
 
 async function doLogin() {
