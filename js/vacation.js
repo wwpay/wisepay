@@ -1,4 +1,4 @@
-// 수정: 2026-06-23 17:23 — 오늘 날짜 표시: 앰버 라운딩 외곽선만 (채움 없음, 레이블 제거)
+// 수정: 2026-06-25 00:35 — 연간 리스트 클릭 시 달력 월 동기화 버그 수정
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -866,15 +866,26 @@ function _highlightVacListItem(idx) {
   if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
 
   // 달력 하이라이트
-  const cal = document.getElementById('vacCalPanel');
-  if (!cal) return;
-  cal.querySelectorAll('.vac-cal-day').forEach(d => d.classList.remove('highlight'));
   const no = _vacDetailEmpNo;
   const r  = (vacationData[no] || [])[idx];
   if (!r || !r.date) return;
-  const [, , d] = r.date.split('-');
-  const dayNum = parseInt(d);
-  const days = cal.querySelectorAll('.vac-cal-day');
+  const [y, m, d] = r.date.split('-');
+  const itemYear  = parseInt(y);
+  const itemMonth = parseInt(m);
+  const dayNum    = parseInt(d);
+
+  // 클릭한 항목의 달이 현재 표시 중인 달과 다르면 달력을 전환
+  if (itemYear !== _vacDetailYear || itemMonth !== _vacDetailMonth) {
+    _vacDetailYear  = itemYear;
+    _vacDetailMonth = itemMonth;
+    _renderVacNavBar();
+    _renderVacCalendar();
+  }
+
+  const cal = document.getElementById('vacCalPanel');
+  if (!cal) return;
+  cal.querySelectorAll('.vac-cal-day').forEach(dd => dd.classList.remove('highlight'));
+  const days     = cal.querySelectorAll('.vac-cal-day');
   const firstDay = new Date(_vacDetailYear, _vacDetailMonth - 1, 1).getDay();
   const targetCell = days[firstDay + dayNum - 1];
   if (targetCell) targetCell.classList.add('highlight');
