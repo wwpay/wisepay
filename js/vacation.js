@@ -1,4 +1,4 @@
-// 수정: 2026-06-25 00:35 — 연간 리스트 클릭 시 달력 월 동기화 버그 수정
+// 수정: 2026-06-26 12:25 — 유급휴가 오전/오후 반차 구분 (ampm 필드, 달력·리스트 색상 분기)
 'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
@@ -378,11 +378,11 @@ function _resolveGrantYear(empNo) {
 }
 
 // 유급휴가 사용 추가
-function addVacationUsage(empNo, date, used, reason) {
+function addVacationUsage(empNo, date, used, reason, ampm) {
   const key = _vacKey(empNo);
   if (!vacationData[key]) vacationData[key] = [];
   // 사용행 grant_year는 계산에 미사용 → 빈값 (발생연도는 FIFO가 발생행으로 직접 산출)
-  vacationData[key].push({ date, used, reason, grant_year: '' });
+  vacationData[key].push({ date, used, reason, grant_year: '', ampm: ampm || '' });
   _rebuildRemainingForEmp(empNo);
   _vacDirtyVersion++; // GAS 동기화가 로컬 변경분을 덮어쓰는 것 방지
   localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
@@ -734,7 +734,7 @@ function _renderVacCalendar() {
   const records = (vacationData[no] || []).filter(r => r.used > 0);
   const usedDates = {};
   records.forEach((r, idx) => {
-    if (r.date) usedDates[r.date] = { used: r.used, idx };
+    if (r.date) usedDates[r.date] = { used: r.used, idx, ampm: r.ampm || '' };
   });
 
   const year  = _vacDetailYear;
@@ -765,7 +765,7 @@ function _renderVacCalendar() {
     if (info) cls += ' used';
     if (isToday) cls += ' today-mark';
     let spanCls = '';
-    if (info) spanCls = (info.used < 1 ? 'vac-day-half' : 'vac-day-used') + (isFuture ? ' future' : '');
+    if (info) spanCls = (info.used < 1 ? (info.ampm === 'am' ? 'vac-day-am' : info.ampm === 'pm' ? 'vac-day-pm' : 'vac-day-half') : 'vac-day-used') + (isFuture ? ' future' : '');
     const numSpan = spanCls ? `<span class="${spanCls}">${d}</span>` : `<span class="vac-day-num">${d}</span>`;
     // 모든 날짜 클릭 시 해당 날짜로 등록 팝업 열기
     cells += `<div class="${cls}" style="cursor:pointer;" onclick="showVacationModal('${no}','${dateStr}')">${numSpan}</div>`;
@@ -801,8 +801,11 @@ function _renderVacList() {
   const _today = jstToday();
   const _itemHtml = (r, no, jp) => {
     const usedVal  = parseFloat(r.used);
-    const badgeCls = usedVal < 1 ? 'half' : 'full';
-    const badgeTxt = usedVal < 1 ? (jp ? '半日' : '반차') : (jp ? '1日' : '1일');
+    const ampm     = r.ampm || '';
+    const badgeCls = usedVal < 1 ? (ampm === 'am' ? 'am' : ampm === 'pm' ? 'pm' : 'half') : 'full';
+    const badgeTxt = usedVal < 1
+      ? (ampm === 'am' ? (jp ? '午前' : '오전') : ampm === 'pm' ? (jp ? '午後' : '오후') : (jp ? '半日' : '반차'))
+      : (jp ? '1日' : '1일');
     // employee: 오늘 이전(오늘 포함) 날짜는 삭제 버튼 숨김
     const canDel = !_isEmpRole || (r.date && r.date > _today);
     const delBtn = canDel
@@ -1088,19 +1091,21 @@ function saveVacationUsage() {
   }
 
   const r1   = document.getElementById('vac-modal-r1');
+  const ram  = document.getElementById('vac-modal-ram');
   const used = (r1 && r1.checked) ? 1 : 0.5;
+  const ampm = (r1 && r1.checked) ? '' : (ram && ram.checked) ? 'am' : 'pm';
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
 
   // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
   const grantYear = isEmployee ? '' : null; // 사용행 grant_year 미사용 → 빈값
-  addVacationUsage(_vacModalEmpNo, date, used, reason);
+  addVacationUsage(_vacModalEmpNo, date, used, reason, ampm);
   _vacRegisterNotice(date, isEmployee); // 내년분/미래삭제불가 안내 팝업
   if (isEmployee && grantYear !== null && gasUrl && typeof _writeToken !== 'undefined' && _writeToken) {
     fetch(gasUrl, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         type: 'addVacationEntry', emp_no: _vacModalEmpNo,
-        date, used, reason, grant_year: grantYear,
+        date, used, reason, grant_year: grantYear, ampm,
         _uid: currentUser.id, _token: _writeToken
       })
     }).catch(e => console.warn('[vac] addVacationEntry error:', e));

@@ -387,9 +387,13 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-cal-day.highlight{outline:2px solid var(--accent);outline-offset:1px;}
 .vac-day-used{background:#BFDBFE;color:#1E40AF;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
 .vac-day-half{background:#BBF7D0;color:#166534;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
+.vac-day-am{background:#FEF3C7;color:#92400E;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
+.vac-day-pm{background:#FCE7F3;color:#9D174D;border-radius:6px;min-width:28px;padding:2px 6px;text-align:center;font-weight:700;}
 /* 미래(예정) 등록일 — 과거(파랑/초록)와 구분되는 연보라 */
 .vac-day-used.future{background:#C4B5FD;color:#4C1D95;}
 .vac-day-half.future{background:#DDD6FE;color:#5B21B6;}
+.vac-day-am.future{background:#FDE68A;color:#78350F;}
+.vac-day-pm.future{background:#FBCFE8;color:#831843;}
 .vac-day-num{display:inline-block;}
 .vac-today-bar{display:none;}
 .today-mark .vac-day-num{min-width:28px;padding:2px 6px;text-align:center;font-weight:700;box-shadow:0 0 0 2px #D97706;border-radius:6px;}
@@ -402,6 +406,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .vac-list-badge{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600;}
 .vac-list-badge.full{background:var(--accent2);color:var(--accent);}
 .vac-list-badge.half{background:#BBF7D0;color:#166534;}
+.vac-list-badge.am{background:#FEF3C7;color:#92400E;}
+.vac-list-badge.pm{background:#FCE7F3;color:#9D174D;}
 .vac-list-reason{font-size:11px;color:var(--text3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .vac-list-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 3px;line-height:1;flex-shrink:0;}
 .vac-list-del:hover{color:var(--red);}

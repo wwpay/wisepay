@@ -77,7 +77,8 @@ function applyLang() {
   setTxt('t-vac-date-label', '取得日', '사용 날짜');
   setTxt('t-vac-days-label', '取得日数', '사용 일수');
   setTxt('t-vac-r1', '1日', '1일');
-  setTxt('t-vac-r05', '半日', '반차');
+  setTxt('t-vac-ram', '午前半日', '오전 반차');
+  setTxt('t-vac-rpm', '午後半日', '오후 반차');
   setTxt('t-vac-reason-label', '事由（任意）', '사유 (선택)');
   setTxt('t-vac-modal-cancel', 'キャンセル', '취소');
   setTxt('t-vac-modal-save', '登録する', '등록하기');

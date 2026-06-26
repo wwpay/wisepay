@@ -1,5 +1,5 @@
 ﻿// WisePay GAS Script
-// 수정: 2026-06-24 23:30 — 비번 재설정 링크 URL을 GitHub Pages로 변경 (netlify→github.io)
+// 수정: 2026-06-26 12:25 — 유급휴가 오전/오후 반차 구분 ampm 컬럼 추가 (addVacationEntry, VAC_HEADERS)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -416,10 +416,11 @@ function doPost(e) {
       var avUsed   = parseFloat(data.used || 1);
       var avReason = String(data.reason || '').trim().substring(0, 50);
       var avGy     = String(data.grant_year || '').trim();
+      var avAmpm   = String(data.ampm || '').trim();
       var avVacSheet = getSheet(SHEET_VACATION);
       // 시트가 비어 있으면 헤더 초기화
       if (avVacSheet.getLastRow() === 0) {
-        avVacSheet.appendRow(['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days']);
+        avVacSheet.appendRow(['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days', 'ampm']);
       }
       // 기존 헤더 순서에 맞춰 행 삽입 (remaining 컬럼 유무 대응)
       var avHdrRow = avVacSheet.getRange(1, 1, 1, avVacSheet.getLastColumn()).getValues()[0];
@@ -432,6 +433,7 @@ function doPost(e) {
           case 'grant_year': return avGy;
           case 'days':       return 0;
           case 'remaining':  return '';
+          case 'ampm':       return avAmpm;
           default:           return '';
         }
       });
@@ -451,7 +453,7 @@ function doPost(e) {
         return jsonResponse({ ok: false, error: 'Missing emp_no' });
       }
       var agSheet = getSheet(SHEET_VACATION);
-      var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days'];
+      var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days', 'ampm'];
       if (agSheet.getLastRow() === 0) {
         agSheet.appendRow(VAC_HEADERS);
       }
@@ -1328,7 +1330,7 @@ function getVacationData() {
 
 // 유급휴가 시트를 고정 헤더 순서로 전체 재작성 (saveSheet 대체 — 헤더 순서 변경 방지)
 function saveVacationSheet(records) {
-  var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days'];
+  var VAC_HEADERS = ['emp_no', 'date', 'used', 'reason', 'grant_year', 'remaining', 'days', 'ampm'];
   var sheet = getSheet(SHEET_VACATION);
   sheet.clearContents();
   if (!records || !records.length) return;

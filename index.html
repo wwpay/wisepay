@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-24 22:45 — 비밀번호 분실 모달 + 이메일 링크 방식 재설정 구현
+  수정: 2026-06-26 12:25 — vacation.js/i18n.js: 유급휴가 오전/오후 반차 구분 입력 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -977,16 +977,21 @@
       </div>
       <div>
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;" id="t-vac-days-label">取得日数</div>
-        <div style="display:flex;gap:16px;">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
             <input type="radio" id="vac-modal-r1" name="vac-days-radio" value="1" checked
               style="accent-color:var(--accent);width:16px;height:16px;">
             <span id="t-vac-r1">1日</span>
           </label>
           <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
-            <input type="radio" id="vac-modal-r05" name="vac-days-radio" value="0.5"
+            <input type="radio" id="vac-modal-ram" name="vac-days-radio" value="am"
               style="accent-color:var(--accent);width:16px;height:16px;">
-            <span id="t-vac-r05">半日</span>
+            <span id="t-vac-ram">午前半日</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" id="vac-modal-rpm" name="vac-days-radio" value="pm"
+              style="accent-color:var(--accent);width:16px;height:16px;">
+            <span id="t-vac-rpm">午後半日</span>
           </label>
         </div>
       </div>
