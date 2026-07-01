@@ -1,4 +1,4 @@
-// 수정: 2026-07-01 23:33 — 임금대장 연도모드/기간지정 버튼 분리 배치 (파스텔 색상 구분), 모달 내 연도모드 링크 제거
+// 수정: 2026-07-01 23:46 — 기간 검증 경고를 모달 내부 인라인 경고로 변경 (z-index 충돌 해결, 모달 가운데 표시)
 'use strict';
 let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
@@ -144,6 +144,8 @@ function openAnnualCustomModal() {
   });
 
   _updateModalSummary();
+  const warn = document.getElementById('annualCustomModalWarn');
+  if (warn) warn.style.display = 'none';
   const modal = document.getElementById('modal-annual-custom');
   if (modal) modal.style.display = 'flex';
 }
@@ -152,6 +154,16 @@ function openAnnualCustomModal() {
 function closeAnnualCustomModal() {
   const modal = document.getElementById('modal-annual-custom');
   if (modal) modal.style.display = 'none';
+}
+
+// 모달 내 경고 메시지 (토스트 대신 — z-index 충돌 방지)
+function _showModalWarn(msg) {
+  const el = document.getElementById('annualCustomModalWarn');
+  if (!el) { showToast(msg, 'w'); return; }
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._tid);
+  el._tid = setTimeout(() => { el.style.display = 'none'; }, 2600);
 }
 
 // 기간 적용 (12개월 초과 시 toast 경고 + 모달 유지)
@@ -164,11 +176,11 @@ function applyAnnualCustomRange() {
   const jp = LANG === 'JP';
   const totalM = (ey - sy) * 12 + (em - sm) + 1;
   if (totalM <= 0) {
-    showToast(jp ? '終了月は開始月より後にしてください' : '종료월은 시작월보다 이후여야 합니다');
+    _showModalWarn(jp ? '終了月は開始月より後にしてください' : '종료월은 시작월보다 이후여야 합니다');
     return;
   }
   if (totalM > 12) {
-    showToast(jp ? '12ヶ月以内で指定してください' : '기간은 최대 12개월까지만 지정할 수 있습니다');
+    _showModalWarn(jp ? '12ヶ月以内で指定してください' : '기간은 최대 12개월까지만 지정할 수 있습니다');
     return; // 모달 유지
   }
   _annualCustomStartYear  = sy;

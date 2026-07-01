@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-07-01 23:33 — 임금대장 연도모드/기간지정 버튼 분리 배치 (파스텔 색상 구분), 모달 내 연도모드 링크 제거
+  수정: 2026-07-01 23:46 — 기간 검증 경고를 모달 내부 인라인 경고로 변경 (z-index 충돌 해결, 모달 가운데 표시)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -902,6 +902,8 @@
     </div>
     <!-- 기간 요약 표시 -->
     <div id="annualCustomModalSummary" style="font-size:12px;color:var(--accent);font-weight:600;text-align:center;margin-bottom:16px;min-height:18px;"></div>
+    <!-- 기간 검증 경고 (버튼 위, 모달 내부) -->
+    <div id="annualCustomModalWarn" style="display:none;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;text-align:center;margin-bottom:12px;"></div>
     <!-- 버튼 -->
     <div style="display:flex;gap:8px;">
       <button onclick="closeAnnualCustomModal()"
