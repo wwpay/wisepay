@@ -144,8 +144,6 @@ function openAnnualCustomModal() {
   });
 
   _updateModalSummary();
-  const warn = document.getElementById('annualCustomModalWarn');
-  if (warn) warn.style.display = 'none';
   const modal = document.getElementById('modal-annual-custom');
   if (modal) modal.style.display = 'flex';
 }
@@ -156,14 +154,19 @@ function closeAnnualCustomModal() {
   if (modal) modal.style.display = 'none';
 }
 
-// 모달 내 경고 메시지 (토스트 대신 — z-index 충돌 방지)
+// 모달 위에 뜨는 경고 토스트 (z-index: 20000, 화면 중앙 고정)
 function _showModalWarn(msg) {
-  const el = document.getElementById('annualCustomModalWarn');
-  if (!el) { showToast(msg, 'w'); return; }
+  let el = document.getElementById('_modalOverToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_modalOverToast';
+    el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20000;background:#f59e0b;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 24px rgba(0,0,0,0.28);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;text-align:center;';
+    document.body.appendChild(el);
+  }
   el.textContent = msg;
-  el.style.display = 'block';
+  el.style.opacity = '1';
   clearTimeout(el._tid);
-  el._tid = setTimeout(() => { el.style.display = 'none'; }, 2600);
+  el._tid = setTimeout(() => { el.style.opacity = '0'; }, 2400);
 }
 
 // 기간 적용 (12개월 초과 시 toast 경고 + 모달 유지)
