@@ -1,4 +1,4 @@
-// 수정: 2026-07-01 11:47 — 임금대장 기간 지정: 인라인 방식 → 모달 방식으로 전환 (시작·종료 연월 각각 선택, 12개월 초과 시 경고)
+// 수정: 2026-07-01 23:33 — 임금대장 연도모드/기간지정 버튼 분리 배치 (파스텔 색상 구분), 모달 내 연도모드 링크 제거
 'use strict';
 let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
@@ -194,7 +194,7 @@ function clearAnnualCustomMode() {
   const label = document.getElementById('annualCustomRangeLabel');
   if (label) label.textContent = '';
   const btn = document.getElementById('annualCustomModeBtn');
-  if (btn) { btn.style.background = 'transparent'; btn.style.color = 'var(--text2)'; btn.style.borderColor = 'var(--border)'; }
+  if (btn) { btn.style.background = '#f3e8ff'; btn.style.color = '#7c3aed'; btn.style.borderColor = '#d8b4fe'; }
   closeAnnualCustomModal();
   renderAnnual();
 }
