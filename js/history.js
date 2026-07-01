@@ -1,7 +1,8 @@
-// 수정: 2026-06-10 22:38 — annualInclLeft 토글 추가 (퇴사자 포함/숨김), buildAnnualEmpSel 필터 연동
+// 수정: 2026-06-19 15:45 — 임금대장 기간 지정 기능 추가 (기간 모드: 시작 연월 선택 → 12개월 자동 산출)
 'use strict';
 let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
+let _annualCustomMode = false;  // false = 연도 모드(기본), true = 기간 지정 모드
 
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -32,6 +33,122 @@ function buildAnnualYearSel() {
   });
   if(years.map(String).includes(prev)) sel.value = prev;
   else if(years.length) sel.value = String(years[0]);
+  _buildAnnualCustomStartSel();
+}
+
+// 기간 지정 모드 시작 연월 셀렉터 초기화 (admin 전용)
+function _buildAnnualCustomStartSel() {
+  const ySel = document.getElementById('annualCustomStartYear');
+  const mSel = document.getElementById('annualCustomStartMonth');
+  if (!ySel || !mSel) return;
+  const jp = LANG === 'JP';
+
+  // 연도: localStorage 급여 데이터 기준 최소~최대 연도
+  const allYears = new Set();
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    const m = k && k.match(/^kyuyo_p_\d{4}_(\d{4})_\d{1,2}$/);
+    if (m) allYears.add(parseInt(m[1]));
+  }
+  const years = Array.from(allYears).sort((a, b) => b - a);
+
+  const prevY = ySel.value;
+  ySel.innerHTML = '';
+  years.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y;
+    o.textContent = jp ? `${y}年` : `${y}년`;
+    ySel.appendChild(o);
+  });
+  if (years.map(String).includes(prevY)) ySel.value = prevY;
+  else if (years.length) ySel.value = String(years[0]);
+
+  // 월: 1~12
+  const prevM = mSel.value;
+  mSel.innerHTML = '';
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = jp ? `${m}月` : `${m}월`;
+    mSel.appendChild(o);
+  }
+  // 기본값: 7월 (후생연금 제출용 7~6월 기준)
+  if (prevM && parseInt(prevM) >= 1 && parseInt(prevM) <= 12) mSel.value = prevM;
+  else mSel.value = '7';
+
+  _updateAnnualCustomEndLabel();
+}
+
+// 종료 연월 라벨 업데이트 (시작 +11개월)
+function _updateAnnualCustomEndLabel() {
+  const ySel = document.getElementById('annualCustomStartYear');
+  const mSel = document.getElementById('annualCustomStartMonth');
+  const label = document.getElementById('annualCustomEndLabel');
+  if (!ySel || !mSel || !label) return;
+  const jp = LANG === 'JP';
+  const sy = parseInt(ySel.value), sm = parseInt(mSel.value);
+  if (isNaN(sy) || isNaN(sm)) { label.textContent = ''; return; }
+  // 시작 연월부터 12개월 → 종료 = +11개월
+  const totalM = (sy - 1) * 12 + sm + 11;
+  const ey = Math.floor((totalM - 1) / 12) + 1;
+  const em = ((totalM - 1) % 12) + 1;
+  label.textContent = jp ? `〜 ${ey}年${em}月（12ヶ月）` : `~ ${ey}년 ${em}월 (12개월)`;
+}
+
+// 기간 지정 모드 토글 (admin 전용)
+function toggleAnnualCustomMode() {
+  _annualCustomMode = !_annualCustomMode;
+  const btn     = document.getElementById('annualCustomModeBtn');
+  const sels    = document.getElementById('annualCustomSels');
+  const yearSel = document.getElementById('annualYearSel');
+  const jp      = LANG === 'JP';
+  if (_annualCustomMode) {
+    if (btn) {
+      btn.style.background   = 'var(--accent2)';
+      btn.style.color        = 'var(--accent)';
+      btn.style.borderColor  = 'var(--accent)';
+      btn.textContent        = jp ? '期間指定中' : '기간 지정 중';
+    }
+    if (sels)    sels.style.display    = 'flex';
+    if (yearSel) yearSel.style.display = 'none';
+    _updateAnnualCustomEndLabel();
+  } else {
+    if (btn) {
+      btn.style.background   = 'transparent';
+      btn.style.color        = 'var(--text2)';
+      btn.style.borderColor  = 'var(--border)';
+      btn.textContent        = jp ? '期間指定' : '기간 지정';
+    }
+    if (sels)    sels.style.display    = 'none';
+    if (yearSel) yearSel.style.display = '';
+  }
+  renderAnnual();
+}
+
+// 현재 모드에 따른 fiscalMonths 배열 반환 (항상 12개월)
+function getAnnualFiscalMonths() {
+  if (_annualCustomMode) {
+    const sy = parseInt(document.getElementById('annualCustomStartYear')?.value);
+    const sm = parseInt(document.getElementById('annualCustomStartMonth')?.value);
+    if (!isNaN(sy) && !isNaN(sm)) {
+      return Array.from({ length: 12 }, (_, i) => {
+        const totalM = (sy - 1) * 12 + sm + i;
+        return { year: Math.floor((totalM - 1) / 12) + 1, month: ((totalM - 1) % 12) + 1 };
+      });
+    }
+  }
+  // 기본: 연도 모드 (전년12 + 당해1~11)
+  const year = parseInt(document.getElementById('annualYearSel')?.value) || new Date().getFullYear();
+  return [
+    { year: year - 1, month: 12 },
+    ...Array.from({ length: 11 }, (_, i) => ({ year, month: i + 1 }))
+  ];
+}
+
+// admin 전용 기간 지정 UI 표시 (initApp에서 호출)
+function showAnnualCustomWrap() {
+  const wrap = document.getElementById('annualCustomWrap');
+  if (wrap) wrap.style.display = 'flex';
 }
 
 // 체크리스트 빌드 — 이전 선택 유지 (첫 빌드 시 첫 번째 활성 사원 선택)
@@ -222,15 +339,10 @@ function getJoinNote(emp, year, jp) {
 }
 
 // 한 사원의 임금대장 표 + 요약바 HTML 반환 (지급완료 달 없으면 null)
-function buildEmpTableHtml(emp, year, jp) {
+// fiscalMonths: [{ year, month }, ...] 12개월 배열 (getAnnualFiscalMonths() 반환값)
+function buildEmpTableHtml(emp, fiscalMonths, jp) {
   const mu = jp ? '月分' : '월분';
   const fmt = n => n.toLocaleString();
-
-  // 전년 12월 + 당해 1~11월 = 12열 고정 (익월10일 지급 기준: 지급년도 1/10~12/10 = 급여월 전년12~당해11)
-  const fiscalMonths = [
-    { year: year-1, month: 12 },
-    ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
-  ];
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
 
   // 각 달의 지급완료 여부
@@ -277,10 +389,17 @@ function buildEmpTableHtml(emp, year, jp) {
 
   let html = `<div class="annual-scroll-wrap"><div class="annual-wrap">`;
 
+  // 기간 지정 모드: 연도도 함께 표시 (다년도 걸칠 수 있으므로)
+  const multiYear = fiscalMonths.some(f => f.year !== fiscalMonths[0].year);
   html += `<div class="annual-head-row" style="${cols}"><div>${jp?'項目':'항목'}</div>`;
   for(let i=0;i<showCount;i++) {
     const {year:y,month:m}=fiscalMonths[i];
-    html += `<div>${(m===12&&y===year-1)?(jp?`前年<br>12${mu}`:`전년<br>12${mu}`):`${m}${mu}`}</div>`;
+    const lbl = multiYear
+      ? (jp ? `${y}<br>${m}${mu}` : `${y}<br>${m}${mu}`)
+      : (i===0 && m===12 && y===fiscalMonths[1]?.year-1)
+        ? (jp?`前年<br>12${mu}`:`전년<br>12${mu}`)
+        : `${m}${mu}`;
+    html += `<div>${lbl}</div>`;
   }
   html += `<div>${jp?'合計':'합계'}</div></div>`;
 
@@ -337,9 +456,15 @@ function renderAnnual() {
   }
 
   const selectedNos = getSelectedAnnualNos();
-  const year = parseInt(document.getElementById('annualYearSel')?.value)||2026;
+  const fiscalMonths = getAnnualFiscalMonths();
   const today = jp ? new Date().toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ko-KR');
-  const noDataMsg = `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年度のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
+  const noDataMsg = `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この期間のデータがありません':'이 기간의 데이터가 없습니다'}</div>`;
+
+  // 타이틀용 기간 문자열
+  const _fm0 = fiscalMonths[0], _fmL = fiscalMonths[fiscalMonths.length - 1];
+  const periodLabel = _annualCustomMode
+    ? (jp ? `${_fm0.year}年${_fm0.month}月〜${_fmL.year}年${_fmL.month}月` : `${_fm0.year}년 ${_fm0.month}월~${_fmL.year}년 ${_fmL.month}월`)
+    : (jp ? `${parseInt(document.getElementById('annualYearSel')?.value)||''}年度` : `${parseInt(document.getElementById('annualYearSel')?.value)||''}년도`);
 
   if (selectedNos.length === 0) {
     showPlaceholder();
@@ -354,10 +479,10 @@ function renderAnnual() {
     ph.style.display = 'block';
     const _nameKana1 = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
     document.getElementById('annualPrintTitle').textContent =
-      `${_nameKana1}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
+      `${_nameKana1}（${String(emp.no).padStart(4,'0')}） ${periodLabel} ${jp?'賃金台帳':'임금 대장'}`;
     document.getElementById('annualPrintSub').textContent =
-      (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
-    document.getElementById('annualContent').innerHTML = buildEmpTableHtml(emp, year, jp) || noDataMsg;
+      (jp?`出力日：${today}`:`출력일：${today}`);
+    document.getElementById('annualContent').innerHTML = buildEmpTableHtml(emp, fiscalMonths, jp) || noDataMsg;
     return;
   }
 
@@ -368,11 +493,11 @@ function renderAnnual() {
   selectedNos.forEach(no => {
     const emp = employees.find(e => parseInt(e.no) === no);
     if (!emp) return;
-    const tableHtml = buildEmpTableHtml(emp, year, jp);
+    const tableHtml = buildEmpTableHtml(emp, fiscalMonths, jp);
     if (!tableHtml) return;
     const _nameKana2 = jp && emp.kana ? `${emp.name}（${emp.kana}）` : emp.name;
-    const title = `${_nameKana2}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금 대장'}`;
-    const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
+    const title = `${_nameKana2}（${String(emp.no).padStart(4,'0')}） ${periodLabel} ${jp?'賃金台帳':'임금 대장'}`;
+    const sub = jp?`出力日：${today}`:`출력일：${today}`;
     allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
       `<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;margin-bottom:10px;">` +
       `<div style="font-size:16px;font-weight:700;">${title}</div>` +

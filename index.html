@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-06-25 00:35 — vacation.js: 연간 리스트 클릭 시 달력 월 동기화 버그 수정
+  수정: 2026-07-01 11:34 — 임금대장 기간 지정 기능 추가 (admin 전용, 시작 연월 선택 → 12개월 자동 산출) [v1.7.1]
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -334,6 +334,18 @@
         </div>
       </div>
       <select id="annualYearSel" onchange="renderAnnual()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
+      <!-- 기간 지정 UI — admin 전용, 기본 hidden -->
+      <div id="annualCustomWrap" style="display:none;align-items:center;gap:6px;">
+        <button id="annualCustomModeBtn" onclick="toggleAnnualCustomMode()"
+          style="padding:5px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--r2);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;">기간 지정</button>
+        <div id="annualCustomSels" style="display:none;align-items:center;gap:4px;">
+          <select id="annualCustomStartYear" onchange="_updateAnnualCustomEndLabel();renderAnnual()"
+            style="border:1px solid var(--accent);border-radius:var(--r2);padding:5px 6px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
+          <select id="annualCustomStartMonth" onchange="_updateAnnualCustomEndLabel();renderAnnual()"
+            style="border:1px solid var(--accent);border-radius:var(--r2);padding:5px 6px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
+          <span style="font-size:12px;color:var(--text2);" id="annualCustomEndLabel"></span>
+        </div>
+      </div>
   </div>
   <!-- 미선택 플레이스홀더 -->
   <div id="annualPlaceholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text3);text-align:center;">

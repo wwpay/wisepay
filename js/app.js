@@ -117,6 +117,8 @@ function initApp() {
   if (currentUser && currentUser.id === 'wiseadmin') {
     if (typeof initNotifications === 'function') initNotifications();
     // checkAndShowPayrollAlerts は autoLoadFromGas() 완료 후 호출됨 (gas.js)
+    // 기간 지정 UI: admin 전용으로 표시
+    if (typeof showAnnualCustomWrap === 'function') showAnnualCustomWrap();
   }
 }
 
