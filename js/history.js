@@ -1,8 +1,12 @@
-// 수정: 2026-06-19 15:45 — 임금대장 기간 지정 기능 추가 (기간 모드: 시작 연월 선택 → 12개월 자동 산출)
+// 수정: 2026-07-01 11:47 — 임금대장 기간 지정: 인라인 방식 → 모달 방식으로 전환 (시작·종료 연월 각각 선택, 12개월 초과 시 경고)
 'use strict';
 let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
 let _annualCustomMode = false;  // false = 연도 모드(기본), true = 기간 지정 모드
+let _annualCustomStartYear  = null;
+let _annualCustomStartMonth = null;
+let _annualCustomEndYear    = null;
+let _annualCustomEndMonth   = null;
 
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -33,109 +37,178 @@ function buildAnnualYearSel() {
   });
   if(years.map(String).includes(prev)) sel.value = prev;
   else if(years.length) sel.value = String(years[0]);
-  _buildAnnualCustomStartSel();
 }
 
-// 기간 지정 모드 시작 연월 셀렉터 초기화 (admin 전용)
-function _buildAnnualCustomStartSel() {
-  const ySel = document.getElementById('annualCustomStartYear');
-  const mSel = document.getElementById('annualCustomStartMonth');
-  if (!ySel || !mSel) return;
-  const jp = LANG === 'JP';
-
-  // 연도: localStorage 급여 데이터 기준 최소~최대 연도
-  const allYears = new Set();
+// localStorage 데이터 연도 목록 (내림차순)
+function _getDataYears() {
+  const s = new Set();
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     const m = k && k.match(/^kyuyo_p_\d{4}_(\d{4})_\d{1,2}$/);
-    if (m) allYears.add(parseInt(m[1]));
+    if (m) s.add(parseInt(m[1]));
   }
-  const years = Array.from(allYears).sort((a, b) => b - a);
-
-  const prevY = ySel.value;
-  ySel.innerHTML = '';
-  years.forEach(y => {
-    const o = document.createElement('option');
-    o.value = y;
-    o.textContent = jp ? `${y}年` : `${y}년`;
-    ySel.appendChild(o);
-  });
-  if (years.map(String).includes(prevY)) ySel.value = prevY;
-  else if (years.length) ySel.value = String(years[0]);
-
-  // 월: 1~12
-  const prevM = mSel.value;
-  mSel.innerHTML = '';
-  for (let m = 1; m <= 12; m++) {
-    const o = document.createElement('option');
-    o.value = m;
-    o.textContent = jp ? `${m}月` : `${m}월`;
-    mSel.appendChild(o);
-  }
-  // 기본값: 7월 (후생연금 제출용 7~6월 기준)
-  if (prevM && parseInt(prevM) >= 1 && parseInt(prevM) <= 12) mSel.value = prevM;
-  else mSel.value = '7';
-
-  _updateAnnualCustomEndLabel();
+  return Array.from(s).sort((a, b) => b - a);
 }
 
-// 종료 연월 라벨 업데이트 (시작 +11개월)
-function _updateAnnualCustomEndLabel() {
-  const ySel = document.getElementById('annualCustomStartYear');
-  const mSel = document.getElementById('annualCustomStartMonth');
-  const label = document.getElementById('annualCustomEndLabel');
-  if (!ySel || !mSel || !label) return;
+// 모달 내 기간 요약 라벨 갱신
+function _updateModalSummary() {
+  const sy = parseInt(document.getElementById('annualCustomStartYear')?.value);
+  const sm = parseInt(document.getElementById('annualCustomStartMonth')?.value);
+  const ey = parseInt(document.getElementById('annualCustomEndYear')?.value);
+  const em = parseInt(document.getElementById('annualCustomEndMonth')?.value);
+  const summary = document.getElementById('annualCustomModalSummary');
+  if (!summary) return;
+  if (isNaN(sy) || isNaN(sm) || isNaN(ey) || isNaN(em)) { summary.textContent = ''; return; }
   const jp = LANG === 'JP';
-  const sy = parseInt(ySel.value), sm = parseInt(mSel.value);
-  if (isNaN(sy) || isNaN(sm)) { label.textContent = ''; return; }
-  // 시작 연월부터 12개월 → 종료 = +11개월
-  const totalM = (sy - 1) * 12 + sm + 11;
-  const ey = Math.floor((totalM - 1) / 12) + 1;
-  const em = ((totalM - 1) % 12) + 1;
-  label.textContent = jp ? `〜 ${ey}年${em}月（12ヶ月）` : `~ ${ey}년 ${em}월 (12개월)`;
+  const totalM = (ey - sy) * 12 + (em - sm) + 1;
+  const ss = jp ? `${sy}年${sm}月` : `${sy}년 ${sm}월`;
+  const es = jp ? `${ey}年${em}月` : `${ey}년 ${em}월`;
+  if (totalM <= 0) {
+    summary.style.color = 'var(--red, #e74c3c)';
+    summary.textContent = jp ? '終了月は開始月より後にしてください' : '종료월이 시작월보다 앞입니다';
+  } else if (totalM > 12) {
+    summary.style.color = 'var(--red, #e74c3c)';
+    summary.textContent = jp ? `${ss} 〜 ${es}（${totalM}ヶ月 — 12超）` : `${ss} ~ ${es} (${totalM}개월 — 12개월 초과)`;
+  } else {
+    summary.style.color = 'var(--accent)';
+    summary.textContent = jp ? `${ss} 〜 ${es}（${totalM}ヶ月）` : `${ss} ~ ${es} (${totalM}개월)`;
+  }
 }
 
-// 기간 지정 모드 토글 (admin 전용)
-function toggleAnnualCustomMode() {
-  _annualCustomMode = !_annualCustomMode;
-  const btn     = document.getElementById('annualCustomModeBtn');
-  const sels    = document.getElementById('annualCustomSels');
-  const yearSel = document.getElementById('annualYearSel');
-  const jp      = LANG === 'JP';
-  if (_annualCustomMode) {
-    if (btn) {
-      btn.style.background   = 'var(--accent2)';
-      btn.style.color        = 'var(--accent)';
-      btn.style.borderColor  = 'var(--accent)';
-      btn.textContent        = jp ? '期間指定中' : '기간 지정 중';
-    }
-    if (sels)    sels.style.display    = 'flex';
-    if (yearSel) yearSel.style.display = 'none';
-    _updateAnnualCustomEndLabel();
-  } else {
-    if (btn) {
-      btn.style.background   = 'transparent';
-      btn.style.color        = 'var(--text2)';
-      btn.style.borderColor  = 'var(--border)';
-      btn.textContent        = jp ? '期間指定' : '기간 지정';
-    }
-    if (sels)    sels.style.display    = 'none';
-    if (yearSel) yearSel.style.display = '';
+// 기간 지정 모달 열기 (admin 전용)
+function openAnnualCustomModal() {
+  const jp = LANG === 'JP';
+  const dataYears = _getDataYears();
+  if (!dataYears.length) { showToast(jp ? 'データがありません' : '데이터가 없습니다'); return; }
+
+  // start 셀렉터: 데이터 연도 범위, end 셀렉터: 데이터 최대 연도 + 1까지
+  const maxY = dataYears[0];
+  const minY = dataYears[dataYears.length - 1];
+  const startYears = [], endYears = [];
+  for (let y = maxY;     y >= minY; y--) startYears.push(y);
+  for (let y = maxY + 1; y >= minY; y--) endYears.push(y);
+
+  function fillYear(id, list) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    list.forEach(y => {
+      const o = document.createElement('option');
+      o.value = y;
+      o.textContent = jp ? `${y}年` : `${y}년`;
+      sel.appendChild(o);
+    });
   }
+  function fillMonth(id) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+      const o = document.createElement('option');
+      o.value = m;
+      o.textContent = jp ? `${m}月` : `${m}월`;
+      sel.appendChild(o);
+    }
+  }
+
+  fillYear('annualCustomStartYear', startYears);
+  fillYear('annualCustomEndYear',   endYears);
+  fillMonth('annualCustomStartMonth');
+  fillMonth('annualCustomEndMonth');
+
+  // 이전 확정값 복원 또는 기본값(7월~6월) 설정
+  const sy = document.getElementById('annualCustomStartYear');
+  const sm = document.getElementById('annualCustomStartMonth');
+  const ey = document.getElementById('annualCustomEndYear');
+  const em = document.getElementById('annualCustomEndMonth');
+
+  if (_annualCustomStartYear && startYears.includes(_annualCustomStartYear)) {
+    sy.value = String(_annualCustomStartYear);
+    sm.value = String(_annualCustomStartMonth);
+    if (endYears.includes(_annualCustomEndYear)) ey.value = String(_annualCustomEndYear);
+    em.value = String(_annualCustomEndMonth);
+  } else {
+    // 기본: 최대연도-1년 7월 ~ 최대연도 6월 (후생연금 기준)
+    const defSY = startYears.includes(maxY - 1) ? maxY - 1 : maxY;
+    sy.value = String(defSY);
+    sm.value = '7';
+    const defEY = defSY + 1;
+    ey.value = String(endYears.includes(defEY) ? defEY : endYears[0]);
+    em.value = '6';
+  }
+
+  // 셀렉터 변경 시 요약 갱신
+  ['annualCustomStartYear','annualCustomStartMonth','annualCustomEndYear','annualCustomEndMonth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.oninput = _updateModalSummary;
+  });
+
+  _updateModalSummary();
+  const modal = document.getElementById('modal-annual-custom');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 모달 닫기
+function closeAnnualCustomModal() {
+  const modal = document.getElementById('modal-annual-custom');
+  if (modal) modal.style.display = 'none';
+}
+
+// 기간 적용 (12개월 초과 시 toast 경고 + 모달 유지)
+function applyAnnualCustomRange() {
+  const sy = parseInt(document.getElementById('annualCustomStartYear')?.value);
+  const sm = parseInt(document.getElementById('annualCustomStartMonth')?.value);
+  const ey = parseInt(document.getElementById('annualCustomEndYear')?.value);
+  const em = parseInt(document.getElementById('annualCustomEndMonth')?.value);
+  if (isNaN(sy) || isNaN(sm) || isNaN(ey) || isNaN(em)) return;
+  const jp = LANG === 'JP';
+  const totalM = (ey - sy) * 12 + (em - sm) + 1;
+  if (totalM <= 0) {
+    showToast(jp ? '終了月は開始月より後にしてください' : '종료월은 시작월보다 이후여야 합니다');
+    return;
+  }
+  if (totalM > 12) {
+    showToast(jp ? '12ヶ月以内で指定してください' : '기간은 최대 12개월까지만 지정할 수 있습니다');
+    return; // 모달 유지
+  }
+  _annualCustomStartYear  = sy;
+  _annualCustomStartMonth = sm;
+  _annualCustomEndYear    = ey;
+  _annualCustomEndMonth   = em;
+  _annualCustomMode = true;
+
+  const label = document.getElementById('annualCustomRangeLabel');
+  if (label) label.textContent = jp ? `${sy}年${sm}月 〜 ${ey}年${em}月` : `${sy}년 ${sm}월 ~ ${ey}년 ${em}월`;
+  const btn = document.getElementById('annualCustomModeBtn');
+  if (btn) { btn.style.background = 'var(--accent2)'; btn.style.color = 'var(--accent)'; btn.style.borderColor = 'var(--accent)'; }
+
+  closeAnnualCustomModal();
   renderAnnual();
 }
 
-// 현재 모드에 따른 fiscalMonths 배열 반환 (항상 12개월)
+// 연도 모드로 되돌리기
+function clearAnnualCustomMode() {
+  _annualCustomMode = false;
+  _annualCustomStartYear = _annualCustomStartMonth = null;
+  _annualCustomEndYear   = _annualCustomEndMonth   = null;
+  const label = document.getElementById('annualCustomRangeLabel');
+  if (label) label.textContent = '';
+  const btn = document.getElementById('annualCustomModeBtn');
+  if (btn) { btn.style.background = 'transparent'; btn.style.color = 'var(--text2)'; btn.style.borderColor = 'var(--border)'; }
+  closeAnnualCustomModal();
+  renderAnnual();
+}
+
+// 현재 모드에 따른 fiscalMonths 배열 반환
 function getAnnualFiscalMonths() {
-  if (_annualCustomMode) {
-    const sy = parseInt(document.getElementById('annualCustomStartYear')?.value);
-    const sm = parseInt(document.getElementById('annualCustomStartMonth')?.value);
-    if (!isNaN(sy) && !isNaN(sm)) {
-      return Array.from({ length: 12 }, (_, i) => {
-        const totalM = (sy - 1) * 12 + sm + i;
-        return { year: Math.floor((totalM - 1) / 12) + 1, month: ((totalM - 1) % 12) + 1 };
-      });
+  if (_annualCustomMode && _annualCustomStartYear) {
+    const months = [];
+    let cy = _annualCustomStartYear, cm = _annualCustomStartMonth;
+    while (cy < _annualCustomEndYear || (cy === _annualCustomEndYear && cm <= _annualCustomEndMonth)) {
+      months.push({ year: cy, month: cm });
+      if (++cm > 12) { cm = 1; cy++; }
     }
+    return months;
   }
   // 기본: 연도 모드 (전년12 + 당해1~11)
   const year = parseInt(document.getElementById('annualYearSel')?.value) || new Date().getFullYear();
