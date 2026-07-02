@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-16 14:53 — 신규 사원 등록 하단 저장/취소 버튼 추가 + 저장 버튼 색상 btn-primary로 통일
+﻿// 수정: 2026-07-02 23:23 — 算定基礎届用フィールド seiri_no/hyojun_kenko/hyojun_nenkin 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -321,6 +321,34 @@ function renderEmpFormFields(emp, readOnly = false) {
         oninput="onShahoInput(this)"
         onblur="onShahoBlur(this)"
         onkeydown="onShahoKeydown(event)"${dis}>
+    </div>
+    <div class="form-group">
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'被保険者整理番号':'피보험자 정리번호'}</label>
+          <span class="form-label-hint">${jp?'算定基礎届・月変届用':'산정기초신고서용'}</span>
+        </div>
+      </div>
+      <input class="form-input" id="f-seiri-no" value="${v('seiri_no')}"
+        placeholder="${jp?'例: 12':'예: 12'}" maxlength="8" oninput="markDirty()"${dis}>
+    </div>
+    <div class="form-group">
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'従前の標準報酬月額（健保）千円':'종전 표준보수월액（건보）千円'}</label>
+        </div>
+      </div>
+      <input class="form-input" id="f-hyojun-kenko" type="number" value="${v('hyojun_kenko',0)}"
+        min="0" oninput="markDirty()"${dis}>
+    </div>
+    <div class="form-group">
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'従前の標準報酬月額（厚年）千円':'종전 표준보수월액（후생연금）千円'}</label>
+        </div>
+      </div>
+      <input class="form-input" id="f-hyojun-nenkin" type="number" value="${v('hyojun_nenkin',0)}"
+        min="0" oninput="markDirty()"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -865,6 +893,9 @@ function saveEmployee() {
     kaigo: document.getElementById('f-kaigo')?.value||'auto',
     koyo: document.getElementById('f-koyo')?.value||'yes',
     shaho_start: (document.getElementById('f-shaho-start')?.value||'').trim(),
+    seiri_no: (document.getElementById('f-seiri-no')?.value||'').trim(),
+    hyojun_kenko: parseInt(document.getElementById('f-hyojun-kenko')?.value)||0,
+    hyojun_nenkin: parseInt(document.getElementById('f-hyojun-nenkin')?.value)||0,
     shotokuKbn: document.getElementById('f-shotoku-kbn')?.value||'ko',
     fuyouCount: parseInt(document.getElementById('f-fuyou')?.value)||0,
     vacationApplied: document.getElementById('f-vacation-applied')?.checked !== false,

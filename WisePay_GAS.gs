@@ -18,6 +18,7 @@ const SHEET_PAID    = '지급완료이력';
 const SHEET_SNAP    = '급여스냅샷';
 const SHEET_HOLIDAY   = '공휴일';
 const SHEET_VACATION  = '유급휴가';
+const SHEET_CONFIG    = 'config'; // key-value 설정 시트 (算定基礎届・労働保険等 공통)
 
 // 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
 const KENPO_INDEX_URL = 'https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/';
@@ -38,6 +39,7 @@ function doGet(e) {
     else if (action === 'getHolidays')                                    result = getHolidaysData();
     else if (action === 'getVacation')                                    result = getVacationData();
     else if (action === 'confirmReset')                                    result = confirmPasswordReset(e.parameter.token || '');
+    else if (action === 'getConfig')                                       result = getConfigData();
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
@@ -169,6 +171,11 @@ function doPost(e) {
         snapSheet.getRange(snapSheet.getLastRow() + 1, 1, rows.length, snapHdrs.length).setValues(rows);
       }
 
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'saveConfig') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      saveConfigData(data.entries || {});
       return jsonResponse({ ok: true });
     }
     if (data.type === 'appendLog') {
@@ -840,6 +847,60 @@ function getPaidYMs(ss) {
     var m = parseInt(r[mCol]);
     return (!isNaN(y) && !isNaN(m)) ? (y + '-' + String(m).padStart(2, '0')) : null;
   }).filter(Boolean);
+}
+
+// ── config 시트 (key-value 범용 설정) ──────────────────────────────────────
+function getConfigData() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_CONFIG);
+  if (!sheet || sheet.getLastRow() < 2) return { ok: true, data: {} };
+  var vals = sheet.getDataRange().getValues();
+  var hdrs = vals[0];
+  var kIdx = hdrs.indexOf('key');
+  var vIdx = hdrs.indexOf('value');
+  if (kIdx < 0 || vIdx < 0) return { ok: true, data: {} };
+  var obj = {};
+  vals.slice(1).forEach(function(row) {
+    var k = String(row[kIdx] || '').trim();
+    if (k) obj[k] = String(row[vIdx] !== undefined ? row[vIdx] : '');
+  });
+  return { ok: true, data: obj };
+}
+
+function saveConfigData(entries) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_CONFIG);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_CONFIG);
+    sheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
+  }
+  var vals = sheet.getDataRange().getValues();
+  var hdrs = vals[0];
+  var kIdx = hdrs.indexOf('key');
+  var vIdx = hdrs.indexOf('value');
+  if (kIdx < 0) { kIdx = 0; vIdx = 1; }
+
+  // key → 행 번호(1-indexed) 맵
+  var rowMap = {};
+  vals.slice(1).forEach(function(row, i) {
+    var k = String(row[kIdx] || '').trim();
+    if (k) rowMap[k] = i + 2;
+  });
+
+  Object.keys(entries).forEach(function(key) {
+    var val = String(entries[key] !== undefined ? entries[key] : '');
+    if (rowMap[key]) {
+      sheet.getRange(rowMap[key], vIdx + 1).setValue(val);
+    } else {
+      var newRow = new Array(Math.max(kIdx, vIdx) + 1).fill('');
+      newRow[kIdx] = key;
+      newRow[vIdx] = val;
+      sheet.appendRow(newRow);
+      rowMap[key] = sheet.getLastRow();
+    }
+  });
 }
 
 function getDeletedEmpIdsData(ss) {

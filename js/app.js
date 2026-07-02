@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-22 12:45 — 급여 입력란 focusout '0' 복원 리스너 제거 (0 잔류 버그 진짜 원인)
+﻿// 수정: 2026-07-03 06:41 — 算定基礎届 페이지 라우팅 추가 (initSantei 호출, titles 등록)
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -234,7 +234,7 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'},'change-password':{JP:'パスワード変更',KR:'비밀번호 변경'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'},'change-password':{JP:'パスワード変更',KR:'비밀번호 변경'},santei:{JP:'算定基礎届',KR:'算定基礎届'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   const isPayroll = id === 'payroll';
@@ -253,6 +253,7 @@ function gotoPage(id, el) {
   if(id==='vacation') { try { renderVacationPage(); } catch(e) { console.error('vacation render error:', e); } }
   if(id==='payment-statement') { try { initPaymentStatement(); } catch(e) { console.error('payment-statement render error:', e); } }
   if(id==='change-password')   { try { initChangePwPage(); } catch(e) { console.error('change-password init error:', e); } }
+  if(id==='santei')            { try { initSantei(); } catch(e) { console.error('santei init error:', e); } }
 }
 
 function resetLocalData() {

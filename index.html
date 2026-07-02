@@ -1,11 +1,11 @@
 <!--
-  수정: 2026-07-01 11:47 — history.js: 기간 지정 인라인 방식 → 모달 방식으로 전환 (시작·종료 연월 각각 선택, 12개월 초과 시 경고)
+  수정: 2026-07-03 06:41 — 算定基礎届 페이지/모달/네비 추가, santei.js 연결
 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-07-01 23:46 — 기간 검증 경고를 모달 내부 인라인 경고로 변경 (z-index 충돌 해결, 모달 가운데 표시)
+  수정: 2026-07-02 23:23 — 算定基礎届 페이지 신규 추가 (admin/wisejp 전용)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,6 +117,10 @@
     <div class="nav-item" data-page="payment-statement" onclick="gotoPage('payment-statement',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
       <span id="t-nav-payment-statement">源泉納付書</span>
+    </div>
+    <div class="nav-item" data-page="santei" onclick="gotoPage('santei',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      <span>算定基礎届</span>
     </div>
     <div class="nav-item" data-page="vacation" onclick="gotoPage('vacation',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
@@ -843,11 +847,53 @@
   </div>
 </div>
 
+<!-- ══ PAGE: SANTEI ══ -->
+<div class="page" id="page-santei">
+  <div class="emp-nav" style="gap:8px;flex-wrap:wrap;align-items:center;">
+    <label style="font-size:13px;font-weight:600;color:#374151;">対象年度</label>
+    <select id="santei-year" onchange="renderSantei()" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></select>
+    <button onclick="openSanteiConfigModal()" style="padding:6px 14px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">事業所情報を編集</button>
+    <button onclick="window.print()" style="padding:6px 14px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">印刷</button>
+    <span id="santei-loading" style="display:none;font-size:12px;color:#6b7280;">読み込み中…</span>
+  </div>
+  <div id="santei-office-info" style="margin:8px 0 12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#374151;line-height:1.8;"></div>
+  <div id="santei-rows"></div>
+</div>
+
 </div><!-- /content -->
 </div><!-- /main -->
 </div><!-- /layout -->
 
 <!-- ══ MODALS ══ -->
+
+<!-- Santei Config Modal -->
+<div id="modal-santei-config" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:10000;">
+  <div style="background:#fff;border-radius:14px;padding:28px 24px;width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+    <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:18px;">事業所情報の編集</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">整理記号</label>
+        <input id="sc-seiri" type="text" placeholder="例: 東01-123456" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">事業所所在地</label>
+        <input id="sc-address" type="text" placeholder="例: 東京都渋谷区〇〇1-2-3" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">事業所名称</label>
+        <input id="sc-name" type="text" placeholder="例: 株式会社〇〇" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">事業主氏名</label>
+        <input id="sc-owner" type="text" placeholder="例: 山田 太郎" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="closeSanteiConfigModal()" style="padding:8px 20px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">キャンセル</button>
+      <button id="sc-save-btn" onclick="saveSanteiConfig()" style="padding:8px 20px;background:#4f46e5;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- Access Denied modal -->
 <div id="modal-access-denied" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:10000;">
@@ -1074,6 +1120,7 @@
 <script src="js/backup.js"></script>
 <script src="js/usermgmt.js"></script>
 <script src="js/change-password.js"></script>
+<script src="js/santei.js"></script>
 <script src="js/app.js"></script>
 <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>

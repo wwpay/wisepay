@@ -181,6 +181,27 @@ function gasRequest(params, timeoutMs = 15000) {
 }
 const GAS_CODE = '// WisePay GAS 코드는 별도 파일(WisePay_GAS_code.gs)을 사용해 주세요';
 
+// ── config 시트 read/write ─────────────────────────────────────────────────
+async function fetchConfig() {
+  if (!gasUrl) return {};
+  try {
+    const res = await gasRequest({ action: 'getConfig' }, 10000);
+    return (res && res.ok) ? (res.data || {}) : {};
+  } catch(e) {
+    console.warn('[WisePay] fetchConfig failed:', e);
+    return {};
+  }
+}
+
+async function saveConfigToGas(entries) {
+  if (!gasUrl) throw new Error('GAS URL未設定');
+  const auth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
+  await fetch(gasUrl, {
+    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ type: 'saveConfig', entries, ...auth })
+  });
+}
+
 // 공휴일 캐시 갱신 (7일마다 GAS에서 fetch → localStorage 저장)
 async function fetchHolidayCache() {
   if (!gasUrl) return;

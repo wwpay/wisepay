@@ -1,4 +1,4 @@
-/* 수정: 2026-06-22 12:00 — 사원·viewer 급여명세 입력란 → 텍스트 표시 (.row-emp-val) */
+/* 수정: 2026-07-02 23:23 — 算定基礎届 전용 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -450,6 +450,52 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .ps-bold-cell{font-weight:700;padding-right:12px!important;}
 /* 납기 구분 박스 */
 .ps-jiku-box{flex-shrink:0;width:168px;}
+
+/* ══ 算定基礎届 ══ */
+#page-santei .emp-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.santei-office-bar{font-size:12px;color:var(--text2);padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+/* 직원 블록 */
+.santei-block{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surface);font-size:13px;}
+/* 상단: 기본정보 */
+.sb-head,.sb-mid{display:flex;border-bottom:1px solid var(--border);}
+.sb-cell{padding:8px 12px;border-right:1px solid var(--border);}
+.sb-cell:last-child{border-right:none;}
+.sb-label{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:3px;}
+.sb-value{font-size:13px;font-weight:600;color:var(--text);}
+/* 월별 테이블 */
+.sb-body{display:flex;border-bottom:1px solid var(--border);}
+.sb-month-table{flex:1;border-right:1px solid var(--border);}
+.sb-month-header,.sb-month-row{display:flex;border-bottom:1px solid var(--border);}
+.sb-month-row:last-child{border-bottom:none;}
+.sbm-label{width:120px;flex-shrink:0;padding:8px 10px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
+.sbm-pay{font-size:13px;font-weight:700;color:var(--text);}
+.sbm-ata{font-size:11px;color:var(--text3);}
+.sbm-col{flex:1;padding:6px 8px;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;}
+.sbm-col:last-child{border-right:none;}
+.sb-month-header .sbm-col{font-size:10px;font-weight:600;color:var(--text3);justify-content:center;}
+.sb-month-header .sbm-label{font-size:10px;font-weight:600;color:var(--text3);}
+/* 우측: 총계/평균/판정 */
+.sb-right{width:200px;flex-shrink:0;display:flex;flex-direction:column;}
+.sb-right .sb-cell{border-bottom:1px solid var(--border);border-right:none;flex:1;}
+.sb-right .sb-cell:last-child{border-bottom:none;}
+.sb-total,.sb-avg{font-size:14px;font-weight:700;color:var(--text);}
+.sb-hantei-val{font-size:13px;font-weight:700;color:var(--accent);}
+/* 算入対象月 강조 */
+.sb-included{background:#f0fdf4;}
+.sb-nodata .sbm-pay,.sb-nodata .sbm-ata{color:var(--text3);}
+/* 비고 */
+.sb-biko{padding:8px 12px;display:flex;align-items:center;gap:10px;}
+.sb-biko .sb-label{margin:0;flex-shrink:0;}
+/* 공통 입력 */
+.sb-input{width:100%;border:none;background:transparent;font-family:inherit;font-size:13px;text-align:right;color:var(--text);outline:none;}
+.sb-input:focus{background:var(--surface2);border-radius:4px;}
+.sb-biko-input{text-align:left;}
+/* 인쇄 */
+@media print {
+  .santei-block{page-break-inside:avoid;break-inside:avoid;}
+  .sb-input{border:none !important;}
+  .no-print{display:none !important;}
+}
 .ps-jiku-title{padding:7px 10px;background:#e8ecf4;border:1px solid #b0b8c8;font-size:calc(11.5px + var(--fs-delta));font-weight:600;color:var(--text);text-align:center;}
 .ps-jiku-table{width:100%;border-collapse:collapse;font-size:calc(12.5px + var(--fs-delta));background:var(--surface);}
 .ps-jiku-table td{border:1px solid #b0b8c8;padding:9px 11px;border-top:none;}
