@@ -1,3 +1,4 @@
+// 수정: 2026-07-03 17:30 — 申告済概算保険料額 자동연계 추가 (전년도 概算額 auto-load, 수동 우선)
 // 수정: 2026-07-03 16:41 — 労働保険 年度更新（概算・確定保険料申告書）作成補助 화면 신규 구현
 // ─────────────────────────────────────────────────────────────────────────────
 // 【집계 기준】 신고연도 Y(서기, 概算 대상 = 令和(Y-2018)年度)
@@ -52,6 +53,31 @@ function roudouIppanRate(forYear) {
 function roudouExcludeSet() {
   const raw = _roudouConfig.roudou_exclude_nos || '';
   return new Set(String(raw).split(/[,\s]+/).map(s => s.trim()).filter(Boolean).map(s => String(parseInt(s)).padStart(4, '0')));
+}
+
+// ── 申告済概算保険料額 조회 (수동 우선 → 전년도 概算 자동연계 → 미설정) ──────
+// 반환: { val: 円, source: 'manual'|'auto'|'none' }
+function getShinkokuZumi(Y) {
+  const manual = _roudouConfig[`roudou_shinkoku_zumi_gaisan_${Y}`];
+  if (manual !== undefined && String(manual).trim() !== '') return { val: roudouParseNum(manual), source: 'manual' };
+  const auto = _roudouConfig[`roudou_gaisan_ryo_${Y - 1}`]; // 전년도 화면에서 저장된 概算保険料額
+  if (auto !== undefined && String(auto).trim() !== '') return { val: roudouParseNum(auto), source: 'auto' };
+  return { val: 0, source: 'none' };
+}
+
+// ── 올해 概算保険料額을 config에 자동 영속화 (내년 申告済概算 자동연계용) ─────
+// 값 변동 시에만, 디바운스 후 GAS 저장 (렌더 폭주 방지)
+let _roudouGaisanSaveTimer = null;
+function persistGaisanRyo(Y, gaisanRyo) {
+  const key = `roudou_gaisan_ryo_${Y}`;
+  if (String(_roudouConfig[key] || '') === String(gaisanRyo)) return; // 변동 없음
+  _roudouConfig[key] = String(gaisanRyo); // 로컬 캐시 즉시 갱신
+  clearTimeout(_roudouGaisanSaveTimer);
+  _roudouGaisanSaveTimer = setTimeout(() => {
+    if (typeof saveConfigToGas === 'function') {
+      saveConfigToGas({ [key]: String(gaisanRyo) }).catch(() => {});
+    }
+  }, 1500);
 }
 
 // ── 귀속월 총지급액 (지급확정 스냅샷만) ───────────────────────────────────────
@@ -212,8 +238,17 @@ function renderRoudou() {
   const ippanRate = roudouIppanRate(Y - 1);
   const ippanRyo  = hokenryo(t.rousaiSen, ippanRate);
 
-  // 申告済概算保険料額 (신고연도 Y 키)
-  const shinkokuZumi = roudouParseNum(_roudouConfig[`roudou_shinkoku_zumi_gaisan_${Y}`]);
+  // 申告済概算保険料額 (수동 우선 → 전년도 概算 자동연계)
+  const shinkoku = getShinkokuZumi(Y);
+  const shinkokuZumi = shinkoku.val;
+  const shinkokuNote = shinkoku.source === 'manual'
+    ? '<span style="font-size:11px;color:#d97706;margin-left:6px;">手動入力</span>'
+    : shinkoku.source === 'auto'
+      ? `<span style="font-size:11px;color:#16a34a;margin-left:6px;">自動連携（令和${Y - 1 - 2018}年度概算より）</span>`
+      : '<span style="font-size:11px;color:#dc2626;margin-left:6px;">未設定</span>';
+
+  // 올해 概算保険料額을 config에 자동 저장 → 내년 申告済概算 자동연계
+  persistGaisanRyo(Y, gaisan.roudouRyo);
 
   // 정산
   const sabiki = kakutei.roudouRyo - shinkokuZumi;  // 差引 = 確定 - 申告済概算
@@ -264,7 +299,7 @@ ${roudouBlockHtml('概算保険料（見込）', `算定期間　令和${Y - 201
   <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:12px;">📋 納付額精算</div>
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <tr><td style="padding:5px 0;color:#475569;">確定保険料</td><td style="text-align:right;font-weight:600;">${kakutei.roudouRyo.toLocaleString()}円</td></tr>
-    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円</td></tr>
+    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額${shinkokuNote}</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円</td></tr>
     <tr><td style="padding:5px 0;color:#475569;">差引</td><td style="text-align:right;font-weight:600;color:${sabiki >= 0 ? '#dc2626' : '#16a34a'};">
       ${sabiki >= 0 ? '(ハ)不足額 ' : '(イ)充当額 '}${Math.abs(sabiki).toLocaleString()}円</td></tr>
     <tr><td style="padding:5px 0;color:#475569;">概算保険料</td><td style="text-align:right;font-weight:600;">${gaisan.roudouRyo.toLocaleString()}円</td></tr>
@@ -444,8 +479,13 @@ function openRoudouConfigModal() {
   document.getElementById('rc-g-total').value  = g(`roudou_rate_${gY}_total`,  ROUDOU_RATE_DEFAULT.total.gaisan);
   document.getElementById('rc-g-rousai').value = g(`roudou_rate_${gY}_rousai`, ROUDOU_RATE_DEFAULT.rousai.gaisan);
   document.getElementById('rc-g-koyo').value   = g(`roudou_rate_${gY}_koyo`,   ROUDOU_RATE_DEFAULT.koyo.gaisan);
-  // 申告済概算保険料額 (신고연도 Y)
-  document.getElementById('rc-shinkoku').value = c[`roudou_shinkoku_zumi_gaisan_${Y}`] || '';
+  // 申告済概算保険料額 (신고연도 Y) — 수동값 표시, 비었으면 자동연계값을 placeholder 안내
+  const shinkokuEl = document.getElementById('rc-shinkoku');
+  shinkokuEl.value = c[`roudou_shinkoku_zumi_gaisan_${Y}`] || '';
+  const autoPrev = c[`roudou_gaisan_ryo_${Y - 1}`];
+  shinkokuEl.placeholder = (autoPrev !== undefined && String(autoPrev).trim() !== '')
+    ? `自動連携: ${roudouParseNum(autoPrev).toLocaleString()}（空欄で自動使用）`
+    : '例: 143850';
   document.getElementById('rc-year-label').textContent = `令和${Y - 2018}年度（確定=令和${kY - 2018}年度料率／概算=令和${gY - 2018}年度料率）`;
   const modal = document.getElementById('modal-roudou-config');
   if (modal) modal.style.display = 'flex';

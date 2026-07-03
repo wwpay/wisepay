@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-07-03 16:41 — 労働保険 年度更新 화면 추가 (신고서 작성 섹션, admin 전용, roudou.js 연결)
+  수정: 2026-07-03 17:30 — 労働保険 年度更新: 申告済概算保険料額 자동연계 (전년도 概算額 auto-load)
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -946,7 +946,7 @@
           <input id="rc-g-koyo" type="text" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
       </div>
       <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
-        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">申告済概算保険料額（前回OCRカード記載額・円）</label>
+        <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">申告済概算保険料額（円）<span style="color:#16a34a;">※空欄なら前年度の概算保険料額を自動連携</span></label>
         <input id="rc-shinkoku" type="text" placeholder="例: 143850" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
       </div>
     </div>
