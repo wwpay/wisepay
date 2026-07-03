@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-07-03 06:41 — 算定基礎届 페이지/모달/네비 추가, santei.js 연결
+  수정: 2026-07-03 14:04 — 算定基礎届를 신고서 작성 섹션으로 분리, 언어 전환 대응
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -118,10 +118,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
       <span id="t-nav-payment-statement">源泉納付書</span>
     </div>
-    <div class="nav-item" data-page="santei" onclick="gotoPage('santei',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-      <span>算定基礎届</span>
-    </div>
     <div class="nav-item" data-page="vacation" onclick="gotoPage('vacation',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
       <span id="t-nav-vacation">有給休暇</span>
@@ -129,6 +125,11 @@
     <div class="nav-item" data-page="change-password" onclick="gotoPage('change-password',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <span id="t-nav-changepw">パスワード変更</span>
+    </div>
+    <div class="nav-sec" id="t-nav-reports">申告書作成</div>
+    <div class="nav-item" data-page="santei" onclick="gotoPage('santei',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      <span id="t-nav-santei">算定基礎届</span>
     </div>
     <div class="nav-sec" id="t-nav-setting">設定</div>
     <div class="nav-item" data-page="employees" onclick="gotoPage('employees',this)">

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-25 00:25 — 주민세 툴팁 납기한 추가 + 화살표 앞 줄바꿈
+﻿// 수정: 2026-07-03 14:04 — t-nav-reports / t-nav-santei 번역 추가 (신고서 작성 섹션)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -59,6 +59,8 @@ function applyLang() {
   setTxt('t-nav-annual', '賃金台帳', '임금 대장');
   setTxt('t-annual-title', '賃金台帳', '임금 대장');
   setTxt('t-nav-payment-statement', '源泉納付書', '원천세 납부서');
+  setTxt('t-nav-reports', '申告書作成', '신고서 작성');
+  setTxt('t-nav-santei',  '算定基礎届', '산정기초신고서');
   setTxt('t-nav-setting', '設定', '설정');
   setTxt('t-nav-emp', '従業員管理', '사원 관리');
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
