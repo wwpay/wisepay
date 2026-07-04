@@ -289,11 +289,11 @@ ${roudouBlockHtml('概算保険料（見込）', `算定期間　令和${Y - 201
 <div style="display:flex;gap:14px;margin:16px 0;flex-wrap:wrap;">
   <div style="flex:1;min-width:180px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
     <div style="font-size:12px;color:#64748b;">④常時使用労働者数（労災）</div>
-    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.rousaiAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label" style="font-size:11px;">④欄</span></div>
+    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.rousaiAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label">(4)欄</span></div>
   </div>
   <div style="flex:1;min-width:180px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
     <div style="font-size:12px;color:#64748b;">⑤雇用保険被保険者数</div>
-    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.koyoAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label" style="font-size:11px;">⑤欄</span></div>
+    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.koyoAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label">(5)欄</span></div>
   </div>
 </div>
 
@@ -302,18 +302,18 @@ ${roudouBlockHtml('概算保険料（見込）', `算定期間　令和${Y - 201
   <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:12px;">📋 納付額精算</div>
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <tr><td style="padding:5px 0;color:#475569;">確定保険料</td><td style="text-align:right;font-weight:600;">${kakutei.roudouRyo.toLocaleString()}円</td></tr>
-    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額${shinkokuNote}</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円<span class="ocr-label">⑱</span></td></tr>
+    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額${shinkokuNote}</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円<span class="ocr-label">(18)</span></td></tr>
     <tr><td style="padding:5px 0;color:#475569;">差引</td><td style="text-align:right;font-weight:600;color:${sabiki >= 0 ? '#dc2626' : '#16a34a'};">
-      ${sabiki >= 0 ? '(ハ)不足額 ' : '(イ)充当額 '}${Math.abs(sabiki).toLocaleString()}円<span class="ocr-label">⑳</span></td></tr>
+      ${sabiki >= 0 ? '(ハ)不足額 ' : '(イ)充当額 '}${Math.abs(sabiki).toLocaleString()}円<span class="ocr-label">(20)</span></td></tr>
     <tr><td style="padding:5px 0;color:#475569;">概算保険料</td><td style="text-align:right;font-weight:600;">${gaisan.roudouRyo.toLocaleString()}円</td></tr>
   </table>
   <div style="border-top:1px dashed #cbd5e1;margin:12px 0;"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;">
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ニ)今期労働保険料<span class="ocr-label">㉒ニ</span></div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ニ)今期労働保険料<span class="ocr-label">(22)-ニ</span></div>
       <div style="font-size:20px;font-weight:700;color:#0f172a;">${niKonki.toLocaleString()}<span style="font-size:12px;font-weight:400;">円</span></div></div>
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ヘ)一般拠出金額<span class="ocr-label">㉒ヘ</span></div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ヘ)一般拠出金額<span class="ocr-label">(22)-ヘ</span></div>
       <div style="font-size:20px;font-weight:700;color:#0f172a;">${heIppan.toLocaleString()}<span style="font-size:12px;font-weight:400;">円</span></div></div>
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ト)今期納付額<span class="ocr-label">㉒ト</span></div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ト)今期納付額<span class="ocr-label">(22)-ト</span></div>
       <div style="font-size:24px;font-weight:800;color:#1d4ed8;">${toKonki.toLocaleString()}<span style="font-size:13px;font-weight:400;">円</span></div></div>
   </div>
   <div style="margin-top:12px;padding:8px 12px;background:#eff6ff;border-radius:7px;font-size:12px;color:#1e40af;">
@@ -344,9 +344,9 @@ function roudouBlockHtml(title, period, h, ippanRate, ippanRyo, showIppan) {
     ? `<button onclick="openRoudouConfigModal()" style="margin-left:auto;padding:4px 10px;font-size:12px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:6px;cursor:pointer;">料率・申告済額を編集</button>`
     : `<button onclick="openRoudouGaisanModal()" style="margin-left:auto;padding:4px 10px;font-size:12px;background:#fefce8;color:#854d0e;border:1px solid #fde68a;border-radius:6px;cursor:pointer;">概算基礎額を調整</button>`;
 
-  // OCR 기재란 번호: 確定=⑧⑨⑩, 概算=⑫⑬⑭
-  const [oC, oR, oH] = showIppan ? ['⑧', '⑨', '⑩'] : ['⑫', '⑬', '⑭'];
-  const ocr = (col, sub) => `<span class="ocr-label">${col}${sub}</span>`;
+  // OCR 기재란 번호: 確定=(8)(9)(10), 概算=(12)(13)(14)
+  const [oC, oR, oH] = showIppan ? ['8', '9', '10'] : ['12', '13', '14'];
+  const ocr = (col, sub) => `<span class="ocr-label">(${col})-${sub}</span>`;
 
   return `
 <div style="margin:14px 0;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;">
