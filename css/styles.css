@@ -528,3 +528,6 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
   .ps-footer-note{font-size:9pt;}
 }
 @media(max-width:900px){.ps-layout{flex-direction:column;}.ps-jiku-box{width:100%;}}
+/* 労働保険 年度更新: OCR 기재란 힌트 라벨 */
+.ocr-label{display:inline-block;font-size:10px;color:#6b7280;background:#f3f4f6;border:1px solid #d1d5db;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:middle;font-weight:600;white-space:nowrap;}
+@media print{.ocr-label{display:inline-block!important;color:#374151!important;background:#f9fafb!important;border-color:#9ca3af!important;}}

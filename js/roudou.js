@@ -1,4 +1,4 @@
-// 수정: 2026-07-03 17:30 — 申告済概算保険料額 자동연계 추가 (전년도 概算額 auto-load, 수동 우선)
+// 수정: 2026-07-04 09:30 — OCR 기재란 라벨 추가 + 賃金集計表 콤마 포맷
 // 수정: 2026-07-03 16:41 — 労働保険 年度更新（概算・確定保険料申告書）作成補助 화면 신규 구현
 // ─────────────────────────────────────────────────────────────────────────────
 // 【집계 기준】 신고연도 Y(서기, 概算 대상 = 令和(Y-2018)年度)
@@ -276,6 +276,9 @@ ${excludeLabel ? `<div style="margin:0 0 12px;padding:9px 14px;background:#fffbe
 <div style="margin-bottom:10px;">${doGakuBadge}
   <span style="margin-left:10px;font-size:12px;color:#6b7280;">賃金総額：労災 ${t.rousaiYen.toLocaleString()}円 ／ 雇用 ${t.koyoYen.toLocaleString()}円</span></div>
 
+<div style="margin:0 0 10px;padding:7px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:11px;color:#0369a1;">
+  ℹ️ 欄番号（⑧イ など）は参考値です。毎年配布されるOCRカード（様式第6号）原本と照合してご確認ください。</div>
+
 <!-- ══ 確定保険料 ══ -->
 ${roudouBlockHtml('確定保険料', `算定期間　令和${Y - 1 - 2018}年4月1日 ～ 令和${Y - 2018}年3月31日`, kakutei, ippanRate, ippanRyo, true)}
 
@@ -286,11 +289,11 @@ ${roudouBlockHtml('概算保険料（見込）', `算定期間　令和${Y - 201
 <div style="display:flex;gap:14px;margin:16px 0;flex-wrap:wrap;">
   <div style="flex:1;min-width:180px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
     <div style="font-size:12px;color:#64748b;">④常時使用労働者数（労災）</div>
-    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.rousaiAvg}<span style="font-size:13px;font-weight:400;">人</span></div>
+    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.rousaiAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label" style="font-size:11px;">④欄</span></div>
   </div>
   <div style="flex:1;min-width:180px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
     <div style="font-size:12px;color:#64748b;">⑤雇用保険被保険者数</div>
-    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.koyoAvg}<span style="font-size:13px;font-weight:400;">人</span></div>
+    <div style="font-size:22px;font-weight:700;color:#0f172a;">${t.koyoAvg}<span style="font-size:13px;font-weight:400;">人</span><span class="ocr-label" style="font-size:11px;">⑤欄</span></div>
   </div>
 </div>
 
@@ -299,18 +302,18 @@ ${roudouBlockHtml('概算保険料（見込）', `算定期間　令和${Y - 201
   <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:12px;">📋 納付額精算</div>
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <tr><td style="padding:5px 0;color:#475569;">確定保険料</td><td style="text-align:right;font-weight:600;">${kakutei.roudouRyo.toLocaleString()}円</td></tr>
-    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額${shinkokuNote}</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円</td></tr>
+    <tr><td style="padding:5px 0;color:#475569;">申告済概算保険料額${shinkokuNote}</td><td style="text-align:right;font-weight:600;">${shinkokuZumi.toLocaleString()}円<span class="ocr-label">⑱</span></td></tr>
     <tr><td style="padding:5px 0;color:#475569;">差引</td><td style="text-align:right;font-weight:600;color:${sabiki >= 0 ? '#dc2626' : '#16a34a'};">
-      ${sabiki >= 0 ? '(ハ)不足額 ' : '(イ)充当額 '}${Math.abs(sabiki).toLocaleString()}円</td></tr>
+      ${sabiki >= 0 ? '(ハ)不足額 ' : '(イ)充当額 '}${Math.abs(sabiki).toLocaleString()}円<span class="ocr-label">⑳</span></td></tr>
     <tr><td style="padding:5px 0;color:#475569;">概算保険料</td><td style="text-align:right;font-weight:600;">${gaisan.roudouRyo.toLocaleString()}円</td></tr>
   </table>
   <div style="border-top:1px dashed #cbd5e1;margin:12px 0;"></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;">
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ニ)今期労働保険料</div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ニ)今期労働保険料<span class="ocr-label">㉒ニ</span></div>
       <div style="font-size:20px;font-weight:700;color:#0f172a;">${niKonki.toLocaleString()}<span style="font-size:12px;font-weight:400;">円</span></div></div>
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ヘ)一般拠出金額</div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ヘ)一般拠出金額<span class="ocr-label">㉒ヘ</span></div>
       <div style="font-size:20px;font-weight:700;color:#0f172a;">${heIppan.toLocaleString()}<span style="font-size:12px;font-weight:400;">円</span></div></div>
-    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ト)今期納付額</div>
+    <div style="flex:1;min-width:150px;"><div style="font-size:11px;color:#64748b;">(ト)今期納付額<span class="ocr-label">㉒ト</span></div>
       <div style="font-size:24px;font-weight:800;color:#1d4ed8;">${toKonki.toLocaleString()}<span style="font-size:13px;font-weight:400;">円</span></div></div>
   </div>
   <div style="margin-top:12px;padding:8px 12px;background:#eff6ff;border-radius:7px;font-size:12px;color:#1e40af;">
@@ -341,6 +344,10 @@ function roudouBlockHtml(title, period, h, ippanRate, ippanRyo, showIppan) {
     ? `<button onclick="openRoudouConfigModal()" style="margin-left:auto;padding:4px 10px;font-size:12px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:6px;cursor:pointer;">料率・申告済額を編集</button>`
     : `<button onclick="openRoudouGaisanModal()" style="margin-left:auto;padding:4px 10px;font-size:12px;background:#fefce8;color:#854d0e;border:1px solid #fde68a;border-radius:6px;cursor:pointer;">概算基礎額を調整</button>`;
 
+  // OCR 기재란 번호: 確定=⑧⑨⑩, 概算=⑫⑬⑭
+  const [oC, oR, oH] = showIppan ? ['⑧', '⑨', '⑩'] : ['⑫', '⑬', '⑭'];
+  const ocr = (col, sub) => `<span class="ocr-label">${col}${sub}</span>`;
+
   return `
 <div style="margin:14px 0;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;">
   <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;">
@@ -357,28 +364,28 @@ function roudouBlockHtml(title, period, h, ippanRate, ippanRyo, showIppan) {
     <tbody>
       <tr style="font-weight:700;">
         <td style="padding:9px 10px;border-bottom:1px solid #f1f5f9;">労働保険料</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${senCell(h.rousaiSen)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rTotal.toFixed(2)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;color:#1d4ed8;">${h.roudouRyo.toLocaleString()}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${senCell(h.rousaiSen)}${ocr(oC,'イ')}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rTotal.toFixed(2)}${ocr(oR,'イ')}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;color:#1d4ed8;">${h.roudouRyo.toLocaleString()}${ocr(oH,'イ')}</td>
       </tr>
       <tr style="${shasen}">
         <td style="padding:9px 10px;border-bottom:1px solid #f1f5f9;padding-left:24px;color:#64748b;">労災保険分</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.doGaku ? '<span style="color:#cbd5e1;">—</span>' : senCell(h.rousaiSen)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rRousai.toFixed(2)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${yenCell(h.rousaiRyo)}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.doGaku ? '<span style="color:#cbd5e1;">—</span>' : senCell(h.rousaiSen) + ocr(oC,'ロ')}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rRousai.toFixed(2)}${!h.doGaku ? ocr(oR,'ロ') : ''}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${yenCell(h.rousaiRyo)}${!h.doGaku ? ocr(oH,'ロ') : ''}</td>
       </tr>
       <tr style="${shasen}">
         <td style="padding:9px 10px;border-bottom:1px solid #f1f5f9;padding-left:24px;color:#64748b;">雇用保険分</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.doGaku ? '<span style="color:#cbd5e1;">—</span>' : senCell(h.koyoSen)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rKoyo.toFixed(2)}</td>
-        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${yenCell(h.koyoRyo)}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.doGaku ? '<span style="color:#cbd5e1;">—</span>' : senCell(h.koyoSen) + ocr(oC,'ホ')}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${h.rKoyo.toFixed(2)}${!h.doGaku ? ocr(oR,'ホ') : ''}</td>
+        <td style="padding:9px 10px;text-align:right;border-bottom:1px solid #f1f5f9;">${yenCell(h.koyoRyo)}${!h.doGaku ? ocr(oH,'ホ') : ''}</td>
       </tr>
       ${showIppan ? `
       <tr>
         <td style="padding:9px 10px;">一般拠出金</td>
-        <td style="padding:9px 10px;text-align:right;">${senCell(h.rousaiSen)}</td>
-        <td style="padding:9px 10px;text-align:right;">${ippanRate.toFixed(2)}</td>
-        <td style="padding:9px 10px;text-align:right;color:#1d4ed8;">${ippanRyo.toLocaleString()}</td>
+        <td style="padding:9px 10px;text-align:right;">${senCell(h.rousaiSen)}${ocr(oC,'ヘ')}</td>
+        <td style="padding:9px 10px;text-align:right;">${ippanRate.toFixed(2)}${ocr(oR,'ヘ')}</td>
+        <td style="padding:9px 10px;text-align:right;color:#1d4ed8;">${ippanRyo.toLocaleString()}${ocr(oH,'ヘ')}</td>
       </tr>` : ''}
     </tbody>
   </table>
@@ -399,11 +406,11 @@ function roudouShukeiHtml(t) {
       <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;text-align:center;">
         <input value="${r.rousaiCount}" onchange="${isBonus ? `roudouEditBonus(${i},'rousaiCount',this.value)` : `roudouEditMonth(${i},'rousaiCount',this.value)`}" style="width:48px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;padding:2px;font-size:12px;"></td>
       <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;text-align:right;">
-        <input value="${r.rousaiYen}" onchange="${isBonus ? `roudouEditBonus(${i},'rousaiYen',this.value)` : `roudouEditMonth(${i},'rousaiYen',this.value)`}" style="width:96px;text-align:right;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:12px;"></td>
+        <input value="${r.rousaiYen.toLocaleString()}" onchange="${isBonus ? `roudouEditBonus(${i},'rousaiYen',this.value)` : `roudouEditMonth(${i},'rousaiYen',this.value)`}" style="width:96px;text-align:right;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:12px;"></td>
       <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;text-align:center;">
         <input value="${r.koyoCount}" onchange="${isBonus ? `roudouEditBonus(${i},'koyoCount',this.value)` : `roudouEditMonth(${i},'koyoCount',this.value)`}" style="width:48px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;padding:2px;font-size:12px;"></td>
       <td style="padding:6px 8px;border-bottom:1px solid #f1f5f9;text-align:right;">
-        <input value="${r.koyoYen}" onchange="${isBonus ? `roudouEditBonus(${i},'koyoYen',this.value)` : `roudouEditMonth(${i},'koyoYen',this.value)`}" style="width:96px;text-align:right;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:12px;"></td>
+        <input value="${r.koyoYen.toLocaleString()}" onchange="${isBonus ? `roudouEditBonus(${i},'koyoYen',this.value)` : `roudouEditMonth(${i},'koyoYen',this.value)`}" style="width:96px;text-align:right;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:12px;"></td>
     </tr>`;
 
   return `
