@@ -1,5 +1,29 @@
-﻿// 수정: 2026-07-03 16:41 — 労働保険 年度更新 페이지 라우팅 추가 (initRoudou 호출, titles 등록)
+﻿// 수정: 2026-07-04 09:00 — 整理番号 고정값 마이그레이션 추가
 'use strict';
+
+// 整理番号 고정값 (이름→번호 매핑)
+const _SEIRI_MAP = { '정기석': '2', '박연경': '15', '박수완': '17' };
+
+function migrateSeiriNo() {
+  let changed = false;
+  employees.forEach(emp => {
+    const fixed = _SEIRI_MAP[emp.name];
+    if (fixed != null && emp.seiri_no !== fixed) {
+      emp.seiri_no = fixed;
+      changed = true;
+    }
+  });
+  if (changed) {
+    localStorage.setItem(LS.emp, JSON.stringify(employees));
+    if (typeof gasUrl !== 'undefined' && gasUrl && typeof gasWriteAuth === 'function') {
+      fetch(gasUrl, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ type: 'employees', employees, ...gasWriteAuth() })
+      }).catch(() => {});
+    }
+  }
+  return changed;
+}
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
 function syncFuyouFromFamilies() {
@@ -80,6 +104,7 @@ function initApp() {
   // 마이그레이션
   syncFuyouFromFamilies();
   migrateRateHistory();
+  migrateSeiriNo();
   // 구버전 단일 rates 호환
   try { const s = localStorage.getItem(LS.rates); if(s) { const r=JSON.parse(s); rates={...rates,...r}; } } catch(e){}
   // 구버전 급여 키 마이그레이션: 비패딩 사원번호(kyuyo_p_1_...) → 4자리(kyuyo_p_0001_...)
