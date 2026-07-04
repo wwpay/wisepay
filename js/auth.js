@@ -1,5 +1,4 @@
-// 수정: 2026-06-24 23:30 — 임시 비번 모달 UI 개선: 한글 병기·설명 글씨 개선·복사 버튼·디버그 제거
-'use strict';
+﻿'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
 const AUTH_ID_KEY   = 'wisepay_saved_id';

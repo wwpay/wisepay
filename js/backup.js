@@ -1,5 +1,4 @@
-// 수정: 2026-06-22 21:59 — Excel 백업에 유급휴가 시트 추가
-'use strict';
+﻿'use strict';
 
 /* ── 날짜 유틸 ── */
 function _backupDateStr() {

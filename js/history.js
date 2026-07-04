@@ -1,5 +1,4 @@
-// 수정: 2026-07-01 23:46 — 기간 검증 경고를 모달 내부 인라인 경고로 변경 (z-index 충돌 해결, 모달 가운데 표시)
-'use strict';
+﻿'use strict';
 let _histEmpSelCache  = 'none'; // 직전 선택값 기억 (페이지 내 이동 시 복원)
 let _annualInclLeft   = false;  // false = 재직자만 표시 (기본), true = 퇴사자 포함
 let _annualCustomMode = false;  // false = 연도 모드(기본), true = 기간 지정 모드

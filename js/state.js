@@ -1,5 +1,4 @@
 ﻿'use strict';
-// 수정: 2026-06-08 09:35 — vacationData 전역 변수 및 LS.vacation 키 추가
 let LANG = 'KR';
 const _initNow = new Date();
 const _initNowM = _initNow.getMonth() + 1; // 1-12

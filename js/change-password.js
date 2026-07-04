@@ -1,5 +1,4 @@
-// 수정: 2026-06-22 17:16 — cpw-err min-height 2줄로 확장, 오류 메시지 result.error 폴백 유지
-'use strict';
+﻿'use strict';
 
 function initChangePwPage() {
   ['cpw-current', 'cpw-new', 'cpw-confirm'].forEach(id => {

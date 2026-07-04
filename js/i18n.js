@@ -1,5 +1,4 @@
-﻿// 수정: 2026-07-03 16:41 — t-nav-roudou 번역 추가 (労働保険 年度更新)
-'use strict';
+﻿'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
   if (el) el.textContent = LANG === 'JP' ? jp : kr;

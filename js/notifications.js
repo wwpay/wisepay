@@ -1,5 +1,4 @@
-// 수정: 2026-06-08 10:34 — checkVacationAlerts 추가 (유급휴가 소멸 예정 알림)
-'use strict';
+﻿'use strict';
 const NOTIF_KEY = 'kyuyo_notifications';
 
 let _notifView = 'list'; // 'list' | 'trash'

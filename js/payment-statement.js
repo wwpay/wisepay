@@ -1,5 +1,4 @@
-// 수정: 2026-06-14 22:03 — 초기 기간 기본값: 지급일 기준 최근 완료 기간 (6/10·12/10 분기점)
-'use strict';
+﻿'use strict';
 
 let _psYear = null;
 let _psHalf = null;

@@ -1,5 +1,4 @@
-// 수정: 2026-06-22 17:34 — 사원 데이터없음: 공제·합계 공란, 차인지급액 ¥0+전월비 ±0 유지
-'use strict';
+﻿'use strict';
 
 let _payrollDataStatus = 'none';
 let _paidLocked = false; // 지급완료 달 잠금 여부

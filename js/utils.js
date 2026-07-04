@@ -1,5 +1,4 @@
-﻿// 수정: 2026-06-08 17:23 — ESC 키로 열린 모달 닫기 전역 핸들러 추가
-'use strict';
+﻿'use strict';
 
 function openModal(id) {
   const el = document.getElementById(id);

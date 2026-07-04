@@ -1,5 +1,4 @@
-// 수정: 2026-07-04 09:45 — migrateSeiriNo 호출 제거 (사원마스터 직접 입력으로 대체)
-'use strict';
+﻿'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
 function gasAppendLog(logType, target, result, memo) {

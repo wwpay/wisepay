@@ -1,5 +1,4 @@
-﻿// 수정: 2026-07-02 23:23 — 算定基礎届用フィールド seiri_no/hyojun_kenko/hyojun_nenkin 추가
-'use strict';
+﻿'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
 

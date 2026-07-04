@@ -1,5 +1,4 @@
 ﻿// WisePay GAS Script
-// 수정: 2026-06-26 12:25 — 유급휴가 오전/오후 반차 구분 ampm 컬럼 추가 (addVacationEntry, VAC_HEADERS)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //

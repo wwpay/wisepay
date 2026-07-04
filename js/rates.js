@@ -1,5 +1,4 @@
-﻿// 수정: 2026-06-05 00:43 — 디버그용 console.log 제거 (scrapeRates raw response)
-'use strict';
+﻿'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
   _pendingScrapedRates = null;

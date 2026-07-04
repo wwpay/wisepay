@@ -1,5 +1,4 @@
-// 수정: 2026-06-26 12:25 — 유급휴가 오전/오후 반차 구분 (ampm 필드, 달력·리스트 색상 분기)
-'use strict';
+﻿'use strict';
 
 // fetchVacationData/mSyncFromGas가 로컬 변경분을 덮어쓰지 않도록 변경 카운터
 let _vacDirtyVersion = 0;

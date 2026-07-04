@@ -1,5 +1,4 @@
-// 수정: 2026-06-22 15:45 — 관리자 본인 PW 변경 오류 메시지 innerHTML+<br> 2줄 표기로 수정
-'use strict';
+﻿'use strict';
 
 function renderUserMgmt() {
   const wrap = document.getElementById('usermgmt-wrap');
