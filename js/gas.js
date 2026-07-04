@@ -1,4 +1,4 @@
-// 수정: 2026-07-04 09:00 — autoLoadFromGas 완료 후 migrateSeiriNo 호출 추가
+// 수정: 2026-07-04 09:45 — migrateSeiriNo 호출 제거 (사원마스터 직접 입력으로 대체)
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -256,7 +256,6 @@ async function _loadEmployeeDataFromGas() {
       }));
       localStorage.setItem(LS.emp, JSON.stringify(employees));
       syncFuyouFromFamilies();
-      if (typeof migrateSeiriNo === 'function') migrateSeiriNo();
     }
     if (Array.isArray(d.payrolls)) {
       const forcedPad = d.forcedEmpNo || '';
@@ -336,7 +335,6 @@ async function autoLoadFromGas() {
       }));
       localStorage.setItem(LS.emp, JSON.stringify(employees));
       syncFuyouFromFamilies();
-      if (typeof migrateSeiriNo === 'function') migrateSeiriNo();
     }
     if (d.deletedEmpIds && d.deletedEmpIds.length > 0) {
       gasDeletedEmpIds = d.deletedEmpIds.map(id => String(id).trim().padStart(4, '0')).filter(Boolean);
