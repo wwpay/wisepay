@@ -1,5 +1,39 @@
-﻿// 수정: 2026-07-04 09:45 — 整理番号 하드코딩 마이그레이션 제거 (사원마스터 직접 입력으로 대체)
+﻿// 수정: 2026-07-04 10:30 — 사이드바 접기/펼치기 토글 추가
 'use strict';
+
+// ── 사이드바 접기/펼치기 ────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  if (!sb) return;
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('wisepay_sb_collapsed', sb.classList.contains('collapsed') ? '1' : '0');
+}
+
+function initSidebarToggle() {
+  const sb = document.querySelector('.sidebar');
+  if (!sb) return;
+  if (localStorage.getItem('wisepay_sb_collapsed') === '1') sb.classList.add('collapsed');
+
+  const tip = document.getElementById('sidebar-nav-tip');
+  if (!tip) return;
+
+  sb.addEventListener('mouseover', e => {
+    if (!sb.classList.contains('collapsed')) { tip.style.display = 'none'; return; }
+    const item = e.target.closest('.nav-item');
+    if (!item) { tip.style.display = 'none'; return; }
+    const label = item.querySelector('span')?.textContent?.trim();
+    if (!label) return;
+    const rect = item.getBoundingClientRect();
+    tip.textContent = label;
+    tip.style.display = 'block';
+    tip.style.top  = Math.round(rect.top + rect.height / 2 - 14) + 'px';
+    tip.style.left = Math.round(rect.right + 8) + 'px';
+  });
+
+  sb.addEventListener('mouseout', e => {
+    if (!e.relatedTarget || !e.relatedTarget.closest('.nav-item')) tip.style.display = 'none';
+  });
+}
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
 function syncFuyouFromFamilies() {
@@ -18,6 +52,7 @@ function syncFuyouFromFamilies() {
 window.addEventListener('DOMContentLoaded', () => {
   LANG = localStorage.getItem(LS.lang) || 'KR';
   applyLang();
+  initSidebarToggle();
   if (!checkAuth()) return;
   initApp();
 });

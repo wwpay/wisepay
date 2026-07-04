@@ -22,7 +22,30 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 
 /* LAYOUT */
 .layout{display:flex;min-height:100vh;}
-.sidebar{width:200px;min-width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar{width:200px;min-width:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;transition:width .25s ease;}
+/* 사이드바 접기/펼치기 토글 */
+.sidebar-toggle-btn{margin-left:auto;flex-shrink:0;width:22px;height:22px;border:1px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);padding:0;transition:background .15s,color .15s;}
+.sidebar-toggle-btn:hover{background:var(--bg);color:var(--text);}
+.sidebar-toggle-btn svg{transition:transform .25s ease;}
+.sidebar.collapsed .sidebar-toggle-btn svg{transform:rotate(180deg);}
+/* 접힌 상태 */
+.sidebar.collapsed{width:52px;}
+.sidebar.collapsed .logo{justify-content:center;padding:14px 6px;gap:6px;}
+.sidebar.collapsed .logo-text-block{display:none;}
+.sidebar.collapsed .sidebar-toggle-btn{margin-left:0;}
+.sidebar.collapsed .nav-sec{display:none;}
+.sidebar.collapsed .nav-item{justify-content:center;padding:10px 0;}
+.sidebar.collapsed .nav-item>span{display:none;}
+.sidebar.collapsed .sidebar-foot{padding:8px 6px;}
+.sidebar.collapsed .sidebar-foot>div{flex-direction:column;align-items:center;gap:4px;}
+.sidebar.collapsed .lang-btn{min-width:0;width:36px;height:32px;padding:0;justify-content:center;}
+.sidebar.collapsed .lang-btn>span{display:none;}
+.sidebar.collapsed #btn-fs-minus,.sidebar.collapsed #btn-fs-plus{display:none;}
+.sidebar.collapsed .btn-logout>span{display:none;}
+/* 접힌 상태 hover 툴팁 */
+#sidebar-nav-tip{position:fixed;z-index:9999;background:#1e293b;color:#f8fafc;padding:5px 10px;border-radius:6px;font-size:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none;}
+/* 인쇄 시 토글 버튼 숨김, 접힘 상태 강제 해제 */
+@media print{.sidebar-toggle-btn{display:none!important;}.sidebar.collapsed{width:200px!important;}}
 .logo{padding:14px 14px 12px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:9px;}
 .logo-ww-img{width:26px;height:20px;background:url('../WW_LOGO.jpg') no-repeat top center/auto 30px;flex-shrink:0;}
 .logo-text-block{display:flex;flex-direction:column;line-height:1.15;min-width:0;}

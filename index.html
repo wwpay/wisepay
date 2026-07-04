@@ -1,5 +1,5 @@
 <!--
-  수정: 2026-07-03 17:30 — 労働保険 年度更新: 申告済概算保険料額 자동연계 (전년도 概算額 auto-load)
+  수정: 2026-07-04 10:30 — 사이드바 접기/펼치기 토글 버튼·툴팁 div 추가
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -99,6 +99,9 @@
       <span class="logo-name">WisePay</span>
       <span class="logo-sub" id="t-appname">給与Pro by Wisewires</span>
     </div>
+    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" onclick="event.stopPropagation();toggleSidebar()" title="サイドバーを折り畳む / 접기·펼치기">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
   </div>
   <nav class="nav">
     <div class="nav-sec" id="t-nav-main">メイン</div>
@@ -1273,5 +1276,6 @@ document.addEventListener('DOMContentLoaded', initFontSize);
   });
 }());
 </script>
+<div id="sidebar-nav-tip"></div>
 </body>
 </html>
