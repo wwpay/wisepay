@@ -1207,7 +1207,8 @@ function mRenderPayroll() {
     approx: ['m-status-approx', jp?'📋 仮データ（未保存）':'📋 임시 데이터 (미저장)'],
   };
   const [sCls, sTxt] = statusMap[isPaidMonth ? 'paid' : calc.status] || ['m-status-empty', ''];
-  const statusBadge = mViewerPayrolls !== null ? '' : `<span class="m-status ${sCls}">${sTxt}</span>`;
+  const isAdminRole = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+  const statusBadge = isAdminRole ? `<span class="m-status ${sCls}">${sTxt}</span>` : '';
 
   /* 지급 항목 */
   const payRows = [
