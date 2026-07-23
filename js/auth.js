@@ -349,6 +349,9 @@ function renderNavForRole() {
   });
   const settingSec = document.getElementById('t-nav-setting');
   if (settingSec) settingSec.style.display = 'none';
+
+    const reportsSec = document.getElementById('t-nav-reports');
+  if (reportsSec) reportsSec.style.display = 'none';
 }
 
 function applyViewerRestrictions() {
