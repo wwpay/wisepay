@@ -166,7 +166,6 @@ function checkAndShowPayrollAlerts(paidMonths) {
     const year = jst.getFullYear();
     const mon  = jst.getMonth() + 1;
     const day  = jst.getDate();
-    const todayStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
     const prevY  = mon === 1 ? year - 1 : year;
     const prevM  = mon === 1 ? 12 : mon - 1;
@@ -175,12 +174,9 @@ function checkAndShowPayrollAlerts(paidMonths) {
     const paidArr = Array.isArray(paidMonths) ? paidMonths : [...paidMonths];
     const jp      = LANG === 'JP';
 
-    // 알림 1: 전월 급여 데이터 미저장 → 이메일 (하루 1회)
+    // 알림 1: 전월 급여 데이터 미저장 → 이메일 (하루 1회, 서버(GAS)가 기기 무관하게 중복 방지 판단)
     if (!_isMonthSaved(prevYM)) {
-      if (localStorage.getItem('lastDataInputReminderEmail') !== todayStr) {
-        _sendDataInputReminderViaGas(prevY, prevM);
-        localStorage.setItem('lastDataInputReminderEmail', todayStr);
-      }
+      _sendDataInputReminderViaGas(prevY, prevM);
     }
 
     // 알림 2 / 3: 저장됐는데 송금 완료 안 된 달 존재
@@ -195,10 +191,8 @@ function checkAndShowPayrollAlerts(paidMonths) {
         `💸 ${uy}年${um}月分の給与振込期限は10日です。`,
         jp, 2
       );
-      if (localStorage.getItem('lastSendReminderEmail') !== todayStr) {
-        _sendReminderEmailViaGas(uy, um);
-        localStorage.setItem('lastSendReminderEmail', todayStr);
-      }
+      // 하루 1회 발송 여부는 서버(GAS)가 기기 무관하게 판단
+      _sendReminderEmailViaGas(uy, um);
     } else {
       // 알림 3: 송금 완료 버튼 독촉 말풍선 + 이메일 (day >= 10)
       showPayrollReminderBanner(
@@ -206,10 +200,8 @@ function checkAndShowPayrollAlerts(paidMonths) {
         `✅ ${uy}年${um}月分の給与振込はお済みですか？ 🔒 送金完了ボタンを押してください。`,
         jp, 3
       );
-      if (localStorage.getItem('lastPayConfirmReminderEmail') !== todayStr) {
-        _sendPayConfirmReminderViaGas(uy, um);
-        localStorage.setItem('lastPayConfirmReminderEmail', todayStr);
-      }
+      // 하루 1회 발송 여부는 서버(GAS)가 기기 무관하게 판단
+      _sendPayConfirmReminderViaGas(uy, um);
     }
   } catch(e) {}
 }

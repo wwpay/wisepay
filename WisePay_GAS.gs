@@ -1,4 +1,5 @@
 ﻿// WisePay GAS Script
+// 수정 : 2026-07-25 10:40 - 알림 메일 중복 발송 버그 수정: 프론트엔드 중복 방지 로직을 서버 판단 방식으로 변경
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -310,15 +311,24 @@ function doPost(e) {
       return jsonResponse({ ok: false });
     }
     if (data.type === 'sendReminderEmail') {
-      sendPayrollReminderEmail(parseInt(data.year), parseInt(data.month));
+      if (!_wasReminderSentToday('reminder_sendReminder')) {
+        sendPayrollReminderEmail(parseInt(data.year), parseInt(data.month));
+        _markReminderSentToday('reminder_sendReminder');
+      }
       return jsonResponse({ ok: true });
     }
     if (data.type === 'sendDataInputReminder') {
-      sendDataInputReminderEmail(parseInt(data.year), parseInt(data.month));
+      if (!_wasReminderSentToday('reminder_dataInput')) {
+        sendDataInputReminderEmail(parseInt(data.year), parseInt(data.month));
+        _markReminderSentToday('reminder_dataInput');
+      }
       return jsonResponse({ ok: true });
     }
     if (data.type === 'sendPayConfirmReminder') {
-      sendPayConfirmReminderEmail(parseInt(data.year), parseInt(data.month));
+      if (!_wasReminderSentToday('reminder_payConfirm')) {
+        sendPayConfirmReminderEmail(parseInt(data.year), parseInt(data.month));
+        _markReminderSentToday('reminder_payConfirm');
+      }
       return jsonResponse({ ok: true });
     }
     if (data.type === 'saveVacation') {
@@ -638,6 +648,24 @@ function doPost(e) {
   } catch(err) {
     return jsonResponse({ ok: false, error: err.message });
   }
+}
+
+// ── 알림 메일 중복 발송 방지 (서버 기준, 기기/브라우저 무관) ──
+// 기존에는 프론트엔드 localStorage에만 "오늘 보냈는지" 기록했기 때문에
+// 다른 기기에서 접속하거나 캐시가 삭제되면 같은 알림이 중복 발송되는 문제가 있었음.
+// PropertiesService(서버 저장소)에 마지막 발송일을 기록해 기기와 무관하게 하루 1회로 제한.
+function _todayJstStr() {
+  return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+}
+
+function _wasReminderSentToday(reminderKey) {
+  var props = PropertiesService.getScriptProperties();
+  return props.getProperty(reminderKey) === _todayJstStr();
+}
+
+function _markReminderSentToday(reminderKey) {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty(reminderKey, _todayJstStr());
 }
 
 function sendPayrollReminderEmail(year, month) {
