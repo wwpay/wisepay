@@ -1,4 +1,5 @@
-﻿'use strict';
+﻿// 2026-07-25 11:10 미선택 상태에서 수정, 저장 버튼의 비활성, 상태띠 미출력되도록 수정
+'use strict';
 
 let _payrollDataStatus = 'none';
 let _paidLocked = false; // 지급완료 달 잠금 여부
@@ -218,16 +219,16 @@ function loadPayrollForm() {
     const v = sel ? parseInt(sel.value) : NaN;
     if (!isNaN(v) && v >= 0 && v < employees.length) currentEmpIdx = v;
   }
-  // 미선택 상태
+  // 미선택 상태 2026-07-25 11:10 미선택 상태에서 수정, 저장 버튼의 비활성, 상태띠 미출력되도록 수정
   if(currentEmpIdx < 0 || !employees.length) {
     showContent(false);
     if(ph) ph.style.display = '';
     payrollDirty = false;
-    const saveBtn = document.getElementById('btn-save');
-    if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
     const discardBtn = document.getElementById('btn-discard');
     if(discardBtn) discardBtn.disabled = true;
+    _payrollDataStatus = 'none';
     _updatePayrollStatus('none');
+    _applyPaidLock(false);
     return;
   }
 
