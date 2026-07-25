@@ -271,12 +271,23 @@ function gotoPage(id, el) {
   const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'},'change-password':{JP:'パスワード変更',KR:'비밀번호 변경'},santei:{JP:'算定基礎届',KR:'算定基礎届'},roudou:{JP:'労働保険 年度更新',KR:'労働保険 年度更新'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
+  /* 세리사 및 사원 아이디로 로그인 시 과거급여 수정 버튼과 미래 급여 저장 버튼이 보임
+     이것을 안 보이게 수정
   const isPayroll = id === 'payroll';
   document.getElementById('btn-save').style.display = isPayroll ? '' : 'none';
   const _paidBtn = document.getElementById('btn-mark-paid');
   if (_paidBtn) _paidBtn.style.display = isPayroll ? '' : 'none';
   const _discardBtn = document.getElementById('btn-discard');
   if (_discardBtn) _discardBtn.style.display = isPayroll ? '' : 'none';
+  */
+  const isPayroll = id === 'payroll';
+  const canWrite = typeof isWriteAuthorized === 'function' && isWriteAuthorized();
+  document.getElementById('btn-save').style.display = (isPayroll && canWrite) ? '' : 'none';
+  const _paidBtn = document.getElementById('btn-mark-paid');
+  if (_paidBtn) _paidBtn.style.display = (isPayroll && canWrite) ? '' : 'none';
+  const _discardBtn = document.getElementById('btn-discard');
+  if (_discardBtn) _discardBtn.style.display = (isPayroll && canWrite) ? '' : 'none';
+  /* 여기까지 추가 부분 */
   if(id==='payroll') { loadPayrollForm(); renderPaidBtn(); }
   if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();
