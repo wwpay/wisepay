@@ -357,12 +357,14 @@ function renderNavForRole() {
 function applyViewerRestrictions() {
   if (!currentUser || currentUser.role === 'admin') return;
 
-  // 저장·지급완료 버튼 숨김
+  // 저장·지급완료 알림 버튼 숨김
   const saveBtn = document.getElementById('btn-save');
   const paidBtn = document.getElementById('btn-mark-paid');
+  const notifBtn = document.getElementById('btn-notif');
   if (saveBtn) saveBtn.style.display = 'none';
   if (paidBtn) paidBtn.style.display = 'none';
-
+  if (notifBtn) notifBtn.closest('.notif-btn-wrap').style.display = 'none';
+  
   // 급여 입력 필드 읽기 전용
   document.querySelectorAll('#page-payroll .row-input').forEach(inp => {
     inp.readOnly = true;
