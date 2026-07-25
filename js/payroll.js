@@ -23,7 +23,7 @@ function _applyPaidLock(locked) {
   if (locked) {
     saveBtn.onclick           = unlockPaidMonth;
     saveBtn.style.background  = '#475569';
-    saveBtn.style.borderColor = '#475569';
+    saveBtn.style.borderColor = '#334155';
     saveBtn.style.color       = '#fff';
     if (saveIcon) saveIcon.style.display = 'none';
     if (saveTxt)  saveTxt.textContent    = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
@@ -219,7 +219,7 @@ function loadPayrollForm() {
     const v = sel ? parseInt(sel.value) : NaN;
     if (!isNaN(v) && v >= 0 && v < employees.length) currentEmpIdx = v;
   }
-  // 미선택 상태 2026-07-25 11:10 미선택 상태에서 수정, 저장 버튼의 비활성, 상태띠 미출력되도록 수정
+  // 미선택 상태
   if(currentEmpIdx < 0 || !employees.length) {
     showContent(false);
     if(ph) ph.style.display = '';
@@ -229,8 +229,13 @@ function loadPayrollForm() {
     _payrollDataStatus = 'none';
     _updatePayrollStatus('none');
     _applyPaidLock(false);
+    const saveBtn = document.getElementById('btn-save');
+    if(saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.5'; saveBtn.style.cursor = 'not-allowed'; }
     return;
   }
+
+  const saveBtn0 = document.getElementById('btn-save');
+  if(saveBtn0) { saveBtn0.disabled = false; saveBtn0.style.opacity = ''; saveBtn0.style.cursor = ''; }
 
   if(currentEmpIdx >= employees.length) currentEmpIdx = 0;
   if(ph) ph.style.display = 'none';
