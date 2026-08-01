@@ -68,6 +68,8 @@ function applyLang() {
   setTxt('t-nav-gas', 'データ管理', '데이터 관리');
   setTxt('t-nav-vacation', '有給休暇', '유급 휴가');
   setTxt('t-nav-changepw', 'パスワード変更', '패스워드 변경');
+  setTxt('annualYearModeBtn', '年間モード', '연간 모드');
+  setTxt('annualCustomModeBtn', '期間指定', '기간 지정');
 
   // vacation page
   setTxt('t-vac-sel-label',     '従業員選択', '사원 선택');

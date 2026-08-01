@@ -191,13 +191,28 @@ function applyAnnualCustomRange() {
   _annualCustomEndMonth   = em;
   _annualCustomMode = true;
 
-  const label = document.getElementById('annualCustomRangeLabel');
-  if (label) label.textContent = jp ? `${sy}年${sm}月 〜 ${ey}年${em}月` : `${sy}년 ${sm}월 ~ ${ey}년 ${em}월`;
   const btn = document.getElementById('annualCustomModeBtn');
   if (btn) { btn.style.background = 'var(--accent2)'; btn.style.color = 'var(--accent)'; btn.style.borderColor = 'var(--accent)'; }
 
   closeAnnualCustomModal();
   renderAnnual();
+}
+
+// 기간 지정 라벨 갱신
+function updateAnnualCustomRangeLabel() {
+  const label = document.getElementById('annualCustomRangeLabel');
+  if (!label || !_annualCustomMode) return;
+
+  const sy = _annualCustomStartYear;
+  const sm = _annualCustomStartMonth;
+  const ey = _annualCustomEndYear;
+  const em = _annualCustomEndMonth;
+
+  const jp = LANG === 'JP';
+
+  label.textContent = jp
+    ? `${sy}年${sm}月 〜 ${ey}年${em}月`
+    : `${sy}년 ${sm}월 ~ ${ey}년 ${em}월`;
 }
 
 // 연도 모드로 되돌리기
@@ -340,7 +355,6 @@ function filterAnnualEmpList() {
 
 // 전체 선택 / 해제 / 재직자만
 function selectAllAnnualEmps() {
-  document.querySelectorAll('#annualEmpCheckList label[style*="display: none"]').forEach(() => {});
   document.querySelectorAll('#annualEmpCheckList label:not([style*="display: none"]) input[type="checkbox"]').forEach(cb => cb.checked = true);
   updateAnnualSelSummary();
 }
@@ -522,6 +536,7 @@ function buildEmpTableHtml(emp, fiscalMonths, jp) {
 }
 
 function renderAnnual() {
+  updateAnnualCustomRangeLabel();
   const jp = LANG==='JP';
   const ph = document.getElementById('annualPrintHeader');
   const placeholder = document.getElementById('annualPlaceholder');
