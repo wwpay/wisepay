@@ -853,12 +853,12 @@ function mInitApp() {
     // 급여명세 바: 연도 네비 + 월 버튼을 가운데로 모으고 간격 정리
     const payrollBar = document.getElementById('m-sel-bar-payroll');
     if (payrollBar) { payrollBar.style.justifyContent = 'center'; payrollBar.style.gap = '8px'; }
-    const yearNavPayroll = payrollBar ? payrollBar.querySelector('.m-year-nav') : null;
-    if (yearNavPayroll) yearNavPayroll.style.flex = '1 1 auto';
-    const monthSelBtn = document.getElementById('m-month-sel-btn');
-    if (monthSelBtn) monthSelBtn.style.flex = '1 1 auto';
-    const todayBtnPayroll = document.getElementById('m-payroll-today-btn');
-    if (todayBtnPayroll) todayBtnPayroll.style.flex = '1 1 auto';    // 임금대장 바: 연도 네비를 가운데로 정렬
+    
+      payrollBar.style.display = 'grid';
+      payrollBar.style.gridTemplateColumns = '1.3fr 1fr 1fr';
+      payrollBar.style.gap = '8px';
+      payrollBar.style.alignItems = 'center';
+
     const annualWrap = document.getElementById('m-annual-sel-wrap');
     if (annualWrap) annualWrap.style.justifyContent = 'center';
     mRenderEmpSels();
