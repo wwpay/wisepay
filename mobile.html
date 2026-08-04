@@ -854,10 +854,18 @@ function mInitApp() {
     const payrollBar = document.getElementById('m-sel-bar-payroll');
     if (payrollBar) {
       payrollBar.style.display = 'grid';
-      payrollBar.style.gridTemplateColumns = '1.3fr 1fr 1fr';
+      payrollBar.style.gridTemplateColumns = '1fr 1fr 1fr';
       payrollBar.style.gap = '8px';
       payrollBar.style.alignItems = 'center';
     }
+
+    const annualWrap = document.getElementById('m-annual-sel-wrap');
+    if (annualWrap) {
+      annualWrap.style.width = '100%';
+      annualWrap.style.boxSizing = 'border-box';
+      annualWrap.style.justifyContent = 'center';
+    }
+
     // 월 버튼 높이를 이번달 버튼과 동일하게 맞춤
     const monthSelBtn = document.getElementById('m-month-sel-btn');
     if (monthSelBtn) { monthSelBtn.style.minHeight = '36px'; monthSelBtn.style.padding = '0 28px 0 10px'; }
