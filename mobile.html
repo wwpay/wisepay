@@ -1208,8 +1208,6 @@ function mRenderPayroll() {
     return;
   }
 
-  const ym = `${mY}-${String(mM).padStart(2,'0')}`;
-  const isPaidMonth = typeof paidYMs !== 'undefined' && paidYMs.has(ym);
   const statusMap = {
     paid:   ['m-status-gas',    jp?'🔒 送金完了':'🔒 송금완료'],
     saved:  ['m-status-saved',  jp?'✅ 保存済み':'✅ 저장됨'],
