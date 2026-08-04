@@ -1194,6 +1194,15 @@ function mRenderPayroll() {
   const emp  = employees[mEmp];
   const calc = mCalc(emp, mY, mM);
 
+  // ▼ 추가: 사원 역할이면 송금완료 전에는 데이터 숨김 (PC payroll.js와 동일 규칙)
+  const ym = `${mY}-${String(mM).padStart(2,'0')}`;
+  const isPaidMonth = typeof paidYMs !== 'undefined' && paidYMs.has(ym);
+  const isEmpRole = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  if (isEmpRole && !isPaidMonth) {
+  out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">📭</div>${jp?'この月のデータはありません':'이 달 데이터가 없습니다'}</div>`;
+  return;
+  }
+
   if (!calc) {
     out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">📭</div>${jp?'この月のデータはありません':'이 달 데이터가 없습니다'}</div>`;
     return;
