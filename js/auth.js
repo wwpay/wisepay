@@ -226,7 +226,8 @@ window.addEventListener('load', function checkResetToken() {
 });
 
 async function doLogin() {
-  document.activeElement?.blur(); // 로그인 시도 시 모바일 키보드 숨김
+  document.getElementById('login-id')?.blur();
+  document.getElementById('login-pw')?.blur();
   const id     = (document.getElementById('login-id').value || '').trim();
   const pw     = document.getElementById('login-pw').value || '';
   const saveId = document.getElementById('login-save-id').checked;
@@ -292,6 +293,7 @@ function loginOnEnter(e) {
   if (e.target.id === 'login-id') {
     document.getElementById('login-pw')?.focus();
   } else {
+    e.target.blur();
     doLogin();
   }
 }
