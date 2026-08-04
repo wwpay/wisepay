@@ -226,6 +226,7 @@ window.addEventListener('load', function checkResetToken() {
 });
 
 async function doLogin() {
+  document.activeElement?.blur(); // 로그인 시도 시 모바일 키보드 숨김
   const id     = (document.getElementById('login-id').value || '').trim();
   const pw     = document.getElementById('login-pw').value || '';
   const saveId = document.getElementById('login-save-id').checked;
