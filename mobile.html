@@ -852,12 +852,13 @@ function mInitApp() {
     });
     // 급여명세 바: 연도 네비 + 월 버튼을 가운데로 모으고 간격 정리
     const payrollBar = document.getElementById('m-sel-bar-payroll');
-    if (payrollBar) { payrollBar.style.justifyContent = 'center'; payrollBar.style.gap = '14px'; }
+    if (payrollBar) { payrollBar.style.justifyContent = 'center'; payrollBar.style.gap = '8px'; }
     const yearNavPayroll = payrollBar ? payrollBar.querySelector('.m-year-nav') : null;
-    if (yearNavPayroll) yearNavPayroll.style.flex = '0 0 auto';
-const monthSelBtn = document.getElementById('m-month-sel-btn');
-    if (monthSelBtn) { monthSelBtn.style.flex = '0 0 auto'; monthSelBtn.style.minWidth = '100px'; }
-    // 임금대장 바: 연도 네비를 가운데로 정렬
+    if (yearNavPayroll) yearNavPayroll.style.flex = '1 1 auto';
+    const monthSelBtn = document.getElementById('m-month-sel-btn');
+    if (monthSelBtn) monthSelBtn.style.flex = '1 1 auto';
+    const todayBtnPayroll = document.getElementById('m-payroll-today-btn');
+    if (todayBtnPayroll) todayBtnPayroll.style.flex = '1 1 auto';    // 임금대장 바: 연도 네비를 가운데로 정렬
     const annualWrap = document.getElementById('m-annual-sel-wrap');
     if (annualWrap) annualWrap.style.justifyContent = 'center';
     mRenderEmpSels();
@@ -1060,6 +1061,16 @@ function mChangeYear(d) {
   mRenderMonthSel(); mRenderPayroll();
 }
 
+function mGotoThisMonthPayroll() {
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth() + 1;
+  if (mY === y && mM === m) return;
+  mY = y; mM = m;
+  localStorage.setItem(M_YEAR_K, mY); localStorage.setItem(M_MON_K, mM);
+  mTabVisited.payroll = true;
+  mRenderMonthSel(); mRenderPayroll();
+}
+
 function mOnMonthChange() {
   const v = parseInt(document.getElementById('m-month-sel')?.value);
   if (isNaN(v) || v < 1) return;
@@ -1104,6 +1115,8 @@ function mRenderMonthSel() {
   const btn = document.getElementById('m-month-btn-label');
   if (btn) btn.textContent = mM > 0 ? mM + u : (jp ? '── 月 ──' : '── 월 ──');
   document.getElementById('m-year-txt').textContent = mY + (jp ? '年' : '년');
+  const todayBtn = document.getElementById('m-payroll-today-btn');
+  if (todayBtn) todayBtn.textContent = jp ? '今月' : '이번달';
 }
 
 /* ── 급여 계산 (순수 함수, DOM 조작 없음) ── */
@@ -1851,9 +1864,12 @@ document.addEventListener('keydown', function(e) {
     <span class="m-year-txt" id="m-year-txt"></span>
     <button class="m-year-btn" onclick="mChangeYear(1)">›</button>
   </div>
-<button id="m-month-sel-btn" class="m-sel" style="flex:1;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="mOpenPayrollMonthPicker()">    <span id="m-month-btn-label">── 월 ──</span>
-  </button>
+ <button id="m-month-sel-btn" class="m-sel" style="flex:1;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="mOpenPayrollMonthPicker()">    
+  <span id="m-month-btn-label">── 월 ──</span>
+ </button>
+ <button id="m-payroll-today-btn" class="m-vac-dbar-btn" onclick="mGotoThisMonthPayroll()">이번달</button>
 </div>
+
 <!-- 임금대장 셀렉터 바 (tabbar 위 고정) -->
 <div id="m-sel-bar-annual" class="m-sel-bar hidden">
   <div id="m-annual-sel-wrap" style="display:flex;gap:8px;align-items:center;">
