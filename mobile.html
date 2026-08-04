@@ -855,8 +855,8 @@ function mInitApp() {
     if (payrollBar) { payrollBar.style.justifyContent = 'center'; payrollBar.style.gap = '14px'; }
     const yearNavPayroll = payrollBar ? payrollBar.querySelector('.m-year-nav') : null;
     if (yearNavPayroll) yearNavPayroll.style.flex = '0 0 auto';
-    const monthSelBtn = document.getElementById('m-month-sel-btn');
-    if (monthSelBtn) monthSelBtn.style.flex = '0 0 auto';
+const monthSelBtn = document.getElementById('m-month-sel-btn');
+    if (monthSelBtn) { monthSelBtn.style.flex = '0 0 auto'; monthSelBtn.style.minWidth = '100px'; }
     // 임금대장 바: 연도 네비를 가운데로 정렬
     const annualWrap = document.getElementById('m-annual-sel-wrap');
     if (annualWrap) annualWrap.style.justifyContent = 'center';
