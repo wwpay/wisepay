@@ -846,6 +846,10 @@ function mInitApp() {
   // employee: GAS에서 본인 데이터만 로드 (서버측 강제 치환)
   if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee') {
     mViewerPayrolls = null;
+    // ▼ 추가: 본인 1명뿐이라 사원 선택 UI 불필요 → 숨김 (급여명세/임금대장 공통)
+    [document.getElementById('m-emp-sel-btn'), document.getElementById('m-annual-emp-btn')].forEach(btn => {
+      if (btn) btn.style.display = 'none';
+    });
     mRenderEmpSels();
     mLoadEmployeeData();
     return;
