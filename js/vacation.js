@@ -456,6 +456,7 @@ let _vacDetailEmpNo = null;
 let _vacDetailYear  = new Date().getFullYear();
 let _vacDetailMonth = new Date().getMonth() + 1;
 let _vacModalEmpNo  = null;
+let _vacEditingIndex = null;
 let _vacHideNotApplied = true;
 let _vacListMode = 'month'; // 'month' | 'year'
 
@@ -811,7 +812,7 @@ function _renderVacList() {
       ? `<button class="vac-list-del" onclick="event.stopPropagation();deleteVacUsage('${no}',${r._idx})" title="${jp ? '削除' : '삭제'}">✕</button>`
       : '';
     const futureCls = (r.date && r.date > _today) ? ' future' : '';
-    return `<div class="vac-list-item${futureCls}" id="vac-li-${r._idx}" onclick="_highlightVacListItem(${r._idx})">
+    return `<div class="vac-list-item${futureCls}" id="vac-li-${r._idx}" onclick="_handleVacListItemClick('${no}',${r._idx})">
         <span class="vac-list-date">${_jstDateFmt(r.date)}</span>
         <span class="vac-list-badge ${badgeCls}">${badgeTxt}</span>
         <span class="vac-list-reason">${r.reason || ''}</span>
@@ -851,6 +852,12 @@ function _renderVacList() {
   }
 
   panel.innerHTML = hdr + monthRecords.map(r => _itemHtml(r, no, jp)).join('');
+}
+
+function _handleVacListItemClick(empNo, idx) {
+  _highlightVacListItem(idx);
+  const isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+  if (isAdmin) showVacationEditModal(empNo, idx);
 }
 
 function _highlightVacCalDate(dateStr) {
@@ -1027,6 +1034,7 @@ function _showVacCalMsg(msg) {
 }
 
 function showVacationModal(empNo, prefillDate) {
+  _vacEditingIndex = null;
   _vacModalEmpNo = empNo;
   const jp  = LANG === 'JP';
   const today = jstToday();
@@ -1061,11 +1069,47 @@ function showVacationModal(empNo, prefillDate) {
   if (r1) r1.checked = true;
   const reasonEl = document.getElementById('vac-modal-reason');
   if (reasonEl) reasonEl.value = '';
+  const titleEl = document.getElementById('t-vac-modal-title');
+  const saveEl = document.getElementById('t-vac-modal-save');
+  if (titleEl) titleEl.textContent = jp ? '有給取得入力' : '유급휴가 사용 입력';
+  if (saveEl) saveEl.textContent = jp ? '登録する' : '등록하기';
   openModal('modal-vacation');
   setTimeout(() => { if (reasonEl) reasonEl.focus(); }, 50);
 }
 
-function closeVacationModal() { closeModal('modal-vacation'); }
+function showVacationEditModal(empNo, idx) {
+  const isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+  const key = _vacKey(empNo);
+  const record = (vacationData[key] || [])[idx];
+  if (!isAdmin || !record || !(parseFloat(record.used) > 0)) return;
+
+  _vacModalEmpNo = key;
+  _vacEditingIndex = idx;
+  const jp = LANG === 'JP';
+  const dateEl = document.getElementById('vac-modal-date');
+  const reasonEl = document.getElementById('vac-modal-reason');
+  if (dateEl) {
+    dateEl.removeAttribute('min');
+    dateEl.value = record.date || '';
+  }
+  const radioId = parseFloat(record.used) >= 1
+    ? 'vac-modal-r1'
+    : record.ampm === 'am' ? 'vac-modal-ram' : 'vac-modal-rpm';
+  const radioEl = document.getElementById(radioId);
+  if (radioEl) radioEl.checked = true;
+  if (reasonEl) reasonEl.value = record.reason || '';
+  const titleEl = document.getElementById('t-vac-modal-title');
+  const saveEl = document.getElementById('t-vac-modal-save');
+  if (titleEl) titleEl.textContent = jp ? '有給休暇修正' : '유급휴가 수정';
+  if (saveEl) saveEl.textContent = jp ? '修正する' : '수정하기';
+  openModal('modal-vacation');
+  setTimeout(() => { if (reasonEl) reasonEl.focus(); }, 50);
+}
+
+function closeVacationModal() {
+  _vacEditingIndex = null;
+  closeModal('modal-vacation');
+}
 
 function saveVacationUsage() {
   const jp   = LANG === 'JP';
@@ -1073,6 +1117,7 @@ function saveVacationUsage() {
   if (!date) { showToast(jp ? '日付を入力してください' : '날짜를 입력해 주세요', 'e'); return; }
 
   const isEmployee = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'employee';
+  const isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
   // employee: 오늘 이전 날짜 등록 차단 (이중 검증)
   if (isEmployee && date < jstToday()) {
     showToast(jp ? '過去の日付は登録できません' : '오늘 이전 날짜는 등록할 수 없습니다', 'e');
@@ -1080,7 +1125,9 @@ function saveVacationUsage() {
   }
 
   const key = _vacKey(_vacModalEmpNo);
-  const dup = (vacationData[key] || []).find(r => r.used > 0 && r.date === date);
+  const dup = (vacationData[key] || []).find((r, idx) =>
+    r.used > 0 && r.date === date && idx !== _vacEditingIndex
+  );
   if (dup) {
     const d = _jstDateFmt(date);
     alert(jp
@@ -1094,6 +1141,35 @@ function saveVacationUsage() {
   const used = (r1 && r1.checked) ? 1 : 0.5;
   const ampm = (r1 && r1.checked) ? '' : (ram && ram.checked) ? 'am' : 'pm';
   const reason = (document.getElementById('vac-modal-reason')?.value || '').slice(0, 50);
+
+  if (_vacEditingIndex !== null) {
+    if (isAdmin) {
+      const record = (vacationData[key] || [])[_vacEditingIndex];
+      if (!record || !(parseFloat(record.used) > 0)) {
+        showToast(jp ? '修正対象が見つかりません' : '수정할 기록을 찾을 수 없습니다', 'e');
+        return;
+      }
+      record.date = date;
+      record.used = used;
+      record.reason = reason;
+      record.ampm = ampm;
+      _rebuildRemainingForEmp(_vacModalEmpNo);
+      _vacDirtyVersion++;
+      localStorage.setItem(LS.vacation, JSON.stringify(vacationData));
+      if (typeof saveVacationToGas === 'function') saveVacationToGas(vacationData);
+
+      const savedEmpNo = _vacModalEmpNo;
+      const savedTab = _vacTab;
+      const savedDetailNo = _vacDetailEmpNo;
+      closeVacationModal();
+      showToast(jp ? '有給休暇を修正しました' : '유급휴가를 수정했습니다', 's');
+      requestAnimationFrame(() => {
+        if (savedTab === 'detail' && savedDetailNo === savedEmpNo) renderVacationDetail();
+        renderVacationCards();
+      });
+    }
+    return;
+  }
 
   // employee: GAS addVacationEntry 직접 호출 (saveVacation은 admin-only)
   const grantYear = isEmployee ? '' : null; // 사용행 grant_year 미사용 → 빈값
