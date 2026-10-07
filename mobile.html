@@ -300,8 +300,8 @@ if (!/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       <span class="m-app-sub">Mobile</span>
     </div>
     <button class="m-topbar-btn" id="m-lang-btn" onclick="mToggleLang()">한국어</button>
-    <button class="m-topbar-btn" id="btn-fs-minus" onclick="changeFontSize(-1)" title="글자 크기 줄이기" style="min-width:36px;padding:0 6px;font-weight:700;">A-</button>
-    <button class="m-topbar-btn" id="btn-fs-plus"  onclick="changeFontSize(1)"  title="글자 크기 키우기" style="min-width:36px;padding:0 6px;font-weight:700;">A+</button>
+    <button class="m-topbar-btn" id="btn-fs-minus" onclick="changeFontSize(-1)" style="min-width:36px;padding:0 6px;font-weight:700;">A-</button>
+    <button class="m-topbar-btn" id="btn-fs-plus"  onclick="changeFontSize(1)"  style="min-width:36px;padding:0 6px;font-weight:700;">A+</button>
     <button class="m-topbar-btn logout" onclick="doLogout()">
       <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
         <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6"/>
@@ -887,6 +887,9 @@ function mApplyLang() {
   const jp = LANG === 'JP';
   document.documentElement.lang = jp ? 'ja' : 'ko';
   const setT = (id, j, k) => { const el = document.getElementById(id); if (el) el.textContent = jp ? j : k; };
+  const setTi = (id, j, k) => { const el = document.getElementById(id); if (el) el.title = jp ? j : k; };
+  setTi('btn-fs-minus', '文字サイズを小さく', '글자 크기 줄이기');
+  setTi('btn-fs-plus',  '文字サイズを大きく', '글자 크기 키우기');
   setT('m-lang-btn',   '한국어로 전환', '日本語に切替');
   setT('m-logout-txt', 'ログアウト',    '로그아웃');
   setT('m-tab-p',      '給与明細',      '급여 명세');
@@ -955,7 +958,7 @@ function mGotoTab(id, el) {
 /* ── 사원 셀렉터 (급여 명세 / 임금대장 공통) ── */
 function _mEmpLabel(idx, jp) {
   if (idx < 0 || idx >= employees.length)
-    return jp ? '── 従業員を選択 ──' : '── 사원 선択 ──';
+    return jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
   const e  = employees[idx];
   const no = String(e.no).padStart(4,'0');
   return e.kana
@@ -1266,7 +1269,7 @@ function mRenderPayroll() {
   ).join('');
 
   const kintaiRow = calc.kintai > 0
-    ? `<div class="m-row"><span class="m-row-label">${jp?'根太公除(-)':'근태공제(-)'}</span><span class="m-row-val neg">-¥${f(calc.kintai)}</span></div>` : '';
+    ? `<div class="m-row"><span class="m-row-label">${jp?'勤怠控除(-)':'근태공제(-)'}</span><span class="m-row-val neg">-¥${f(calc.kintai)}</span></div>` : '';
 
   /* 공제 항목 — 주요 6항목은 항상 표시, 주민세·연말정산은 값 있을 때만 */
   const deductRows = [

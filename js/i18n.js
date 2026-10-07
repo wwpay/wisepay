@@ -7,6 +7,10 @@ function setPh(id, jp, kr) {
   const el = document.getElementById(id);
   if (el) el.placeholder = LANG === 'JP' ? jp : kr;
 }
+function setTitle(id, jp, kr) {
+  const el = document.getElementById(id);
+  if (el) el.title = LANG === 'JP' ? jp : kr;
+}
 function setHtml(id, jp, kr) {
   const el = document.getElementById(id);
   if (el) el.innerHTML = LANG === 'JP' ? jp : kr;
@@ -72,6 +76,10 @@ function applyLang() {
   setTxt('t-nav-gas', 'データ管理', '데이터 관리');
   setTxt('t-nav-vacation', '有給休暇', '유급 휴가');
   setTxt('t-nav-changepw', 'パスワード変更', '패스워드 변경');
+  setTitle('t-logo-home', 'ホームへ', '홈으로');
+  setTitle('btn-fs-minus', '文字サイズを小さく', '글자 크기 줄이기');
+  setTitle('btn-fs-plus', '文字サイズを大きく', '글자 크기 키우기');
+  setTitle('btn-notif', '通知', '알림');
   setTxt('annualYearModeBtn', '年間モード', '연간 모드');
   setTxt('annualCustomModeBtn', '期間指定', '기간 지정');
 
@@ -199,6 +207,9 @@ function applyLang() {
   setTxt('annualInclLeftBtn',   '退職者含む',  '퇴사자 포함');
   setTxt('t-annual-confirm',    '確認',        '확인');
   setPh('annualEmpSearch',      '名前または社員番号で検索...', '이름 또는 사번 검색...');
+  setPh('vacEmpSearch',         '名前または社員番号で検索...', '이름 또는 사번 검색...');
+  // 사원 선택 버튼 라벨은 선택 상태에 따라 동적으로 결정되므로 history.js에 위임
+  try { updateAnnualSelSummary(); } catch (e) {}
 
   // 지급이력 테이블 헤더는 renderHistory()가 LANG을 직접 참조해 동적으로 생성
   try { if (document.getElementById('page-history')?.classList.contains('active')) renderHistory(); } catch(e) {}
