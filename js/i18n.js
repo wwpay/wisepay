@@ -3,6 +3,10 @@ function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
   if (el) el.textContent = LANG === 'JP' ? jp : kr;
 }
+function setPh(id, jp, kr) {
+  const el = document.getElementById(id);
+  if (el) el.placeholder = LANG === 'JP' ? jp : kr;
+}
 function setHtml(id, jp, kr) {
   const el = document.getElementById(id);
   if (el) el.innerHTML = LANG === 'JP' ? jp : kr;
@@ -194,6 +198,7 @@ function applyLang() {
   setTxt('t-annual-sel-clear',  '全解除',      '전체 해제');
   setTxt('annualInclLeftBtn',   '退職者含む',  '퇴사자 포함');
   setTxt('t-annual-confirm',    '確認',        '확인');
+  setPh('annualEmpSearch',      '名前または社員番号で検索...', '이름 또는 사번 검색...');
 
   // 지급이력 테이블 헤더는 renderHistory()가 LANG을 직접 참조해 동적으로 생성
   try { if (document.getElementById('page-history')?.classList.contains('active')) renderHistory(); } catch(e) {}
