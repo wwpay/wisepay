@@ -263,7 +263,7 @@
         <div class="row"><span class="row-label" id="t-r-field">現場手当</span><input class="row-input" id="r-field" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
         <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-commute')"></div>
         <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-hyo')"></div>
-        <div class="row" style="background:var(--accent2);border-radius:var(--r2);"><span class="row-label" id="t-r-hyo" style="font-size:11px;color:var(--text2);">標準報酬月額<br>（手動指定・任意）</span><input class="row-input" id="r-hyo" placeholder="0=自動" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-jumin')" style="font-style:italic;"></div>
+        <div class="row" style="background:var(--accent2);border-radius:var(--r2);"><span class="row-label" id="t-r-hyo" style="font-size:11px;color:var(--text2);">標準報酬月額<br><span style="font-size:10px;">直接入力 または 0（今月の支給額で計算）</span></span><input class="row-input" id="r-hyo" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-jumin')" style="font-style:italic;"></div>
         <div class="row row-total"><span class="row-label" id="t-r-total">計</span><span class="row-val" id="shikyuuTotal">0</span></div>
       </div>
     </div>
