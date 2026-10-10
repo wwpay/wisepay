@@ -289,6 +289,15 @@ function loadPayrollForm() {
     const todayYM = today.getFullYear() * 100 + (today.getMonth() + 1);
     const selectedYM = currentYear * 100 + currentMonth;
 
+    // 재직 기간(입사월~퇴사월) 밖의 달은 임시값으로 채우지 않는다 (저장된 데이터는 그대로 표시)
+    const _ymOf = str => {
+      const m = String(str || '').match(/^(\d{4})-(\d{1,2})/);
+      return m ? parseInt(m[1]) * 100 + parseInt(m[2]) : 0;
+    };
+    const joinYM  = _ymOf(emp.join);
+    const leaveYM = _ymOf(emp.leave);
+    const _inRange = ym => (!joinYM || ym >= joinYM) && (!leaveYM || ym <= leaveYM);
+
     // 한 방향으로 최대 24개월 탐색하는 공통 헬퍼
     // delta: +1=미래 방향, -1=과거 방향
     const _scan = (startY, startM, delta, initGas) => {
@@ -298,6 +307,7 @@ function loadPayrollForm() {
         m += delta;
         if(m > 12) { m = 1; y++; }
         if(m < 1)  { m = 12; y--; }
+        if(!_inRange(y * 100 + m)) continue;
         const s = localStorage.getItem(`kyuyo_p_${pNo}_${y}_${m}`);
         if(s) {
           try {
@@ -310,7 +320,11 @@ function loadPayrollForm() {
       return { pf, gas };
     };
 
-    if(selectedYM < todayYM) {
+    if(!_inRange(selectedYM)) {
+      // 입사 전·퇴사 후 달: 빈 폼
+      _dataStatus = 'empty';
+      PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
+    } else if(selectedYM < todayYM) {
       // 과거 월: 미래 방향 우선 탐색 → 없으면 과거 방향 fallback
       let { pf, gas } = _scan(currentYear, currentMonth, +1, savedGasData);
       if(!pf && !gas) ({ pf, gas } = _scan(currentYear, currentMonth, -1, null));
