@@ -535,7 +535,7 @@ async function mSyncFromGas() {
         leave:       normalizeDate(e.leave || ''),
         birth:       normalizeDate(e.birth || ''),
         families:    typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
-        fuyouCount:  parseInt(e.fuyouCount) || 0,
+        fuyouCount:  mFuyouFromFamilies(e.families),
         commute:     parseInt(e.commute) || 0,
         shaho_start: normalizeYM(e.shaho_start || '')
       }));
@@ -620,7 +620,7 @@ async function mLoadEmployeeData() {
         leave:       normalizeDate(e.leave || ''),
         birth:       normalizeDate(e.birth || ''),
         families:    typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
-        fuyouCount:  parseInt(e.fuyouCount) || 0,
+        fuyouCount:  mFuyouFromFamilies(e.families),
         commute:     parseInt(e.commute) || 0,
         shaho_start: normalizeYM(e.shaho_start || '')
       }));
@@ -686,7 +686,7 @@ async function mLoadViewerData() {
         join: normalizeDate(e.join || ''),
         birth: normalizeDate(e.birth || ''),
         families: typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
-        fuyouCount: parseInt(e.fuyouCount) || 0,
+        fuyouCount: mFuyouFromFamilies(e.families),
         commute: parseInt(e.commute) || 0,
         shaho_start: normalizeYM(e.shaho_start || '')
       }));
@@ -808,6 +808,15 @@ let mVacDetailYear   = new Date().getFullYear();
 let mVacDetailMonth  = new Date().getMonth() + 1;
 let mVacListMode     = 'month';
 
+/* 부양 인원: PC(syncFuyouFromFamilies)와 동일하게 가족 목록(16세 이상, 최대 7명)으로 재계산.
+   시트의 fuyouCount 칸이 날짜 서식이면 0이 1899-12-30으로 바뀌어 1899명이 되는 문제 방지 */
+function mFuyouFromFamilies(fam) {
+  let list = fam;
+  if (typeof list === 'string') { try { list = JSON.parse(list || '[]'); } catch(e) { list = []; } }
+  if (!Array.isArray(list)) list = [];
+  return Math.min(list.filter(f => f && f.birth && (currentYear - parseInt(String(f.birth).substring(0, 4))) >= 16).length, 7);
+}
+
 /* ── 초기화 ── */
 function mInitApp() {
   try { const s = localStorage.getItem(LS.emp); if (s) {
@@ -817,6 +826,7 @@ function mInitApp() {
       if (e.join)        e.join        = normalizeDate(e.join);
       if (e.leave)       e.leave       = normalizeDate(e.leave);
       if (e.birth)       e.birth       = normalizeDate(e.birth);
+      e.fuyouCount = mFuyouFromFamilies(e.families);
     });
   }} catch(e) {}
   try { const s = localStorage.getItem(LS.rateHistory); if (s) rateHistory = JSON.parse(s); } catch(e) {}
