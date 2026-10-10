@@ -77,8 +77,8 @@ function applyLang() {
   setTxt('t-nav-vacation', '有給休暇', '유급 휴가');
   setTxt('t-nav-changepw', 'パスワード変更', '패스워드 변경');
   setTitle('t-logo-home', 'ホームへ', '홈으로');
-  setTitle('btn-fs-minus', '文字サイズを小さく', '글자 크기 줄이기');
-  setTitle('btn-fs-plus', '文字サイズを大きく', '글자 크기 키우기');
+  setHtml('tip-fs-minus', '文字サイズを小さく', '글자 크기 줄이기');
+  setHtml('tip-fs-plus', '文字サイズを大きく', '글자 크기 키우기');
   setTitle('btn-notif', '通知', '알림');
   setTxt('annualYearModeBtn', '年間モード', '연간 모드');
   setTxt('annualCustomModeBtn', '期間指定', '기간 지정');
@@ -141,6 +141,7 @@ function applyLang() {
   );
   setTxt('t-k-shotoku', '所得税', '소득세');
   setTxt('t-k-jumin', '住民税', '주민세');
+  setTxt('t-k-sagaku', '差額精算', '차액 정산');
   setHtml('tip-jumin',
     '市区町村から送付される特別徴収税額通知書の月別金額を入力してください。<br>※ 月別金額の基準は「支給日」です。<br><br>例）6月分住民税 → 6月10日支給（5月分給与）から控除<br><br>※ 6月分は年間合計の端数調整により他月と金額が異なる場合があります。',
     '구청·시청에서 보내는 특별징수 통지서의 월별 금액을 입력하세요.<br>※ 월별 금액 기준은 \'지급일\'입니다.<br><br>예) 6월분 주민세(7월 10일 납기한)<br>　→ 6월 10일 지급(5월분 급여)에서 공제<br><br>※ 6월분은 연간 합계의 단수 조정으로 다른 달과 금액이 다를 수 있습니다.'

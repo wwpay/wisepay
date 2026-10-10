@@ -152,8 +152,8 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span id="t-langbtn">한국어로 전환</span>
       </button>
-      <button class="btn-fs" id="btn-fs-minus" onclick="changeFontSize(-1)">A-</button>
-      <button class="btn-fs" id="btn-fs-plus"  onclick="changeFontSize(1)">A+</button>
+      <button class="btn-fs" id="btn-fs-minus" onclick="changeFontSize(-1)" onmouseenter="showTip(this,'tip-fs-minus')" onfocus="showTip(this,'tip-fs-minus')" onmouseleave="hideTip('tip-fs-minus')" onblur="hideTip('tip-fs-minus')">A-</button>
+      <button class="btn-fs" id="btn-fs-plus"  onclick="changeFontSize(1)" onmouseenter="showTip(this,'tip-fs-plus')" onfocus="showTip(this,'tip-fs-plus')" onmouseleave="hideTip('tip-fs-plus')" onblur="hideTip('tip-fs-plus')">A+</button>
     </div>
     <button class="lang-btn btn-logout" onclick="doLogout()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -279,8 +279,9 @@
         <div class="row"><span class="row-label" id="t-k-nenkin">厚生年金保険料</span><span class="row-val hi" id="k-nenkin">0</span></div>
         <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-koyo">雇用保険料</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-koyo')" onfocus="showTip(this,'tip-koyo')" onmouseleave="hideTip('tip-koyo')" onblur="hideTip('tip-koyo')" onclick="toggleTip(this,'tip-koyo',event)">❓</span></span><span class="row-val hi" id="k-koyo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-shotoku">所得税</span><span class="row-val" id="k-shotoku">0</span></div>
-        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-jumin')" onfocus="showTip(this,'tip-jumin')" onmouseleave="hideTip('tip-jumin')" onblur="hideTip('tip-jumin')" onclick="toggleTip(this,'tip-jumin',event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
-        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-nencho')" onfocus="showTip(this,'tip-nencho')" onmouseleave="hideTip('tip-nencho')" onblur="hideTip('tip-nencho')" onclick="toggleTip(this,'tip-nencho',event)">❓</span></span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-jumin">住民税</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-jumin')" onfocus="showTip(this,'tip-jumin')" onmouseleave="hideTip('tip-jumin')" onblur="hideTip('tip-jumin')" onclick="toggleTip(this,'tip-jumin',event)">❓</span></span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-sagaku')"></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-sagaku">差額精算</span></span><input class="row-input" id="k-sagaku" onfocus="savePrevVal(this)" oninput="fmtInput(this,true);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
+        <div class="row"><span class="row-label" style="display:flex;align-items:center;"><span id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><span class="tip-icon" tabindex="0" onmouseenter="showTip(this,'tip-nencho')" onfocus="showTip(this,'tip-nencho')" onmouseleave="hideTip('tip-nencho')" onblur="hideTip('tip-nencho')" onclick="toggleTip(this,'tip-nencho',event)">❓</span></span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="fmtInput(this,true);recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
         <div class="row row-total"><span class="row-label" id="t-k-total">計</span><span class="row-val" id="kojoTotal">0</span></div>
       </div>
     </div>
@@ -1237,6 +1238,8 @@ document.addEventListener('DOMContentLoaded', initFontSize);
 <div class="tip-portal" id="tip-koyo"   role="tooltip" aria-hidden="true"></div>
 <div class="tip-portal" id="tip-jumin"  role="tooltip" aria-hidden="true"></div>
 <div class="tip-portal" id="tip-nencho" role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-fs-minus" role="tooltip" aria-hidden="true"></div>
+<div class="tip-portal" id="tip-fs-plus" role="tooltip" aria-hidden="true"></div>
 <script>
 (function() {
   function _reposition(icon, id) {

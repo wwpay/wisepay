@@ -38,5 +38,5 @@ let vacationData = {};    // { empNo: [...records] } — 유급휴가 데이터
 let payrollDirty = false; // 급여명세 미저장 여부
 let _pendingScrapedRates = null; // 스크래핑 결과 임시 보관
 
-const PFIELDS = ['r-base','r-ot','r-kintai','r-commute','r-commutetax','r-kinmu','r-shokumu','r-field','r-hyo','k-jumin','k-nencho'];
+const PFIELDS = ['r-base','r-ot','r-kintai','r-commute','r-commutetax','r-kinmu','r-shokumu','r-field','r-hyo','k-jumin','k-nencho','k-sagaku'];
 

@@ -258,7 +258,7 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 .history-table tr:hover td{background:var(--accent3);cursor:pointer;}
 .history-table th:nth-child(2),.history-table td:nth-child(2),
 .history-table th:nth-child(9),.history-table td:nth-child(9),
-.history-table th:nth-child(18),.history-table td:nth-child(18){border-left:2px solid var(--border);}
+.history-table th:nth-child(19),.history-table td:nth-child(19){border-left:2px solid var(--border);}
 .history-table td:nth-child(2),.history-table td:nth-child(9),.history-table td:nth-child(18){font-weight:700;}
 .hist-emp-section{margin-bottom:16px;border:1px solid var(--accent3);border-radius:var(--r);overflow:hidden;}
 .hist-emp-title-bar{background:var(--accent2);border-bottom:1px solid var(--accent3);padding:9px 12px;display:flex;align-items:center;gap:8px;}
@@ -553,3 +553,12 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 /* 労働保険 年度更新: OCR 기재란 힌트 라벨 */
 .ocr-label{display:inline-block;font-size:13px;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;font-weight:700;white-space:nowrap;letter-spacing:0;}
 @media print{.ocr-label{display:inline-block!important;font-size:12px!important;color:#1e3a8a!important;background:#dbeafe!important;border-color:#93c5fd!important;}}
+
+/* 급여명세 지급·공제 카드: 줄 높이 통일 + 합계 줄을 카드 맨 아래에 정렬 */
+#payrollBody .card{display:flex;flex-direction:column;}
+#payrollBody .card > div:not(.card-head){flex:1;display:flex;flex-direction:column;}
+#payrollBody .row{min-height:calc(38px + var(--fs-delta) * 1.4);}
+#payrollBody .row-total{margin-top:auto;}
+
+/* 글자 크기 버튼 설명창: 기본 title 대신 버튼 위쪽에 표시 (커서에 안 가리게) */
+#tip-fs-minus,#tip-fs-plus{min-width:0;white-space:nowrap;padding:6px 10px;}

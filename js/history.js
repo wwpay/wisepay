@@ -403,7 +403,7 @@ function calcMonthData(emp, year, month) {
     const commute=safeInt(d['r-commute']), commutetax=safeInt(d['r-commutetax']);
     const kinmu=safeInt(d['r-kinmu']);
     const shokumu=safeInt(d['r-shokumu']), field=safeInt(d['r-field']);
-    const jumin=safeInt(d['k-jumin']), nencho=safeInt(d['k-nencho']);
+    const jumin=safeInt(d['k-jumin']), nencho=safeInt(d['k-nencho']), sagaku=safeInt(d['k-sagaku']);
     const totalPay = base+ot-kintai+commute+commutetax+kinmu+shokumu+field;
     const hyo_override = safeInt(d['r-hyo']);
     const hyo = hyo_override > 0 ? hyo_override : getHyo(base-kintai+commute+commutetax+kinmu+shokumu+field);
@@ -422,9 +422,9 @@ function calcMonthData(emp, year, month) {
     const fuyou = parseInt(emp.fuyouCount)||0;
     const isOtsu = (emp.shotokuKbn||'ko') === 'otsu';
     let shotoku = Math.max(0, calcShotoku(shotokuBase, fuyou, isOtsu, year, month));
-    const totalKojo=shakai+shotoku+jumin+nencho;
+    const totalKojo=shakai+shotoku+jumin+sagaku+nencho;
     const net=totalPay-totalKojo;
-    return {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,totalPay,kenko,kaigo:kaigo2,kodomo,nenkin,koyo,shakai,shotoku,jumin,nencho,totalKojo,net};
+    return {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,totalPay,kenko,kaigo:kaigo2,kodomo,nenkin,koyo,shakai,shotoku,jumin,sagaku,nencho,totalKojo,net};
   } catch(e){ return null; }
 }
 
@@ -477,6 +477,7 @@ function buildEmpTableHtml(emp, fiscalMonths, jp) {
     {key:'koyo',    label:jp?'雇用保険':'고용보험'},
     {key:'shotoku', label:jp?'所得税':'소득세'},
     {key:'jumin',   label:jp?'住民税':'주민세'},
+    {key:'sagaku',  label:jp?'差額精算':'차액 정산'},
     {key:'nencho',  label:jp?'年末調整':'연말정산'},
   ];
 
@@ -674,7 +675,7 @@ function renderHistory() {
     `<thead><tr>` +
     `<th>${jp?'月':'월'}</th>` +
     `<th>${jp?'支給合計':'지급총액'}</th><th>${jp?'基本給':'기본급'}</th><th>${jp?'勤務手当':'근무수당'}</th><th>${jp?'職務手当':'직무수당'}</th><th>${jp?'現場手当':'현장수당'}</th><th>${jp?'残業手当':'잔업수당'}</th><th>${jp?'非課税通勤手当':'비과세교통비'}</th>` +
-    `<th>${jp?'控除合計':'공제총액'}</th><th>${jp?'健康保険':'건강보험'}</th><th>${jp?'介護保険':'개호보험'}</th><th>${jp?'子ども':'자녀육아'}</th><th>${jp?'厚生年金':'후생연금'}</th><th>${jp?'雇用保険':'고용보험'}</th><th>${jp?'所得税':'소득세'}</th><th>${jp?'住民税':'주민세'}</th><th>${jp?'年末調整':'연말정산'}</th>` +
+    `<th>${jp?'控除合計':'공제총액'}</th><th>${jp?'健康保険':'건강보험'}</th><th>${jp?'介護保険':'개호보험'}</th><th>${jp?'子ども':'자녀육아'}</th><th>${jp?'厚生年金':'후생연금'}</th><th>${jp?'雇用保険':'고용보험'}</th><th>${jp?'所得税':'소득세'}</th><th>${jp?'住民税':'주민세'}</th><th>${jp?'差額精算':'차액 정산'}</th><th>${jp?'年末調整':'연말정산'}</th>` +
     `<th>${jp?'実支給額':'실수령액'}</th>` +
     `</tr></thead>`;
 
@@ -702,8 +703,8 @@ function renderHistory() {
     months.forEach(({m, emp: rowEmp, d}) => {
       const base=safeInt(d['r-base']),ot=safeInt(d['r-ot']);
       const kintai=safeInt(d['r-kintai']),commute=safeInt(d['r-commute']),commutetax=safeInt(d['r-commutetax']),kinmu=safeInt(d['r-kinmu']),shokumu=safeInt(d['r-shokumu']),field=safeInt(d['r-field']);
-      const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),hyo_override=safeInt(d['r-hyo']);
-      const {totalPay,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net}=calcPayrollBreakdown(rowEmp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho},year,m);
+      const jumin=safeInt(d['k-jumin']),nencho=safeInt(d['k-nencho']),sagaku=safeInt(d['k-sagaku']),hyo_override=safeInt(d['r-hyo']);
+      const {totalPay,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net}=calcPayrollBreakdown(rowEmp,{base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,sagaku,nencho},year,m);
       const tr = document.createElement('tr');
       tr.onclick = () => {
         currentEmpIdx = employees.indexOf(rowEmp); currentMonth = m;
@@ -715,7 +716,7 @@ function renderHistory() {
       tr.innerHTML =
         `<td>${m}${mu}</td>`+
         `<td>${v(totalPay)}</td>`+`<td>${v(base)}</td>`+`<td>${v(kinmu)}</td>`+`<td>${v(shokumu)}</td>`+`<td>${v(field)}</td>`+`<td>${v(ot)}</td>`+`<td>${v(commute)}</td>`+
-        `<td>${v(totalKojo)}</td>`+`<td>${v(kenko)}</td>`+`<td>${v(kaigo)}</td>`+`<td>${v(kodomo)}</td>`+`<td>${v(nenkin)}</td>`+`<td>${v(koyo)}</td>`+`<td>${v(shotoku)}</td>`+`<td>${v(jumin)}</td>`+`<td>${v(nencho)}</td>`+
+        `<td>${v(totalKojo)}</td>`+`<td>${v(kenko)}</td>`+`<td>${v(kaigo)}</td>`+`<td>${v(kodomo)}</td>`+`<td>${v(nenkin)}</td>`+`<td>${v(koyo)}</td>`+`<td>${v(shotoku)}</td>`+`<td>${v(jumin)}</td>`+`<td>${v(sagaku)}</td>`+`<td>${v(nencho)}</td>`+
         `<td>${v(net)}</td>`;
       tbody.appendChild(tr);
     });

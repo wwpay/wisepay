@@ -1164,7 +1164,7 @@ function mCalc(emp, year, month) {
     return {
       status:'approx', totalPay:tp, totalKojo:kj || tp - net, net,
       kenko:pv('kenko'), kaigo:0, kodomo:0, nenkin:pv('nenkin'),
-      koyo:pv('koyo'), shotoku:pv('shotoku'), jumin:0, nencho:0,
+      koyo:pv('koyo'), shotoku:pv('shotoku'), jumin:0, sagaku:0, nencho:0,
       base:tp, ot:0, kintai:0, commute:0, commutetax:0, kinmu:0, shokumu:0, field:0,
       hyo:0, hyo_override:0, isGas:true
     };
@@ -1174,10 +1174,10 @@ function mCalc(emp, year, month) {
   const base=pv('r-base'), ot=pv('r-ot'), kintai=pv('r-kintai');
   const commute=pv('r-commute'), commutetax=pv('r-commutetax');
   const kinmu=pv('r-kinmu'), shokumu=pv('r-shokumu'), field=pv('r-field');
-  const hyo_override=pv('r-hyo'), jumin=pv('k-jumin'), nencho=pv('k-nencho');
+  const hyo_override=pv('r-hyo'), jumin=pv('k-jumin'), sagaku=pv('k-sagaku'), nencho=pv('k-nencho');
 
   const totalPay = base + ot - kintai + commute + commutetax + kinmu + shokumu + field;
-  if (totalPay === 0 && hyo_override === 0 && jumin === 0 && nencho === 0) return null;
+  if (totalPay === 0 && hyo_override === 0 && jumin === 0 && sagaku === 0 && nencho === 0) return null;
 
   applyRatesForYM(year, month);
   const hyo = hyo_override > 0 ? hyo_override
@@ -1203,12 +1203,12 @@ function mCalc(emp, year, month) {
   const isOtsu     = (emp.shotokuKbn || 'ko') === 'otsu';
   const shotoku    = Math.max(0, calcShotoku(shotokuBase, fuyou, isOtsu, year, month));
 
-  const totalKojo = shakai + shotoku + jumin + nencho;
+  const totalKojo = shakai + shotoku + jumin + sagaku + nencho;
   const net       = totalPay - totalKojo;
 
   return {
     status:'saved', base, ot, kintai, commute, commutetax, kinmu, shokumu, field,
-    hyo_override, jumin, nencho, hyo, isKaigo, koyoOn,
+    hyo_override, jumin, sagaku, nencho, hyo, isKaigo, koyoOn,
     totalPay, kenko, kaigo, kodomo, nenkin, koyo, shotoku, totalKojo, net
   };
 }
@@ -1280,6 +1280,7 @@ function mRenderPayroll() {
     [jp?'雇用保険料':'고용보험료',  calc.koyo, !calc.koyoOn],
     [jp?'所得税':'소득세',        calc.shotoku, calc.shotoku===0],
     ...(calc.jumin  !== 0 ? [[jp?'住民税':'주민세',   calc.jumin,  false]] : []),
+    ...(calc.sagaku !== 0 ? [[jp?'差額精算':'차액 정산', calc.sagaku, false]] : []),
     ...(calc.nencho !== 0 ? [[jp?'年末調整':'연말정산', calc.nencho, false]] : []),
   ].map(([l,v,zero]) =>
     `<div class="m-row"><span class="m-row-label">${l}</span><span class="m-row-val${zero?' zero':''}">${zero?'—':'¥'+f(v)}</span></div>`

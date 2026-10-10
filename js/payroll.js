@@ -388,7 +388,9 @@ function updateEmpHeader() {
 
 // ══ CALC ══
 // 쉼표 포맷: 입력 중 세 자리마다 , 추가
-function fmtInput(input) {
+function fmtInput(input, allowNeg) {
+  // allowNeg: 마이너스 입력 허용 칸 — '-' 만 입력된 상태는 지우지 않고 유지
+  if(allowNeg && input.value.trim() === '-') { input.value = '-'; markPayrollDirty(); return; }
   const isNeg = input.value.startsWith('-');
   const raw = input.value.replace(/[^0-9]/g, '');
   if(raw === '') { input.value = ''; markPayrollDirty(); return; }
@@ -500,10 +502,10 @@ function calcAgeExact(birthStr) {
 // ── 공제 계산 공통 함수 ─────────────────────────────────
 // history.js의 renderHistory, payroll.js의 recalc 양쪽에서 공유
 function calcPayrollBreakdown(emp, data, year, month) {
-  const {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho} = data;
+  const {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho,sagaku} = data;
   const totalPay = base+ot-kintai+commute+commutetax+kinmu+shokumu+field;
   // 전체 0 → getHyo(0)이 최소 등급을 반환해 오계산되므로 조기 반환
-  if (totalPay === 0 && !hyo_override && !jumin && !nencho) {
+  if (totalPay === 0 && !hyo_override && !jumin && !nencho && !sagaku) {
     const r = getRatesForYM(year, month);
     return {totalPay:0,hyo:0,kenko:0,kaigo:0,kodomo:0,nenkin:0,koyo:0,koyoEnabled:false,shakai:0,fuyou:0,isOtsu:false,shotoku:0,totalKojo:0,net:0,r};
   }
@@ -522,7 +524,7 @@ function calcPayrollBreakdown(emp, data, year, month) {
   const fuyou  = emp ? (parseInt(emp.fuyouCount)||0) : 0;
   const isOtsu = emp ? (emp.shotokuKbn||'ko')==='otsu' : false;
   const shotoku = Math.max(0, calcShotoku(totalPay-commute-shakai, fuyou, isOtsu, year, month));
-  const totalKojo = shakai+shotoku+(jumin||0)+(nencho||0);
+  const totalKojo = shakai+shotoku+(jumin||0)+(sagaku||0)+(nencho||0);
   const net = totalPay-totalKojo;
   return {totalPay,hyo,kenko,kaigo,kodomo,nenkin,koyo,koyoEnabled,shakai,fuyou,isOtsu,shotoku,totalKojo,net,r};
 }
@@ -550,17 +552,18 @@ function calcPayrollData(input, emp, year, month) {
   const hyo_override = parse('r-hyo');
   const jumin      = parse('k-jumin');
   const nencho     = parse('k-nencho');
+  const sagaku     = parse('k-sagaku');
 
   const inputVals = {
     'r-base': base, 'r-ot': ot, 'r-kintai': kintai, 'r-commute': commute,
     'r-commutetax': commutetax, 'r-kinmu': kinmu, 'r-shokumu': shokumu, 'r-field': field,
-    'r-hyo': hyo_override, 'k-jumin': jumin, 'k-nencho': nencho,
+    'r-hyo': hyo_override, 'k-jumin': jumin, 'k-nencho': nencho, 'k-sagaku': sagaku,
   };
 
   // 전체 0 조기 반환은 calcPayrollBreakdown 내부에서 처리
   const c = calcPayrollBreakdown(
     emp,
-    {base, ot, kintai, commute, commutetax, kinmu, shokumu, field, hyo_override, jumin, nencho},
+    {base, ot, kintai, commute, commutetax, kinmu, shokumu, field, hyo_override, jumin, nencho, sagaku},
     year, month
   );
 
@@ -579,13 +582,13 @@ function recalc() {
     'r-base':pv('r-base'), 'r-ot':pv('r-ot'), 'r-kintai':pv('r-kintai'),
     'r-commute':pv('r-commute'), 'r-commutetax':pv('r-commutetax'),
     'r-kinmu':pv('r-kinmu'), 'r-shokumu':pv('r-shokumu'), 'r-field':pv('r-field'),
-    'r-hyo':pv('r-hyo'), 'k-jumin':pv('k-jumin'), 'k-nencho':pv('k-nencho'),
+    'r-hyo':pv('r-hyo'), 'k-jumin':pv('k-jumin'), 'k-nencho':pv('k-nencho'), 'k-sagaku':pv('k-sagaku'),
   };
   const c = calcPayrollData(input, emp, currentYear, currentMonth);
   const {totalPay,hyo,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalKojo,net,
          koyoEnabled,shakai,fuyou,isOtsu,r} = c;
   // 빈 폼 판정: 입력 전체 0
-  const isEmpty = totalPay === 0 && !c['r-hyo'] && !c['k-jumin'] && !c['k-nencho'];
+  const isEmpty = totalPay === 0 && !c['r-hyo'] && !c['k-jumin'] && !c['k-nencho'] && !c['k-sagaku'];
   const fmt = n => n.toLocaleString();
 
   // ── 금액 표시
@@ -651,7 +654,7 @@ function recalc() {
             base:safeI(pd['r-base']), ot:safeI(pd['r-ot']), kintai:safeI(pd['r-kintai']),
             commute:safeI(pd['r-commute']), commutetax:safeI(pd['r-commutetax']),
             kinmu:safeI(pd['r-kinmu']), shokumu:safeI(pd['r-shokumu']), field:safeI(pd['r-field']),
-            hyo_override:safeI(pd['r-hyo']), jumin:safeI(pd['k-jumin']), nencho:safeI(pd['k-nencho']),
+            hyo_override:safeI(pd['r-hyo']), jumin:safeI(pd['k-jumin']), nencho:safeI(pd['k-nencho']), sagaku:safeI(pd['k-sagaku']),
           }, prevY, prevM).net;
         } else {
           prevNet = safeI(pd._net) || safeI(pd.net) || 0;
