@@ -265,10 +265,10 @@ function gotoPage(id, el) {
   document.getElementById('page-'+id).classList.add('active');
   if(el) el.classList.add('active');
   else {
-    const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
+    const sideNav = document.querySelector(`.nav-item[data-page="${id === 'gas-advanced' ? 'gas' : id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'},'change-password':{JP:'パスワード変更',KR:'비밀번호 변경'},santei:{JP:'算定基礎届',KR:'算定基礎届'},roudou:{JP:'労働保険 年度更新',KR:'労働保険 年度更新'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},'gas-advanced':{JP:'データ管理 › 高度なツール',KR:'데이터 관리 › 고급 도구'},notifications:{JP:'通知',KR:'알림'},vacation:{JP:'有給休暇',KR:'유급 휴가'},'payment-statement':{JP:'源泉所得税納付書',KR:'원천세 납부서'},'change-password':{JP:'パスワード変更',KR:'비밀번호 변경'},santei:{JP:'算定基礎届',KR:'算定基礎届'},roudou:{JP:'労働保険 年度更新',KR:'労働保険 年度更新'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   /* 세리사 및 사원 아이디로 로그인 시 과거급여 수정 버튼과 미래 급여 저장 버튼이 보임

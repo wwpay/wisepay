@@ -167,13 +167,17 @@ function applyLang() {
   );
   setTxt('t-gas-step4-title', 'WebアプリのURLを入力', '웹 앱 URL 입력');
   setTxt('t-backup-title', 'データバックアップ/復元', '데이터 백업/복원');
-  setTxt('t-backup-emp-label', '従業員データ', '사원 데이터');
-  setTxt('t-backup-emp-btn',   '👤 従業員データバックアップ', '👤 사원 데이터 백업');
-  setTxt('t-restore-emp-btn',  '👤 従業員データ復元', '👤 사원 데이터 복원');
-  setTxt('t-backup-pay-label', '給与データ', '급여 데이터');
-  setTxt('t-backup-pay-btn',   '💴 給与データバックアップ', '💴 급여 데이터 백업');
-  setTxt('t-restore-pay-btn',  '💴 給与データ復元', '💴 급여 데이터 복원');
-  setTxt('t-backup-excel-btn', '📊 Excelバックアップ（全体）', '📊 Excel 백업 (전체)');
+  setTxt('t-backup-emp-label', '👤 従業員データ', '👤 사원 데이터');
+  setTxt('t-backup-emp-btn',   '⬇ バックアップ', '⬇ 백업');
+  setTxt('t-restore-emp-btn',  '↺ 復元', '↺ 복원');
+  setTxt('t-backup-pay-label', '💴 給与データ', '💴 급여 데이터');
+  setTxt('t-backup-pay-btn',   '⬇ バックアップ', '⬇ 백업');
+  setTxt('t-restore-pay-btn',  '↺ 復元', '↺ 복원');
+  setTxt('t-backup-excel-btn', '⬇ Excelバックアップ', '⬇ Excel 백업');
+  setTxt('t-backup-excel-label', '📊 全体 (Excel)', '📊 전체 (Excel)');
+  setTxt('t-backup-excel-sub', '保管・確認用', '보관·확인용');
+  setTxt('t-adv-btn', '🛠 高度なツール（CSVアップロード・ローカルデータ初期化）→', '🛠 고급 도구 (CSV 업로드 · 로컬 데이터 초기화) →');
+  setTxt('t-adv-back', '← データ管理へ', '← 데이터 관리로');
   setTxt('t-backup-file-desc', 'ファイル名: 従業員_backup_YYYYMMDD.json / 給与_backup_YYYYMMDD.json', '파일명: 사원_backup_YYYYMMDD.json / 급여_backup_YYYYMMDD.json');
   setTxt('t-freee-section-title', '給与データ(CSV) → Googleドライブ', '급여 데이터(CSV) → 구글 드라이브');
   setTxt('t-freee-file-btn',   'ファイル選択', '파일 선택');
@@ -287,7 +291,7 @@ function applyLang() {
   const _ap = document.querySelector('.page.active');
   if (_ap) {
     const _id = _ap.id.replace('page-', '');
-    const _titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},notifications:{JP:'通知',KR:'알림'}};
+    const _titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금 대장'},gas:{JP:'データ管理',KR:'데이터 관리'},'gas-advanced':{JP:'データ管理 › 高度なツール',KR:'데이터 관리 › 고급 도구'},notifications:{JP:'通知',KR:'알림'}};
     const _t = _titles[_id];
     const _el = document.getElementById('topbar-title');
     if (_t && _el) _el.textContent = _t[LANG];

@@ -688,73 +688,6 @@
 <!-- ══ PAGE: GAS SETTINGS ══ -->
 <div class="page" id="page-gas">
 
-  <!-- ① 수동 백업 -->
-  <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-    <div style="background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span style="font-size:12px;font-weight:600;color:var(--text2);" id="t-backup-title">데이터 백업/복원</span>
-    </div>
-    <div style="padding:14px 16px;background:#fff;">
-      <!-- GAS 자동 백업 (맨 위) -->
-      <div style="padding:11px 14px;background:var(--accent2);border-radius:8px;border:1px solid var(--border);margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:600;color:#3730a3;margin-bottom:4px;" id="t-backup-auto-title">📅 구글 드라이브 자동 백업</div>
-        <div style="font-size:11px;color:#4338ca;line-height:1.7;" id="t-backup-auto-desc">매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).</div>
-      </div>
-      <!-- 사원 / 급여 JSON 백업 + 복원 -->
-      <div style="margin-bottom:10px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button onclick="downloadPayBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span id="t-backup-pay-btn">💴 급여 데이터 백업</span>
-          </button>
-          <button onclick="restorePayFromJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
-            <span id="t-restore-pay-btn">💴 급여 데이터 복원</span>
-          </button>
-        </div>
-      </div>
-      <div style="margin-bottom:10px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button onclick="downloadEmpBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span id="t-backup-emp-btn">👤 사원 데이터 백업</span>
-          </button>
-          <button onclick="restoreEmpFromJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
-            <span id="t-restore-emp-btn">👤 사원 데이터 복원</span>
-          </button>
-        </div>
-      </div>
-      <!-- 숨김 file input -->
-      <input type="file" id="restoreEmpInput" accept=".json" style="display:none;" onchange="_onRestoreEmpFile(this)">
-      <input type="file" id="restorePayInput" accept=".json" style="display:none;" onchange="_onRestorePayFile(this)">
-      <!-- Excel 백업 -->
-      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;">
-        <button onclick="downloadBackupExcel()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 12px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-          <span id="t-backup-excel-btn">📊 Excel 백업 (전체)</span>
-        </button>
-      </div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;" id="t-backup-file-desc">파일명: 사원_backup_YYYYMMDD.json / 급여_backup_YYYYMMDD.json</div>
-      <!-- 백업 저장 폴더 설정 -->
-      <div style="margin-bottom:14px;padding:10px 12px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;" id="t-backup-folder-label">💾 백업 저장 폴더</div>
-        <div id="backup-folder-status" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div>
-      </div>
-      <!-- 급여 데이터(CSV) → 구글 드라이브 -->
-      <div style="border-top:1px solid var(--border);padding-top:12px;">
-        <div id="t-freee-section-title" style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">급여 데이터(CSV) → 구글 드라이브</div>
-        <input type="file" id="freeePayrollInput" multiple accept=".csv" style="display:none;" onchange="updateFreeeFileLabel()">
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button onclick="document.getElementById('freeePayrollInput').click()" id="t-freee-file-btn" style="flex-shrink:0;padding:5px 12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">파일 선택</button>
-          <span id="freeeFileLabel" style="font-size:12px;color:var(--text3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">선택된 파일 없음</span>
-          <button onclick="importFreeePayrollCSV()" id="t-freee-upload-btn" style="flex-shrink:0;padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">업로드</button>
-        </div>
-        <div id="freeePayrollStatus" style="margin-top:6px;font-size:12px;"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- ③ 사용자 관리 (admin 전용) -->
   <div id="usermgmt-wrap" style="display:none;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
     <div style="background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:7px;">
@@ -765,15 +698,14 @@
       <button onclick="loadUserList()" style="padding:4px 10px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;">불러오기</button>
     </div>
     <div style="padding:14px 16px;background:#fff;">
-      <!-- 다른 사용자 비번 재설정 -->
-      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;">비밀번호 재설정 / パスワード再設定</div>
-      <div id="usermgmt-list" style="margin-bottom:16px;">
+      <!-- 사용자 목록 (로그인 이력·비번 재설정) -->
+      <div id="usermgmt-list" class="um-grid" style="margin-bottom:16px;">
         <span style="color:var(--text3);font-size:12px;">불러오기 버튼을 눌러 목록을 가져오세요.</span>
       </div>
       <!-- 내 비번 변경 -->
       <div style="border-top:1px solid var(--border);padding-top:14px;">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:10px;">내 비밀번호 변경 / 自分のパスワード変更 <span id="mypw-my-id" style="font-weight:400;color:var(--text3);"></span></div>
-        <div style="display:flex;flex-direction:column;gap:8px;max-width:300px;">
+        <button type="button" id="mypw-toggle" onclick="toggleMyPwBox()" style="padding:7px 14px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">🔑 내 비밀번호 변경 / 自分のパスワード変更 <span id="mypw-my-id" style="font-weight:400;color:var(--text3);"></span> ▼</button>
+        <div id="mypw-box" style="display:none;flex-direction:column;gap:8px;max-width:300px;margin-top:12px;">
           <div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">현재 비밀번호 / 現在のパスワード</div>
             <div style="position:relative;">
@@ -806,6 +738,79 @@
             변경 완료 / 変更完了
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ① 수동 백업 -->
+  <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+    <div style="background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span style="font-size:12px;font-weight:600;color:var(--text2);" id="t-backup-title">데이터 백업/복원</span>
+    </div>
+    <div style="padding:14px 16px;background:#fff;">
+      <div class="gas-bk-grid">
+        <div>
+      <!-- GAS 자동 백업 (맨 위) -->
+      <div style="padding:11px 14px;background:var(--accent2);border-radius:8px;border:1px solid var(--border);margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:#3730a3;margin-bottom:4px;" id="t-backup-auto-title">📅 구글 드라이브 자동 백업</div>
+        <div style="font-size:11px;color:#4338ca;line-height:1.7;" id="t-backup-auto-desc">매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).</div>
+      </div>
+      <!-- 백업 저장 폴더 설정 -->
+      <div style="margin-bottom:0;padding:10px 12px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;" id="t-backup-folder-label">💾 백업 저장 폴더</div>
+        <div id="backup-folder-status" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);">
+            <div><span id="t-backup-pay-label" style="font-size:14px;font-weight:600;color:var(--text);">💴 급여 데이터</span><span style="display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;">급여_backup_YYYYMMDD.json</span></div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="downloadPayBackupJson()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);"><span id="t-backup-pay-btn">⬇ 백업</span></button>
+              <button onclick="restorePayFromJson()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:#fff;color:#b45309;border:1px solid #fcd34d;"><span id="t-restore-pay-btn">↺ 복원</span></button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);">
+            <div><span id="t-backup-emp-label" style="font-size:14px;font-weight:600;color:var(--text);">👤 사원 데이터</span><span style="display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;">사원_backup_YYYYMMDD.json</span></div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="downloadEmpBackupJson()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);"><span id="t-backup-emp-btn">⬇ 백업</span></button>
+              <button onclick="restoreEmpFromJson()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:#fff;color:#b45309;border:1px solid #fcd34d;"><span id="t-restore-emp-btn">↺ 복원</span></button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;">
+            <div><span id="t-backup-excel-label" style="font-size:14px;font-weight:600;color:var(--text);">📊 전체 (Excel)</span><span id="t-backup-excel-sub" style="display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;">보관·확인용</span></div>
+            <button onclick="downloadBackupExcel()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;"><span id="t-backup-excel-btn">⬇ Excel 백업</span></button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="restoreEmpInput" accept=".json" style="display:none;" onchange="_onRestoreEmpFile(this)">
+      <input type="file" id="restorePayInput" accept=".json" style="display:none;" onchange="_onRestorePayFile(this)">
+    </div>
+  </div>
+
+  <!-- 고급 도구로 이동 -->
+  <div style="display:flex;justify-content:flex-end;">
+    <button onclick="gotoPage('gas-advanced')" style="padding:8px 16px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;"><span id="t-adv-btn">🛠 고급 도구 (CSV 업로드 · 로컬 데이터 초기화) →</span></button>
+  </div>
+</div>
+
+<!-- ══ PAGE: GAS ADVANCED (고급 도구) ══ -->
+<div class="page" id="page-gas-advanced">
+  <div style="margin-bottom:14px;">
+    <button onclick="gotoPage('gas')" style="padding:7px 14px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;"><span id="t-adv-back">← 데이터 관리로</span></button>
+  </div>
+  <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 16px;background:#fff;">
+      <!-- 급여 데이터(CSV) → 구글 드라이브 -->
+      <div>
+        <div id="t-freee-section-title" style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">급여 데이터(CSV) → 구글 드라이브</div>
+        <input type="file" id="freeePayrollInput" multiple accept=".csv" style="display:none;" onchange="updateFreeeFileLabel()">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button onclick="document.getElementById('freeePayrollInput').click()" id="t-freee-file-btn" style="flex-shrink:0;padding:5px 12px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">파일 선택</button>
+          <span id="freeeFileLabel" style="font-size:12px;color:var(--text3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">선택된 파일 없음</span>
+          <button onclick="importFreeePayrollCSV()" id="t-freee-upload-btn" style="flex-shrink:0;padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">업로드</button>
+        </div>
+        <div id="freeePayrollStatus" style="margin-top:6px;font-size:12px;"></div>
       </div>
     </div>
   </div>

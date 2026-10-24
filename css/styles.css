@@ -562,3 +562,8 @@ button:disabled,button[disabled],.btn:disabled,.btn[disabled],input:disabled,sel
 
 /* 글자 크기 버튼 설명창: 기본 title 대신 버튼 위쪽에 표시 (커서에 안 가리게) */
 #tip-fs-minus,#tip-fs-plus{min-width:0;white-space:nowrap;padding:6px 10px;}
+
+/* 데이터 관리: 사용자 목록 격자, 백업 2단 (좁으면 1단) */
+.um-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(440px,100%),1fr));gap:10px;}
+.gas-bk-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(380px,1.4fr);gap:16px;align-items:start;}
+@media (max-width:1000px){.gas-bk-grid{grid-template-columns:1fr;}}

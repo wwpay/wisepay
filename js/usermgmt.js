@@ -76,6 +76,16 @@ function toggleLoginHist(id) {
   if (btn) btn.textContent = (LANG === 'JP' ? 'ログイン履歴 ' : '로그인 이력 ') + (open ? '▲' : '▼');
 }
 
+function toggleMyPwBox() {
+  const box = document.getElementById('mypw-box');
+  const btn = document.getElementById('mypw-toggle');
+  if (!box) return;
+  const open = box.style.display === 'none';
+  box.style.display = open ? 'flex' : 'none';
+  if (btn) btn.lastChild.textContent = open ? ' ▲' : ' ▼';
+  if (open) document.getElementById('mypw-current')?.focus();
+}
+
 async function loadUserList() {
   if (!gasUrl) {
     showToast(LANG === 'JP' ? '先にURLを設定してください' : '먼저 URL을 설정해 주세요', 'w');
@@ -117,7 +127,7 @@ function _renderUserRows(users) {
 
     const row = document.createElement('div');
     row.id = 'umrow-' + id;
-    row.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;';
+    row.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
     row.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
