@@ -1,5 +1,6 @@
 ﻿// WisePay GAS Script
-// 수정 : 2026-07-25 10:40 - 알림 메일 중복 발송 버그 수정: 프론트엔드 중복 방지 로직을 서버 판단 방식으로 변경
+// 수정 : 2026-10-24 12:30 - 로그인 이력 기록(로그인이력 시트, 1년 보관)·관리자 조회(getLoginLog) 추가
+// 이전 수정 : 2026-07-25 10:40 - 알림 메일 중복 발송 버그 수정: 프론트엔드 중복 방지 로직을 서버 판단 방식으로 변경
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -18,6 +19,7 @@ const SHEET_PAID    = '지급완료이력';
 const SHEET_SNAP    = '급여스냅샷';
 const SHEET_HOLIDAY   = '공휴일';
 const SHEET_VACATION  = '유급휴가';
+const SHEET_LOGIN     = '로그인이력'; // 로그인 성공 기록 (1년 보관)
 const SHEET_CONFIG    = 'config'; // key-value 설정 시트 (算定基礎届・労働保険等 공통)
 
 // 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
@@ -281,6 +283,10 @@ function doPost(e) {
       cpSheet.getRange(cpRow + 1, cpHashCol + 1).setValue(cpNewHash);
       return jsonResponse({ ok: true });
     }
+    if (data.type === 'getLoginLog') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      return jsonResponse({ ok: true, logs: getLoginLogData() });
+    }
     if (data.type === 'verifyLogin') {
       var loginId   = String(data.id   || '').trim();
       var loginHash = String(data.hash || '').toLowerCase().trim();
@@ -306,6 +312,7 @@ function doPost(e) {
         if (matchedRole === 'employee') {
           userResp.employeeId = String(matched['사원ID'] || '').trim();
         }
+        try { appendLoginLog(userResp, data.device); } catch(logErr) {}
         return jsonResponse({ ok: true, user: userResp });
       }
       return jsonResponse({ ok: false });
@@ -825,6 +832,53 @@ function verifyWriteToken(data) {
     }
   }
   return false;
+}
+
+// ── 로그인 이력 (1년 보관) ─────────────────────────────────────
+var LOGIN_LOG_HEADERS = ['일시', 'ID', '이름', '권한', '기기'];
+
+function _loginLogCutoff() {
+  var d = new Date();
+  d.setFullYear(d.getFullYear() - 1);
+  return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+}
+
+function _loginLogAt(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+  return String(v || '').trim();
+}
+
+function appendLoginLog(user, device) {
+  var sh = getSheet(SHEET_LOGIN);
+  if (sh.getLastRow() < 1) sh.appendRow(LOGIN_LOG_HEADERS);
+  var now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+  var dev = (String(device || '') === 'mobile') ? 'mobile' : 'pc';
+  var row = sh.getLastRow() + 1;
+  var rg  = sh.getRange(row, 1, 1, LOGIN_LOG_HEADERS.length);
+  rg.setNumberFormat('@');
+  rg.setValues([[now, user.id || '', user.name || '', user.role || '', dev]]);
+  // 1년 지난 기록 삭제 (위쪽이 오래된 순)
+  var last = sh.getLastRow();
+  if (last < 2) return;
+  var cutoff = _loginLogCutoff();
+  var col = sh.getRange(2, 1, last - 1, 1).getValues();
+  var n = 0;
+  while (n < col.length && _loginLogAt(col[n][0]) < cutoff) n++;
+  if (n > 0) sh.deleteRows(2, n);
+}
+
+function getLoginLogData() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOGIN);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, LOGIN_LOG_HEADERS.length).getValues();
+  var cutoff = _loginLogCutoff();
+  var out = [];
+  for (var i = 0; i < vals.length; i++) {
+    var at = _loginLogAt(vals[i][0]);
+    if (!at || at < cutoff) continue;
+    out.push({ at: at, id: String(vals[i][1] || '').trim(), device: String(vals[i][4] || '').trim() });
+  }
+  return out;
 }
 
 function getUsers() {

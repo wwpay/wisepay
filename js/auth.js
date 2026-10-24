@@ -255,7 +255,7 @@ async function doLogin() {
     const url    = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : GAS_URL;
     const resp   = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify({ type: 'verifyLogin', id, hash }),
+      body: JSON.stringify({ type: 'verifyLogin', id, hash, device: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'pc' }),
     });
     const result = await resp.json();
 

@@ -13,6 +13,69 @@ function renderUserMgmt() {
   if (myIdEl) myIdEl.textContent = '(' + currentUser.id + ')';
 }
 
+// ── 로그인 이력 (최근 1년) ──
+let _loginLogById = {};
+
+async function _loadLoginLog() {
+  try {
+    const resp = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ type: 'getLoginLog', ...gasWriteAuth() })
+    });
+    const r = await resp.json();
+    return r.ok ? (r.logs || []) : [];
+  } catch(e) { return []; }
+}
+
+function _fmtLoginAt(at, withWeek) {
+  // at: 'yyyy-MM-dd HH:mm:ss' (JST)
+  const m = String(at || '').match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+  if (!m) return _esc(at);
+  if (!withWeek) return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}`;
+  const wd = new Date(+m[1], +m[2] - 1, +m[3]).getDay();
+  const W = LANG === 'JP' ? ['日','月','火','水','木','金','土'] : ['일','월','화','수','목','금','토'];
+  return `${+m[2]}/${+m[3]}(${W[wd]}) ${m[4]}:${m[5]}`;
+}
+
+function _devLabel(d) {
+  return d === 'mobile' ? (LANG === 'JP' ? '📱 スマホ' : '📱 폰') : '💻 PC';
+}
+
+function _loginSummaryHtml(id) {
+  const logs = _loginLogById[id] || [];
+  const lastLbl = LANG === 'JP' ? '最終ログイン' : '마지막 로그인';
+  const cntLbl  = LANG === 'JP' ? '直近1年' : '최근 1년';
+  const unit    = LANG === 'JP' ? '回' : '회';
+  const last = logs.length
+    ? `<b style="color:var(--accent);">${_fmtLoginAt(logs[0].at, true)}</b> · ${_devLabel(logs[0].device)}`
+    : `<b style="color:var(--red);">${LANG === 'JP' ? '記録なし' : '기록 없음'}</b>`;
+  return `<div style="margin-top:8px;font-size:14px;color:var(--text2);display:flex;gap:20px;flex-wrap:wrap;">
+      <span>${lastLbl}: ${last}</span>
+      <span>${cntLbl}: <b style="color:var(--accent);">${logs.length}${unit}</b></span>
+    </div>`;
+}
+
+function _loginHistHtml(id) {
+  const logs = _loginLogById[id] || [];
+  if (!logs.length) return `<div style="font-size:13px;color:var(--text3);">${LANG === 'JP' ? '直近1年のログイン記録はありません' : '최근 1년간 로그인 기록이 없습니다'}</div>`;
+  const rows = logs.map(l => `<tr><td style="padding:6px 4px;border-bottom:1px solid var(--border);">${_fmtLoginAt(l.at, false)}</td><td style="padding:6px 4px;border-bottom:1px solid var(--border);">${_devLabel(l.device)}</td></tr>`).join('');
+  return `<div style="max-height:260px;overflow-y:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><th style="text-align:left;color:var(--text3);font-weight:600;padding:5px 4px;border-bottom:1px solid var(--border);">${LANG === 'JP' ? '日時' : '일시'}</th><th style="text-align:left;color:var(--text3);font-weight:600;padding:5px 4px;border-bottom:1px solid var(--border);">${LANG === 'JP' ? '端末' : '기기'}</th></tr>
+        ${rows}
+      </table></div>`;
+}
+
+function toggleLoginHist(id) {
+  const el  = document.getElementById('lh-' + id);
+  const btn = document.getElementById('lh-btn-' + id);
+  if (!el) return;
+  const open = el.style.display === 'none';
+  el.style.display = open ? '' : 'none';
+  if (btn) btn.textContent = (LANG === 'JP' ? 'ログイン履歴 ' : '로그인 이력 ') + (open ? '▲' : '▼');
+}
+
 async function loadUserList() {
   if (!gasUrl) {
     showToast(LANG === 'JP' ? '先にURLを設定してください' : '먼저 URL을 설정해 주세요', 'w');
@@ -22,8 +85,11 @@ async function loadUserList() {
   if (listEl) listEl.innerHTML = '<span style="color:var(--text3);font-size:12px;">' + (LANG === 'JP' ? '読み込み中...' : '불러오는 중...') + '</span>';
 
   try {
-    const result = await gasRequest({ action: 'getUsers' });
+    const [result, logs] = await Promise.all([gasRequest({ action: 'getUsers' }), _loadLoginLog()]);
     if (!result.ok) throw new Error(result.error || (LANG === 'JP' ? '読み込み失敗' : '불러오기 실패'));
+    _loginLogById = {};
+    (logs || []).forEach(l => { (_loginLogById[l.id] = _loginLogById[l.id] || []).push(l); });
+    Object.keys(_loginLogById).forEach(k => _loginLogById[k].sort((a, b) => (a.at < b.at ? 1 : -1)));
     _renderUserRows(result.users || []);
   } catch(e) {
     if (listEl) listEl.innerHTML = '<span style="color:var(--red);font-size:12px;">❌ ' + _esc(e.message || '오류') + '</span>';
@@ -43,7 +109,8 @@ function _renderUserRows(users) {
   listEl.innerHTML = '';
   others.forEach(u => {
     const id = _esc(u.id);
-    const roleLabel = LANG === 'JP' ? '閲覧者' : '열람자';
+    const isEmp = u.role === 'employee';
+    const roleLabel = isEmp ? (LANG === 'JP' ? '従業員' : '직원') : (LANG === 'JP' ? '閲覧者' : '열람자');
     const sessLabel = u.sessionType === 'persistent'
       ? (LANG === 'JP' ? '長期' : '장기')
       : (LANG === 'JP' ? 'セッション' : '세션');
@@ -56,14 +123,22 @@ function _renderUserRows(users) {
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:600;">${id}</span>
           <span style="font-size:12px;color:var(--text2);">${_esc(u.name)}</span>
-          <span style="font-size:11px;color:#fff;background:#64748b;border-radius:4px;padding:1px 6px;">${roleLabel}</span>
+          <span style="font-size:11px;color:#fff;background:${isEmp ? '#0d9488' : '#64748b'};border-radius:4px;padding:1px 6px;">${roleLabel}</span>
           <span style="font-size:11px;color:var(--text3);">${sessLabel}</span>
         </div>
+        <div style="display:flex;gap:6px;">
+        <button id="lh-btn-${id}" onclick="toggleLoginHist('${id}')"
+          style="padding:5px 12px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          ${LANG === 'JP' ? 'ログイン履歴 ▼' : '로그인 이력 ▼'}
+        </button>
         <button onclick="togglePwResetForm('${id}')"
           style="padding:5px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
           ${LANG === 'JP' ? 'PW再設定' : '비번 재설정'}
         </button>
+        </div>
       </div>
+      ${_loginSummaryHtml(u.id)}
+      <div id="lh-${id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">${_loginHistHtml(u.id)}</div>
       <div id="pwr-form-${id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
           <div style="position:relative;flex:1;min-width:140px;">
