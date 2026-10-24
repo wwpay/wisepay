@@ -137,7 +137,7 @@ function _renderListPage() {
 
 async function initNotifications() {
   if (!('serviceWorker' in navigator)) return;
-  try { await navigator.serviceWorker.register('/service-worker.js'); } catch(e) {}
+  try { await navigator.serviceWorker.register('service-worker.js'); } catch(e) {}
   if ('Notification' in window && Notification.permission === 'default') {
     try { await Notification.requestPermission(); } catch(e) {}
   }
@@ -148,9 +148,9 @@ async function sendPushNotification(title, body, tag) {
   try {
     if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) { reg.showNotification(title, { body, icon: '/favicon.ico', badge: '/favicon.ico', tag: tag || 'wisepay' }); return; }
+      if (reg) { reg.showNotification(title, { body, icon: 'favicon.ico', badge: 'favicon.ico', tag: tag || 'wisepay' }); return; }
     }
-    new Notification(title, { body, icon: '/favicon.ico' });
+    new Notification(title, { body, icon: 'favicon.ico' });
   } catch(e) {}
 }
 

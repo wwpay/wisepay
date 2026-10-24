@@ -7,7 +7,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="apple-touch-icon" href="WW_LOGO.jpg">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b5bdb">
+<meta name="apple-mobile-web-app-title" content="WisePay">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js').catch(function(){});});}</script>
 <title>WisePay</title>
 <link rel="stylesheet" href="css/styles.css">
 <script>(function(){var fs=localStorage.getItem('wisepay_fontsize');if(fs)document.documentElement.dataset.fontSize=fs;}());</script>
